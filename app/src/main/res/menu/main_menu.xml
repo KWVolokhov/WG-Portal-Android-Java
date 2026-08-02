@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+        <item
+            android:id="@+id/calendar"
+            android:orderInCategory="1"
+            android:title="Календарь" />
+        <item
+            android:id="@+id/contacts"
+            android:orderInCategory="2"
+            android:title="Контакты" />
+        <item
+            android:id="@+id/calculator"
+            android:orderInCategory="2"
+            android:title="Калькулятор" />
+        <item
+            android:id="@+id/projects"
+            android:orderInCategory="3"
+            android:title="Проекты">
+                <menu>
+                        <item android:id="@+id/projects_work"
+                            android:orderInCategory="4"
+                            android:title="Рабочие" />
+                        <item android:id="@+id/projects_all"
+                            android:orderInCategory="5"
+                            android:title="Все" />
+                </menu>
+        </item>
+        <item
+            android:id="@+id/open_settings"
+            android:orderInCategory="6"
+            android:title="SMS">
+                <menu>
+                        <item android:id="@+id/sms_income"
+                            android:orderInCategory="7"
+                            android:title="Входящие" />
+                        <item android:id="@+id/sms_outcome"
+                            android:orderInCategory="8"
+                            android:title="Исходящие" />
+                </menu>
+        </item>
+        <item
+            android:id="@+id/parametrs"
+            android:orderInCategory="9"
+            android:title="Параметрры" />
+</menu>
