@@ -5,13 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.view.Display;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
@@ -33,7 +33,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Display display = getWindowManager().getDefaultDisplay();
+
+        WindowManager wm = getWindowManager();
+        //WindowManager wm = (WindowManager) v.getContext().getSystemService(Context.WINDOW_SERVICE);
+
+        Display display = wm.getDefaultDisplay();
         Point point = new Point();
         display.getSize(point);
         screenWidth = point.x;
@@ -59,12 +63,10 @@ public class MainActivity extends AppCompatActivity {
         initMainListView();
         refreshScreenOrientation(screenOrientation);
     }
-    @Override
     public boolean onCreateOptionsMenu(Menu menu1) {
         getMenuInflater().inflate(R.menu.main_menu, menu1);
         return true;
     }
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         String JabText=null;
         if(item.getItemId()==R.id.calendar) JabText = "Меню Календарь";
@@ -116,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
     private void initMainListView(){ //Заполнение листа
         String[] items = {"Задача 1", "Не Задачка 2", "Задача 4","Зметка 1", "Заметка 2", "Напоминание 1", "Напоминание 31", "Напомнить32"};
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
-        mainListView.setAdapter(adapter);
+        //ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
+        //mainListView.setAdapter(adapter);
 
         mainListView.setOnItemClickListener((parent, view, position, id) -> {
             String selected = "Жаба: " + (String) parent.getItemAtPosition(position);

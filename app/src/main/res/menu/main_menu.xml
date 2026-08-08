@@ -41,5 +41,5 @@
         <item
             android:id="@+id/parametrs"
             android:orderInCategory="9"
-            android:title="Параметрры" />
+            android:title="Параметры" />
 </menu>
