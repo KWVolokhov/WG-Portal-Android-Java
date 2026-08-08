@@ -18,7 +18,14 @@ import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.view.Menu;
+
+import java.util.Calendar;
 import java.util.Map;
+
+import android.os.Build; // Modern approach for API 30+ (Android 11+)
+import android.view.WindowInsets; // Modern approach for API 30+ (Android 11+)
+import android.view.WindowMetrics; // Modern approach for API 30+ (Android 11+)
+
 
 public class MainActivity extends AppCompatActivity {
     private int oldOrientation;
@@ -29,19 +36,33 @@ public class MainActivity extends AppCompatActivity {
     private ManageSQLDatabase owerDb=null;
     CalendarView mainCalendar;
     Integer rowNum=0;
+    private RussianHolidaysFetcher holidaysFetcher;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        WindowManager wm = getWindowManager();
-        //WindowManager wm = (WindowManager) v.getContext().getSystemService(Context.WINDOW_SERVICE);
+        // Modern approach for API 30+ (Android 11+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowManager windowManager = getWindowManager();
+            WindowMetrics windowMetrics = windowManager.getCurrentWindowMetrics();
+            android.graphics.Rect bounds = windowMetrics.getBounds();
+            WindowInsets windowInsets = windowMetrics.getWindowInsets();
 
-        Display display = wm.getDefaultDisplay();
-        Point point = new Point();
-        display.getSize(point);
-        screenWidth = point.x;
-        screenHeight = point.y;
+            int insetsLeft = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).left;
+            int insetsTop = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).top;
+            int insetsRight = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).right;
+            int insetsBottom = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
+
+            screenWidth = bounds.width() - insetsLeft - insetsRight;
+            screenHeight = bounds.height() - insetsTop - insetsBottom;
+        } else {    // Legacy approach for API < 30
+            Display display = getWindowManager().getDefaultDisplay();
+            Point point = new Point();
+            display.getSize(point);
+            screenWidth = point.x;
+            screenHeight = point.y;
+        }
 
         //savedInstanceState.windowActionBar = true;
         //windowNoTitle = false;
@@ -49,19 +70,55 @@ public class MainActivity extends AppCompatActivity {
         if(screenHeight>screenWidth)screenOrientation=0; else screenOrientation=1;
 
         mainListView = findViewById(R.id.listView1);
-        mainCalendar = findViewById(R.id.calendarView1);
         //=============Старт
-        mainCalendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                String[] monthStr = {"Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"};
-                String date = dayOfMonth + " " + monthStr[month] + " " + year ;
-                Toast.makeText(mainCalendar.getContext(), date, Toast.LENGTH_SHORT).show();
-            }
+        RussianCalendarView russianCalendar = findViewById(R.id.calendarView1);
+        russianCalendar.setOnDateSelectedListener(date -> {
+            String[] monthStr = {"Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"};
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            String dateStr = cal.get(Calendar.DAY_OF_MONTH) + " " + monthStr[cal.get(Calendar.MONTH)] + " " + cal.get(Calendar.YEAR);
+            Toast.makeText(this, dateStr, Toast.LENGTH_SHORT).show();
         });
+
+        // Fetch holidays for current year
+        fetchRussianHolidays();
 
         initMainListView();
         refreshScreenOrientation(screenOrientation);
+    }
+    private void fetchRussianHolidays() {
+        // Modern approach for API 30+ (Android 11+)
+        holidaysFetcher = new RussianHolidaysFetcher(this);
+        Calendar cal = Calendar.getInstance();
+        int currentYear = cal.get(Calendar.YEAR);
+
+        // Modern approach for API 30+ (Android 11+)
+        holidaysFetcher.fetchHolidaysForYear(currentYear, new RussianHolidaysFetcher.HolidaysFetchListener() {
+            @Override
+            public void onHolidaysFetched(java.util.HashSet<String> holidays) {
+                // Modern approach for API 30+ (Android 11+)
+                RussianCalendarView russianCalendar = findViewById(R.id.calendarView1);
+                russianCalendar.setHolidays(holidays);
+                runOnUiThread(() -> {
+                    String msg = "Праздники загружены: " + holidays.size() + " дней";
+                    Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Ошибка загрузки праздников: " + error, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (holidaysFetcher != null) {
+            holidaysFetcher.shutdown();
+        }
     }
     public boolean onCreateOptionsMenu(Menu menu1) {
         getMenuInflater().inflate(R.menu.main_menu, menu1);
