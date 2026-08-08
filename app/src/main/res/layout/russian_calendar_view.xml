@@ -4,30 +4,79 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <ImageButton
+        android:id="@+id/prevMonthButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_media_previous"
+        android:background="@android:color/transparent"
+        android:contentDescription="Предыдущий месяц"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp" />
+
+    <ImageView
+        android:id="@+id/chineseZodiacIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_dialog_info"
+        android:contentDescription="Китайский зодиак"
+        app:layout_constraintStart_toEndOf="@id/prevMonthButton"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp" />
+
+    <ImageView
+        android:id="@+id/westernZodiacIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_dialog_info"
+        android:contentDescription="Знак зодиака"
+        app:layout_constraintStart_toEndOf="@id/chineseZodiacIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp" />
+
     <TextView
         android:id="@+id/monthYearText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="#000000"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/westernZodiacIcon"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/nextMonthButton"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp" />
+
+    <ImageButton
+        android:id="@+id/nextMonthButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_media_next"
+        android:background="@android:color/transparent"
+        android:contentDescription="Следующий месяц"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="4dp" />
 
     <GridView
         android:id="@+id/calendarGridView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:numColumns="7"
-        android:horizontalSpacing="2dp"
-        android:verticalSpacing="2dp"
+        android:horizontalSpacing="1dp"
+        android:verticalSpacing="1dp"
         android:stretchMode="columnWidth"
         android:gravity="center"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/monthYearText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="8dp" />
+        android:layout_marginTop="26dp"
+        android:layout_marginBottom="4dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

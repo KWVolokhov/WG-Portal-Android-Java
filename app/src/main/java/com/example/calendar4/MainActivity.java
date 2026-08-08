@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
             String dateStr = cal.get(Calendar.DAY_OF_MONTH) + " " + monthStr[cal.get(Calendar.MONTH)] + " " + cal.get(Calendar.YEAR);
-            Toast.makeText(this, dateStr, Toast.LENGTH_SHORT).show();
+            //WG в самом календаре Toast.makeText(this, dateStr, Toast.LENGTH_SHORT).show();
         });
 
         // Fetch holidays for current year
