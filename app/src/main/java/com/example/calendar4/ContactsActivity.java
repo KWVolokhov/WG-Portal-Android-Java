@@ -1,11 +1,13 @@
 package com.example.calendar4;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +23,7 @@ public class ContactsActivity extends Activity {
     private Button btnBack;
 
     private ManageSQLDatabase owerDb;
-    private ArrayAdapter<String> adapter;
+    private ArrayAdapter<ContactRecord> adapter;
     private ArrayList<ContactRecord> allContacts;
 
     @Override
@@ -42,36 +44,30 @@ public class ContactsActivity extends Activity {
         allContacts = new ArrayList<>();
         loadContacts("");
 
-        // Setup adapter
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1) {
+        // Setup adapter: two-line rows
+        // (top = "Surname FirstName Patronymic(3)", bottom = Phone),
+        // with per-row "Редактировать" / "Удалить" buttons on the left.
+        adapter = new ArrayAdapter<ContactRecord>(this, 0, allContacts) {
             @Override
-            public int getCount() {
-                return allContacts.size();
-            }
-
-            @Override
-            public String getItem(int position) {
-                ContactRecord contact = allContacts.get(position);
-                // Format: "Фамилия Имя О. (phone)"
-                StringBuilder sb = new StringBuilder();
-                if (contact.Surname != null) sb.append(contact.Surname).append(" ");
-                if (contact.FirstName != null) sb.append(contact.FirstName).append(" ");
-                if (contact.Patronymic != null && contact.Patronymic.length() > 0) {
-                    sb.append(contact.Patronymic.substring(0, 1)).append(".");
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TwoLineListItem row;
+                if (convertView instanceof TwoLineListItem) {
+                    row = (TwoLineListItem) convertView;
+                } else {
+                    row = new TwoLineListItem(ContactsActivity.this);
                 }
-                if (contact.Phone != null) sb.append(" (").append(contact.Phone).append(")");
-                return sb.toString();
+                final ContactRecord contact = allContacts.get(position);
+                row.setTopText(fullName(contact));
+                row.setBottomText(contact.Phone != null ? contact.Phone : "");
+                row.setOnEditClickListener(v -> openContact(contact));
+                row.setOnDeleteClickListener(v -> confirmDeleteContact(contact));
+                return row;
             }
         };
         listViewContacts.setAdapter(adapter);
 
-        // Contact click - open for editing
-        listViewContacts.setOnItemClickListener((parent, view, position, id) -> {
-            ContactRecord selectedContact = allContacts.get(position);
-            Intent intent = new Intent(ContactsActivity.this, EditContactActivity.class);
-            intent.putExtra("contactId", selectedContact.id);
-            startActivityForResult(intent, 1);
-        });
+        // Editing is done via the per-row "Редактировать" button; tapping the row does nothing.
+        listViewContacts.setOnItemClickListener(null);
 
         // Filter text change
         editTextFilter.addTextChangedListener(new TextWatcher() {
@@ -109,6 +105,40 @@ public class ContactsActivity extends Activity {
         });
     }
 
+    private String fullName(ContactRecord c) {
+        StringBuilder sb = new StringBuilder();
+        if (c.Surname != null) sb.append(c.Surname);
+        if (c.FirstName != null) {
+            if (sb.length() > 0) sb.append(" ");
+            sb.append(c.FirstName);
+        }
+        if (c.Patronymic != null && c.Patronymic.length() > 0) {
+            if (sb.length() > 0) sb.append(" ");
+            sb.append(c.Patronymic, 0, Math.min(3, c.Patronymic.length()));
+        }
+        return sb.toString();
+    }
+
+    private void openContact(ContactRecord contact) {
+        Intent intent = new Intent(ContactsActivity.this, EditContactActivity.class);
+        intent.putExtra("contactId", contact.id);
+        startActivityForResult(intent, 1);
+    }
+
+    private void confirmDeleteContact(final ContactRecord contact) {
+        if (contact == null || contact.id == null) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить")
+                .setMessage("Удалить запись?")
+                .setPositiveButton("Ок", (d, w) -> {
+                    owerDb.deleteContact(contact.id);
+                    loadContacts(editTextFilter.getText().toString().trim());
+                    adapter.notifyDataSetChanged();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private void loadContacts(String filter) {
         ContactRecord[] contacts = owerDb.getContacts(filter);
         allContacts.clear();
@@ -120,7 +150,7 @@ public class ContactsActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        
+
         if (requestCode == 1) {
             // Refresh contacts list after editing
             String currentFilter = editTextFilter.getText().toString().trim();

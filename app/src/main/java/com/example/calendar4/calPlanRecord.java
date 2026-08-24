@@ -23,7 +23,7 @@ public class calPlanRecord implements Serializable {
     public String RequestName;
     public String RequestUNID;
     public String Status;
-    public Integer StatusID;
+    public String StatusID;
     public String MainSystem;
     public String AnalitikID;
     public String AnalitikName;

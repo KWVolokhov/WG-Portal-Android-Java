@@ -8,19 +8,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class EditContactActivity extends Activity {
+public class EditContactActivity extends AppCompatActivity {
 
     private EditText editTextSurname;
     private EditText editTextFirstName;
     private EditText editTextPatronymic;
-    private EditText editTextPhone;
-    private EditText editTextInfo;
-    private EditText editTextPhone2;
+    private PhoneFieldView editTextPhone;;
+    private InfoFieldView editTextInfo;
+    private PhoneFieldView editTextPhone2;
     private EditText editTextEmail;
-    private EditText editTextBirthDate;
+    private DateFieldView editTextBirthDate;
     private EditText editTextHomeAddress;
     private EditText editTextDateReceived;
     private Button btnOK;
@@ -114,15 +116,16 @@ public class EditContactActivity extends Activity {
         if (currentRecord.Surname != null) editTextSurname.setText(currentRecord.Surname);
         if (currentRecord.FirstName != null) editTextFirstName.setText(currentRecord.FirstName);
         if (currentRecord.Patronymic != null) editTextPatronymic.setText(currentRecord.Patronymic);
-        if (currentRecord.Phone != null) editTextPhone.setText(currentRecord.Phone);
-        if (currentRecord.Info != null) editTextInfo.setText(currentRecord.Info);
-        if (currentRecord.Phone2 != null) editTextPhone2.setText(currentRecord.Phone2);
+        if (currentRecord.Phone != null) editTextPhone.setValue(currentRecord.Phone);
+        editTextInfo.setText(currentRecord.Info);
+        if (currentRecord.Phone2 != null) editTextPhone2.setValue(currentRecord.Phone2);
         if (currentRecord.Email != null) editTextEmail.setText(currentRecord.Email);
         if (currentRecord.HomeAddress != null) editTextHomeAddress.setText(currentRecord.HomeAddress);
 
         // Format dates for display
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        if (currentRecord.BirthDate != null) editTextBirthDate.setText(sdf.format(currentRecord.BirthDate));
+        //if (currentRecord.BirthDate != null) editTextBirthDate.setText(sdf.format(currentRecord.BirthDate));
+        editTextBirthDate.setDate(currentRecord.BirthDate);
         if (currentRecord.DateReceived != null) editTextDateReceived.setText(sdf.format(currentRecord.DateReceived));
     }
 
@@ -131,9 +134,9 @@ public class EditContactActivity extends Activity {
         String surname = editTextSurname.getText().toString().trim();
         String firstName = editTextFirstName.getText().toString().trim();
         String patronymic = editTextPatronymic.getText().toString().trim();
-        String phone = editTextPhone.getText().toString().trim();
+        String phone = editTextPhone.getValue().toString().trim();
         String info = editTextInfo.getText().toString().trim();
-        String phone2 = editTextPhone2.getText().toString().trim();
+        String phone2 = editTextPhone2.getValue().toString().trim();
         String email = editTextEmail.getText().toString().trim();
         String homeAddress = editTextHomeAddress.getText().toString().trim();
 
@@ -161,16 +164,16 @@ public class EditContactActivity extends Activity {
         currentRecord.DateModified = new Date();
 
         // Parse dates
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        try {
+        currentRecord.BirthDate = editTextBirthDate.getDate();
+        /*try {
             String birthDateStr = editTextBirthDate.getText().toString().trim();
             if (!birthDateStr.isEmpty()) {
                 currentRecord.BirthDate = sdf.parse(birthDateStr);
             }
         } catch (Exception e) {
             currentRecord.BirthDate = null;
-        }
-
+        }*/
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         try {
             String dateReceivedStr = editTextDateReceived.getText().toString().trim();
             if (!dateReceivedStr.isEmpty()) {

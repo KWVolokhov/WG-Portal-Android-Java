@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private ManageSQLDatabase owerDb=null;
     //CalendarView mainCalendar;
     RussianCalendarView russianCalendar;
+    calPlanRecord[] activRecordS=null;
     Integer rowNum=0;
     private RussianHolidaysFetcher holidaysFetcher;
     @Override
@@ -272,8 +273,15 @@ public class MainActivity extends AppCompatActivity {
         //mainListView.setAdapter(adapter);
 
         mainListView.setOnItemClickListener((parent, view, position, id) -> {
-            String selected = "Жаба: " + (String) parent.getItemAtPosition(position);
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+            // Launch InputCalPlanActivity modally      WG12.08.26
+            Intent intent = new Intent(this, InputCalPlanActivity.class);
+            intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
+            for (calPlanRecord record : activRecordS) {
+                if (record.Name == (String) parent.getItemAtPosition(position)) {
+                    intent.putExtra("calPlanRecord", record);  //WG12.08.26
+                }
+            }
+            startActivityForResult(intent, 1);
         });
     }
 
@@ -282,11 +290,11 @@ public class MainActivity extends AppCompatActivity {
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
             if (activeDate != null) {
-                calPlanRecord[] records = owerDb.getCalPlan(activeDate);
+                activRecordS = owerDb.getCalPlan(activeDate);
                 
                 // Create list of names for display
                 ArrayList<String> namesList = new ArrayList<>();
-                for (calPlanRecord record : records) {
+                for (calPlanRecord record : activRecordS) {
                     if (record.Name != null) {
                         namesList.add(record.Name);
                     }
@@ -312,6 +320,7 @@ public class MainActivity extends AppCompatActivity {
             
             // Launch InputCalPlanActivity modally
             Intent intent = new Intent(this, InputCalPlanActivity.class);
+            intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
             startActivityForResult(intent, 1);
 
         } catch(Exception err) {

@@ -29,22 +29,22 @@
         <activity
             android:name=".InputCalPlanActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Dialog" />
+             />
 
         <activity
             android:name=".ParamsActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Dialog" />
+             />
 
         <activity
             android:name=".ContactsActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Dialog" />
+             />
 
         <activity
             android:name=".EditContactActivity"
             android:exported="false"
-            android:theme="@android:style/Theme.Dialog" />
+             />
     </application>
 
 

@@ -5,28 +5,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Top buttons row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end">
-
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:layout_marginEnd="8dp" />
-
-        <Button
-            android:id="@+id/btnOK"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OK" />
-    </LinearLayout>
-
-    <!-- Second row: Call and SMS buttons on left -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,14 +15,25 @@
             android:id="@+id/btnCall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Звонок"
-            android:layout_marginEnd="8dp" />
+            android:text="Звонок" />
 
         <Button
             android:id="@+id/btnSMS"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="СМС" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Cancel" />
+
+        <Button
+            android:id="@+id/btnOK"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="OK" />
     </LinearLayout>
 
     <!-- ScrollView for form fields -->
@@ -142,11 +131,10 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp" />
 
-                <EditText
+                <com.example.calendar4.PhoneFieldView
                     android:id="@+id/editTextPhone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
@@ -160,16 +148,15 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Информация:"
+                    android:text="Инфо:"
                     android:textSize="16sp"
-                    android:layout_gravity="center_vertical"
+                    android:layout_gravity="top"
                     android:layout_marginEnd="8dp" />
 
-                <EditText
+                <com.example.calendar4.InfoFieldView
                     android:id="@+id/editTextInfo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
@@ -183,16 +170,15 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2й телефон:"
+                    android:text="2й тел:"
                     android:textSize="16sp"
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp" />
 
-                <EditText
+                <com.example.calendar4.PhoneFieldView
                     android:id="@+id/editTextPhone2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="phone"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
@@ -227,6 +213,7 @@
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelTextBirthDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Дата рождения:"
@@ -234,11 +221,10 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp" />
 
-                <EditText
+                <com.example.calendar4.DateFieldView
                     android:id="@+id/editTextBirthDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="date"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
