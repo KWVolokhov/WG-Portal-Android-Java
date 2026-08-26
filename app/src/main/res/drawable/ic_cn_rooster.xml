@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Rooster: head with comb + beak -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:pathData="M12,16 L12,12 Q12,10.5 13.5,10.5 Q15,10.5 15,12 L15,15.5 Q13.5,17 12,16 Z" />
+    <!-- comb -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M11,11.8 Q9.5,9 11,7.5 Q10.2,9.6 13,10.8" />
+    <!-- beak -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.4"
+        android:pathData="M12,13.6 L10,14 L12,14.4" />
+    <!-- eye -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13.4,11.6a0.7,0.7 0 1,0 1.4,0a0.7,0.7 0 1,0 -1.4,0" />
+</vector>

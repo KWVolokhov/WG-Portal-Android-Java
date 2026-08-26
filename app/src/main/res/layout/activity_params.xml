@@ -12,18 +12,47 @@
         android:orientation="horizontal"
         android:gravity="end">
 
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
+        <ImageButton
+            android:id="@+id/btnOK"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ok_green"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="OK"
+            android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp" />
 
-        <Button
-            android:id="@+id/btnOK"
+        <ImageButton
+            android:id="@+id/btnCancel"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_cancel_gray"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Ведущий field, based on the "Постановщик" field from activity_input_cal_plan.xml -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK" />
+            android:text="Ведущий:"
+            android:textSize="16sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerVedushii"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
     <!-- Address field -->
@@ -31,7 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp">
 
         <TextView

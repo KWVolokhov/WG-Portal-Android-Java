@@ -2,18 +2,15 @@ package com.example.calendar4;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.view.Display;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
@@ -27,54 +24,34 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
-import android.os.Build; // Modern approach for API 30+ (Android 11+)
-import android.view.WindowInsets; // Modern approach for API 30+ (Android 11+)
-import android.view.WindowMetrics; // Modern approach for API 30+ (Android 11+)
+import android.os.Build;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.telephony.TelephonyManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 
 public class MainActivity extends AppCompatActivity {
-    private int oldOrientation;
-    private int screenOrientation, oldScreenOrientation;
-    private int screenWidth;
-    private int screenHeight;
     ListView mainListView;
     private ManageSQLDatabase owerDb=null;
     //CalendarView mainCalendar;
     RussianCalendarView russianCalendar;
     calPlanRecord[] activRecordS=null;
     Integer rowNum=0;
+    private ArrayAdapter<calPlanRecord> mainListAdapter;
     private RussianHolidaysFetcher holidaysFetcher;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Пока НЕ Включаем наш жесткий перехватчик для всех потоков приложения
+        // Thread.setDefaultUncaughtExceptionHandler(new HardcoreCrashHandler(this));
+    
         setContentView(R.layout.activity_main);
-
-        // Modern approach for API 30+ (Android 11+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowManager windowManager = getWindowManager();
-            WindowMetrics windowMetrics = windowManager.getCurrentWindowMetrics();
-            android.graphics.Rect bounds = windowMetrics.getBounds();
-            WindowInsets windowInsets = windowMetrics.getWindowInsets();
-
-            int insetsLeft = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).left;
-            int insetsTop = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).top;
-            int insetsRight = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).right;
-            int insetsBottom = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars()).bottom;
-
-            screenWidth = bounds.width() - insetsLeft - insetsRight;
-            screenHeight = bounds.height() - insetsTop - insetsBottom;
-        } else {    // Legacy approach for API < 30
-            Display display = getWindowManager().getDefaultDisplay();
-            Point point = new Point();
-            display.getSize(point);
-            screenWidth = point.x;
-            screenHeight = point.y;
-        }
 
         //savedInstanceState.windowActionBar = true;
         //windowNoTitle = false;
-
-        if(screenHeight>screenWidth)screenOrientation=0; else screenOrientation=1;
 
         mainListView = findViewById(R.id.listView1);
         //=============Старт
@@ -94,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
         //fetchRussianHolidays();
 
         initMainListView();
-        refreshScreenOrientation(screenOrientation);
         
         // Set active date to today
         russianCalendar.activeDate = Calendar.getInstance().getTime();
@@ -103,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
         owerDb = new ManageSQLDatabase(this);
         SQLiteDatabase classDb = owerDb.getWritableDatabase();
         owerDb.onCreate(classDb);
+
+        // Auto-register this device as a contact and set up "Ведущий" at startup
+        ensureDeviceContactOnStart();
         
         // Load and display records for today
         refreshListView();
@@ -111,6 +90,129 @@ public class MainActivity extends AppCompatActivity {
         fetchRussianHolidays();
 
     }
+
+    /**
+     * Recalculate the day list from the CALPLAN table every time this screen is shown again.
+     * This covers both the OK button in activity_input_cal_plan and the Back button in
+     * activity_contacts, as well as any other screen returning to MainActivity.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (owerDb != null && russianCalendar != null) {
+            refreshListView();
+        }
+    }
+    // ===================== Startup device registration =====================
+    private static final int REQUEST_PHONE_STATE = 100;
+
+    // Checks permission; if granted registers the device, otherwise asks the user.
+    private void ensureDeviceContactOnStart() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                == PackageManager.PERMISSION_GRANTED) {
+            ensureDeviceContact();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_PHONE_STATE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_PHONE_STATE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                ensureDeviceContact();
+            }
+        }
+    }
+
+    // Registers the device as a CONTACT (Surname="Etot", FirstName="Phone") if not present,
+    // then sets the "Ведущий" param if it is still empty.
+    private void ensureDeviceContact() {
+        try {
+            if (owerDb == null) return;
+
+            String phone = getDevicePhoneDigits();
+            String model = getDeviceModel();
+            String imei = getDeviceImei();
+
+            ContactRecord contact = (phone != null) ? owerDb.getContactByPhone(phone) : null;
+            // If a number is unavailable, look for the device record by Surname+FirstName
+            if (contact == null) contact = owerDb.getContactBySurnameFirstName("Etot", "Phone");
+
+            if (contact == null) {
+                ContactRecord rec = new ContactRecord("Etot", "Phone", model, phone);
+                rec.Info = imei;
+                rec.DateCreated = new Date();
+                owerDb.upsertContact(rec);   // inserts, no duplicates (single device record)
+            }
+
+            // Fetch the device record again to make sure it is present
+            contact = (phone != null) ? owerDb.getContactByPhone(phone) : null;
+            if (contact == null) contact = owerDb.getContactBySurnameFirstName("Etot", "Phone");
+            if (contact == null) return;
+
+            CalParamRecord param = owerDb.getCalParam();
+            if (param == null) param = new CalParamRecord();
+            boolean changed = false;
+            if (param.Vedushii == null || param.Vedushii.trim().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                if (contact.Surname != null) sb.append(contact.Surname).append(" ");
+                if (contact.FirstName != null) sb.append(contact.FirstName);
+                param.Vedushii = sb.toString().trim();
+                param.VedushiiID = contact.EntryID != null ? contact.EntryID
+                        : (contact.id != null ? String.valueOf(contact.id) : null);
+                changed = true;
+            }
+            if (changed) {
+                owerDb.upsertCalParam(param);
+            }
+        } catch (Exception e) {
+            // Non-fatal: ignore device auto-registration errors
+        }
+    }
+
+    private String getDevicePhoneDigits() {
+        try {
+            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            if (tm == null) return null;
+            String line = ""; tm.getLine1Number();
+            if (line == null) return null;
+            StringBuilder digits = new StringBuilder();
+            for (int i = 0; i < line.length() && digits.length() < 10; i++) {
+                char ch = line.charAt(i);
+                if (Character.isDigit(ch)) digits.append(ch);
+            }
+            // Take the last 10 digits (drops country code if present)
+            if (digits.length() > 10) digits.delete(0, digits.length() - 10);
+            return digits.length() == 10 ? digits.toString() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String getDeviceModel() {
+        String model = Build.MODEL;
+        return (model == null || model.trim().isEmpty()) ? null : model.trim();
+    }
+
+    private String getDeviceImei() {
+        try {
+            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            if (tm == null) return null;
+            // IMEI on modern Android (API 29+) requires privileged access; best effort.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return tm.getImei();
+            }
+
+            return tm.getDeviceId();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void fetchRussianHolidays() {
         Calendar cal = Calendar.getInstance();
         int currentYear = cal.get(Calendar.YEAR);
@@ -246,43 +348,102 @@ public class MainActivity extends AppCompatActivity {
         if(JabText!=null) Toast.makeText(russianCalendar.getContext(), JabText, Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
     }
-    private void refreshScreenOrientation(int screenOrientation) {
-        if (oldScreenOrientation==screenOrientation)return;
-        if(screenOrientation==1) {//Ландшафт
-            ConstraintLayout constraintLayout = (ConstraintLayout) mainListView.getParent();
-            ConstraintSet constraintSet = new ConstraintSet();
-            constraintSet.clone(constraintLayout);
-            constraintSet.connect(R.id.listView1, ConstraintSet.TOP, R.id.calendarView1, ConstraintSet.TOP);
-            constraintSet.connect(R.id.listView1, ConstraintSet.START, R.id.calendarView1, ConstraintSet.END);
-            constraintSet.applyTo(constraintLayout);
-            oldScreenOrientation=1;
-        } else if(screenOrientation==0){//ортрет
-            ConstraintLayout constraintLayout = (ConstraintLayout) mainListView.getParent();
-            ConstraintSet constraintSet = new ConstraintSet();
-            constraintSet.clone(constraintLayout);
-            constraintSet.connect(R.id.listView1, ConstraintSet.TOP, R.id.button1, ConstraintSet.END);
-            constraintSet.connect(R.id.listView1, ConstraintSet.START, R.id.button1, ConstraintSet.START);
-            constraintSet.applyTo(constraintLayout);
-            oldScreenOrientation=0;
+    private void initMainListView(){ //Заполнение листа
+        // Rows use TwoLineListItem: [text lines] [type icon 48dp] [Edit/Delete buttons]
+        ArrayList<calPlanRecord> items = new ArrayList<>();
+        mainListAdapter = new ArrayAdapter<calPlanRecord>(this, 0, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TwoLineListItem row;
+                if (convertView instanceof TwoLineListItem) {
+                    row = (TwoLineListItem) convertView;
+                } else {
+                    row = new TwoLineListItem(MainActivity.this);
+                }
+                final calPlanRecord record = getItem(position);
+                if (record != null) {
+                    // First line = Name, second line = first line / first 20 chars of BodyText
+                    row.setTopText(record.Name != null ? record.Name : "");
+                    row.setBottomText(shortBodyText(record.BodyText));
+                    // Type icon according to Form field
+                    row.setTypeIcon(typeIconForForm(record.Form));
+                    row.setOnEditClickListener(v -> editCalPlan(record));
+                    row.setOnDeleteClickListener(v -> confirmDeleteCalPlan(record));
+                }
+                return row;
+            }
+        };
+        mainListView.setAdapter(mainListAdapter);
+        // Editing/deleting is done via the row buttons
+        mainListView.setOnItemClickListener(null);
+    }
+
+    // Second text line: first line of BodyText or no more than 20 characters
+    private String shortBodyText(String bodyText) {
+        if (bodyText == null) return "";
+        String text = bodyText.trim();
+        int newline = text.indexOf('\n');
+        if (newline >= 0) text = text.substring(0, newline).trim();
+        if (text.length() > 20) text = text.substring(0, 20);
+        return text;
+    }
+
+    private int typeIconForForm(String form) {
+        if (form == null) return R.drawable.ic_type_project;
+        switch (form) {
+            case "Project":     return R.drawable.ic_type_project;
+            case "Note":        return R.drawable.ic_type_note;
+            case "Remember":    return R.drawable.ic_type_remember;
+            case "Task":        return R.drawable.ic_type_task;
+            case "History":     return R.drawable.ic_type_history;
+            case "HealthEat":   return R.drawable.ic_type_health_eat;
+            case "HealthDrink": return R.drawable.ic_type_health_drink;
+            case "HealthSport": return R.drawable.ic_type_health_sport;
+            default:            return R.drawable.ic_type_project;
         }
     }
-    private void initMainListView(){ //Заполнение листа
-        //String[] items = {"Задача 1", "Не Задачка 2", "Задача 4","Зметка 1", "Заметка 2", "Напоминание 1", "Напоминание 31", "Напомнить32"};
 
-        //ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, items);
-        //mainListView.setAdapter(adapter);
+    private void editCalPlan(calPlanRecord record) {
+        if (record == null) return;
+        Intent intent = new Intent(this, activityClassFor(record.Form));
+        intent.putExtra("activeDate", russianCalendar.activeDate);
+        intent.putExtra("calPlanRecord", record);
+        startActivityForResult(intent, 1);
+    }
 
-        mainListView.setOnItemClickListener((parent, view, position, id) -> {
-            // Launch InputCalPlanActivity modally      WG12.08.26
-            Intent intent = new Intent(this, InputCalPlanActivity.class);
-            intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
-            for (calPlanRecord record : activRecordS) {
-                if (record.Name == (String) parent.getItemAtPosition(position)) {
-                    intent.putExtra("calPlanRecord", record);  //WG12.08.26
-                }
-            }
-            startActivityForResult(intent, 1);
-        });
+    /** Routes to the correct edit screen depending on the record Form. */
+    private Class<?> activityClassFor(String form) {
+        if (form == null) return InputCalPlanActivity.class;
+        switch (form) {
+            case "Note":        return NoteActivity.class;
+            case "Remember":    return RememberActivity.class;
+            case "Task":        return TaskActivity.class;
+            case "History":     return HistoryEditActivity.class;
+            case "HealthEat":   return HealthEatActivity.class;
+            case "HealthDrink": return HealthDrinkActivity.class;
+            case "HealthSport": return HealthSportActivity.class;
+            default:            return InputCalPlanActivity.class;
+        }
+    }
+
+    /** Opens the day History screen (list of CALPLAN Form=History for the active date). */
+    public void openHistory(View view) {
+        Intent intent = new Intent(this, HistoryActivity.class);
+        intent.putExtra("historyDate", russianCalendar.activeDate);
+        startActivity(intent);
+    }
+
+    private void confirmDeleteCalPlan(final calPlanRecord record) {
+        if (record == null || record.id == null) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить")
+                .setMessage("Удалить запись? (" + (record.Name != null ? record.Name : "") + ")")
+                .setPositiveButton("Ок", (d, w) -> {
+                    owerDb.deleteCalPlan(record.id);
+                    refreshListView();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void refreshListView() {
@@ -291,22 +452,16 @@ public class MainActivity extends AppCompatActivity {
             Date activeDate = russianCalendar.activeDate;
             if (activeDate != null) {
                 activRecordS = owerDb.getCalPlan(activeDate);
-                
-                // Create list of names for display
-                ArrayList<String> namesList = new ArrayList<>();
-                for (calPlanRecord record : activRecordS) {
-                    if (record.Name != null) {
-                        namesList.add(record.Name);
+                mainListAdapter.clear();
+                if (activRecordS != null) {
+                    for (calPlanRecord record : activRecordS) {
+                        // The day list shows all records EXCEPT Form=History
+                        if (record != null && !"History".equals(record.Form)) {
+                            mainListAdapter.add(record);
+                        }
                     }
                 }
-                
-                // Update ListView
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                    this, 
-                    android.R.layout.simple_list_item_1, 
-                    namesList
-                );
-                mainListView.setAdapter(adapter);
+                mainListAdapter.notifyDataSetChanged();
             }
         }
     }
@@ -380,19 +535,4 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
         }
     }
-    public void InitSQLBase(View view) {
-        try{
-            //if(owerDb==null) owerDb = new ManageSQLDatabase(view.getContext());
-            //SQLiteDatabase classDb = owerDb.getWritableDatabase();
-            //owerDb.onCreate(classDb);
-
-            String selected = String.format("Жаба: EMPTY");
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
     }
-
-
-}

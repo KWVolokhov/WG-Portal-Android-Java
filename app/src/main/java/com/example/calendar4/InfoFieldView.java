@@ -77,7 +77,7 @@ public class InfoFieldView extends LinearLayout {
         tvCollapsed.setSingleLine(false);
         tvCollapsed.setFocusable(true);
         tvCollapsed.setClickable(true);
-        tvCollapsed.setBackgroundColor(Color.rgb(50,50,50));
+        tvCollapsed.setBackgroundResource(R.drawable.bg_underline);
         tvCollapsed.setGravity(Gravity.START | Gravity.TOP);
         tvCollapsed.setTextAppearance(context, android.R.style.TextAppearance_Medium);
         // Expand when the field receives focus (keyboard/tab navigation).
@@ -114,7 +114,7 @@ public class InfoFieldView extends LinearLayout {
         etExpanded.setHorizontalScrollBarEnabled(false);
         etExpanded.setLayoutParams(new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        etExpanded.setBackgroundColor(Color.rgb(70,70,70));
+        etExpanded.setBackgroundResource(R.drawable.bg_underline);
         svContainer.addView(etExpanded);
 
         etExpanded.setOnFocusChangeListener((v, hasFocus) -> {

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Glass (HealthDrink) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:pathData="M9,5 L15,5 L12,12 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:pathData="M11,12 L11,18 M13,11 L13,18 M10,18 L14,18" />
+    <!-- droplet -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,7.5 q1.4,1.6 0,2.6 q-1.4,-1 0,-2.6" />
+</vector>

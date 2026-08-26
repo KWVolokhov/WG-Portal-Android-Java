@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
     public ManageSQLDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -45,7 +45,15 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Handle database schema changes here
+        // Version 2: added Vedushii / VedushiiID columns to CALPARAM
+        if (oldVersion < 2) {
+            try {
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Vedushii TEXT");
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN VedushiiID TEXT");
+            } catch (Exception e) {
+                // Columns may already exist - ignore
+            }
+        }
     }
 
 
@@ -77,6 +85,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
         // Auto-filled fields
         if (record.id != null) values.put("id", record.id);
+        // Generate a unique ID for brand-new records (RequestUNID references these)
+        if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
+            record.UNID = java.util.UUID.randomUUID().toString();
+        }
         if (record.UNID != null) values.put("UNID", record.UNID);
         if (record.Okdate != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
@@ -139,11 +151,182 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         db.delete("CALPLAN", "id=?", new String[]{String.valueOf(id)});
     }
 
-    // Delete a CONTACTS record by its id
+    // Delete a CONTACTS record by its id.
+    // Before deleting, logs a History entry into CALPLAN with the contact fields
+    // as "field=value,field=value,..." in BodyText.
     public void deleteContact(Integer id) {
         if (id == null) return;
         SQLiteDatabase db = this.getWritableDatabase();
+
+        // Snapshot the contact before deletion
+        ContactRecord record = getContactById(id);
+
+        // Log "Удал. Конт.:" before actually deleting (fields go to BodyText)
+        addHistory("Удал. Конт.:", record, buildContactBodyText(record));
+
         db.delete("CONTACTS", "id=?", new String[]{String.valueOf(id)});
+    }
+
+    // Fetch a single contact by its numeric id
+    public ContactRecord getContactById(Integer id) {
+        if (id == null) return null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("CONTACTS", null, "id=?",
+                new String[]{String.valueOf(id)}, null, null, null);
+        ContactRecord result = null;
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            result = cursorToContact(cursor);
+        }
+        cursor.close();
+        return result;
+    }
+
+    // Find a contact whose stored Phone begins with the given 10 digits
+    public ContactRecord getContactByPhone(String phoneDigits) {
+        if (phoneDigits == null || phoneDigits.isEmpty()) return null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("CONTACTS", null, null, null, null, null, null);
+        ContactRecord result = null;
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                ContactRecord c = cursorToContact(cursor);
+                if (c != null && phoneEquals(c.Phone, phoneDigits)) {
+                    result = c;
+                    break;
+                }
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return result;
+    }
+
+    // True if stored phone value starts with the given 10 digits
+    private boolean phoneEquals(String stored, String phoneDigits) {
+        if (stored == null) return false;
+        StringBuilder digits = new StringBuilder();
+        for (int i = 0; i < stored.length() && digits.length() < 10; i++) {
+            char ch = stored.charAt(i);
+            if (Character.isDigit(ch)) digits.append(ch);
+        }
+        return digits.length() >= 10 && digits.toString().equals(phoneDigits);
+    }
+
+    // Find a contact by exact Surname + FirstName (used when the device phone is unavailable)
+    public ContactRecord getContactBySurnameFirstName(String surname, String firstName) {
+        if (surname == null || firstName == null) return null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("CONTACTS", null,
+                "Surname=? AND FirstName=?",
+                new String[]{surname, firstName}, null, null, null);
+        ContactRecord result = null;
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            result = cursorToContact(cursor);
+        }
+        cursor.close();
+        return result;
+    }
+
+    // Append a History entry into CALPLAN for a CONTACTS operation
+    private void addHistory(String action, ContactRecord record, String bodyText) {
+        if (record == null) return;
+        calPlanRecord history = new calPlanRecord();
+        history.Form = "History";
+        history.Okdate = new Date();
+        // History records must appear in the calendar list on the day the entry was made
+        history.StartDate = new Date();
+
+        CalParamRecord param = getCalParam();
+        if (param != null) {
+            history.AuthorName = param.Vedushii;
+            history.AuthorID = param.VedushiiID;
+        }
+
+        StringBuilder name = new StringBuilder(action);
+        if (record.Surname != null) name.append(" ").append(record.Surname);
+        if (record.FirstName != null) name.append(" ").append(record.FirstName);
+        history.Name = name.toString();
+
+        if (bodyText != null && !bodyText.isEmpty()) history.BodyText = bodyText;
+
+        upsertCalPlan(history);
+    }
+
+    // Non-empty fields of a contact delimited by ',': "Фамилия=Иванов,Имя=Пётр,...".
+    // Uses the Russian captions from the edit form (activity_editcontact.xml).
+    // Special fields DateCreated / DateModified are NOT stored in History.
+    private String buildContactBodyText(ContactRecord r) {
+        if (r == null) return null;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        StringBuilder sb = new StringBuilder();
+        appendField(sb, "Фамилия", r.Surname);
+        appendField(sb, "Имя", r.FirstName);
+        appendField(sb, "Отчество", r.Patronymic);
+        appendField(sb, "Телефон", r.Phone);
+        appendField(sb, "Информация", r.Info);
+        appendField(sb, "Телефон 2", r.Phone2);
+        appendField(sb, "Email", r.Email);
+        appendField(sb, "Дата рождения", r.BirthDate == null ? null : sdf.format(r.BirthDate));
+        appendField(sb, "Дом.Адресс", r.HomeAddress);
+        appendField(sb, "Дата получения", r.DateReceived == null ? null : sdf.format(r.DateReceived));
+        appendField(sb, "EntryID", r.EntryID);
+        return sb.length() == 0 ? null : sb.toString();
+    }
+
+    private void appendField(StringBuilder sb, String fieldName, String value) {
+        if (value == null) return;
+        String v = value.trim();
+        if (v.isEmpty()) return;
+        if (sb.length() > 0) sb.append(",");
+        sb.append(fieldName).append("=").append(v);
+    }
+
+    private ContactRecord cursorToContact(Cursor cursor) {
+        ContactRecord record = new ContactRecord();
+
+        int idxId = cursor.getColumnIndex("id");
+        int idxSurname = cursor.getColumnIndex("Surname");
+        int idxFirstName = cursor.getColumnIndex("FirstName");
+        int idxPatronymic = cursor.getColumnIndex("Patronymic");
+        int idxPhone = cursor.getColumnIndex("Phone");
+        int idxInfo = cursor.getColumnIndex("Info");
+        int idxPhone2 = cursor.getColumnIndex("Phone2");
+        int idxEmail = cursor.getColumnIndex("Email");
+        int idxHomeAddress = cursor.getColumnIndex("HomeAddress");
+        int idxEntryID = cursor.getColumnIndex("EntryID");
+        int idxBirthDate = cursor.getColumnIndex("BirthDate");
+        int idxDateReceived = cursor.getColumnIndex("DateReceived");
+        int idxDateCreated = cursor.getColumnIndex("DateCreated");
+        int idxDateModified = cursor.getColumnIndex("DateModified");
+
+        if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
+        if (idxSurname >= 0 && !cursor.isNull(idxSurname)) record.Surname = cursor.getString(idxSurname);
+        if (idxFirstName >= 0 && !cursor.isNull(idxFirstName)) record.FirstName = cursor.getString(idxFirstName);
+        if (idxPatronymic >= 0 && !cursor.isNull(idxPatronymic)) record.Patronymic = cursor.getString(idxPatronymic);
+        if (idxPhone >= 0 && !cursor.isNull(idxPhone)) record.Phone = cursor.getString(idxPhone);
+        if (idxInfo >= 0 && !cursor.isNull(idxInfo)) record.Info = cursor.getString(idxInfo);
+        if (idxPhone2 >= 0 && !cursor.isNull(idxPhone2)) record.Phone2 = cursor.getString(idxPhone2);
+        if (idxEmail >= 0 && !cursor.isNull(idxEmail)) record.Email = cursor.getString(idxEmail);
+        if (idxHomeAddress >= 0 && !cursor.isNull(idxHomeAddress)) record.HomeAddress = cursor.getString(idxHomeAddress);
+        if (idxEntryID >= 0 && !cursor.isNull(idxEntryID)) record.EntryID = cursor.getString(idxEntryID);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        if (idxBirthDate >= 0 && !cursor.isNull(idxBirthDate)) {
+            try { record.BirthDate = sdf.parse(cursor.getString(idxBirthDate)); } catch (Exception e) {}
+        }
+        if (idxDateReceived >= 0 && !cursor.isNull(idxDateReceived)) {
+            try { record.DateReceived = sdf.parse(cursor.getString(idxDateReceived)); } catch (Exception e) {}
+        }
+        if (idxDateCreated >= 0 && !cursor.isNull(idxDateCreated)) {
+            try { record.DateCreated = sdf.parse(cursor.getString(idxDateCreated)); } catch (Exception e) {}
+        }
+        if (idxDateModified >= 0 && !cursor.isNull(idxDateModified)) {
+            try { record.DateModified = sdf.parse(cursor.getString(idxDateModified)); } catch (Exception e) {}
+        }
+        return record;
     }
 
     // Get calPlan records by date from CALPLAN table
@@ -272,6 +455,117 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return records;
     }
 
+        // Get all CALPLAN records of a given Form (e.g. "Project" for the "В Проекте" picker)
+    public calPlanRecord[] getCalPlanByForm(String form) {
+        return queryCalPlan("Form=?", new String[]{form});
+    }
+
+    // Get CALPLAN records of Form='History' for a concrete date (day view in HistoryActivity)
+    public calPlanRecord[] getCalPlanHistory(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        return queryCalPlan("StartDate=? AND Form='History'",
+                new String[]{sdf.format(date)});
+    }
+
+    // Generic CALPLAN query used by getCalPlan / getCalPlanByForm / getCalPlanHistory
+    private calPlanRecord[] queryCalPlan(String selection, String[] args) {
+        ArrayList<calPlanRecord> recordsList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+
+        Cursor cursor = db.query("CALPLAN", null, selection, args, null, null, null);
+
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                calPlanRecord record = new calPlanRecord();
+
+                // Get column indices
+                int idxId = cursor.getColumnIndex("id");
+                int idxUNID = cursor.getColumnIndex("UNID");
+                int idxForm = cursor.getColumnIndex("Form");
+                int idxPriority = cursor.getColumnIndex("Priority");
+                int idxOkdate = cursor.getColumnIndex("Okdate");
+                int idxAuthorID = cursor.getColumnIndex("AuthorID");
+                int idxAuthorName = cursor.getColumnIndex("AuthorName");
+                int idxName = cursor.getColumnIndex("Name");
+                int idxRequestName = cursor.getColumnIndex("RequestName");
+                int idxRequestUNID = cursor.getColumnIndex("RequestUNID");
+                int idxStatus = cursor.getColumnIndex("Status");
+                int idxStatusID = cursor.getColumnIndex("StatusID");
+                int idxMainSystem = cursor.getColumnIndex("MainSystem");
+                int idxAnalitikID = cursor.getColumnIndex("AnalitikID");
+                int idxAnalitikName = cursor.getColumnIndex("AnalitikName");
+                int idxExectorID = cursor.getColumnIndex("ExectorID");
+                int idxExectorName = cursor.getColumnIndex("ExectorName");
+                int idxLastUpdatedByID = cursor.getColumnIndex("LastUpdatedByID");
+                int idxLastUpdatedBy = cursor.getColumnIndex("LastUpdatedBy");
+                int idxLastUpdatedDate = cursor.getColumnIndex("LastUpdatedDate");
+                int idxBodyText = cursor.getColumnIndex("BodyText");
+                int idxComment = cursor.getColumnIndex("Comment");
+                int idxStartDate = cursor.getColumnIndex("StartDate");
+                int idxEndDate = cursor.getColumnIndex("EndDate");
+                int idxHoldDate = cursor.getColumnIndex("HoldDate");
+                int idxInstallOrder = cursor.getColumnIndex("InstallOrder");
+                int idxKeyWords = cursor.getColumnIndex("KeyWords");
+                int idxRevisions = cursor.getColumnIndex("Revisions");
+
+                // Fill record fields
+                if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
+                if (idxUNID >= 0 && !cursor.isNull(idxUNID)) record.UNID = cursor.getString(idxUNID);
+                if (idxForm >= 0 && !cursor.isNull(idxForm)) record.Form = cursor.getString(idxForm);
+                if (idxPriority >= 0 && !cursor.isNull(idxPriority)) record.Priority = cursor.getInt(idxPriority);
+                if (idxAuthorID >= 0 && !cursor.isNull(idxAuthorID)) record.AuthorID = cursor.getString(idxAuthorID);
+                if (idxAuthorName >= 0 && !cursor.isNull(idxAuthorName)) record.AuthorName = cursor.getString(idxAuthorName);
+                if (idxName >= 0 && !cursor.isNull(idxName)) record.Name = cursor.getString(idxName);
+                if (idxRequestName >= 0 && !cursor.isNull(idxRequestName)) record.RequestName = cursor.getString(idxRequestName);
+                if (idxRequestUNID >= 0 && !cursor.isNull(idxRequestUNID)) record.RequestUNID = cursor.getString(idxRequestUNID);
+                if (idxStatus >= 0 && !cursor.isNull(idxStatus)) record.Status = cursor.getString(idxStatus);
+                if (idxStatusID >= 0 && !cursor.isNull(idxStatusID)) record.StatusID = cursor.getString(idxStatusID);
+                if (idxMainSystem >= 0 && !cursor.isNull(idxMainSystem)) record.MainSystem = cursor.getString(idxMainSystem);
+                if (idxAnalitikID >= 0 && !cursor.isNull(idxAnalitikID)) record.AnalitikID = cursor.getString(idxAnalitikID);
+                if (idxAnalitikName >= 0 && !cursor.isNull(idxAnalitikName)) record.AnalitikName = cursor.getString(idxAnalitikName);
+                if (idxExectorID >= 0 && !cursor.isNull(idxExectorID)) record.ExectorID = cursor.getString(idxExectorID);
+                if (idxExectorName >= 0 && !cursor.isNull(idxExectorName)) record.ExectorName = cursor.getString(idxExectorName);
+                if (idxLastUpdatedByID >= 0 && !cursor.isNull(idxLastUpdatedByID)) record.LastUpdatedByID = cursor.getString(idxLastUpdatedByID);
+                if (idxLastUpdatedBy >= 0 && !cursor.isNull(idxLastUpdatedBy)) record.LastUpdatedBy = cursor.getString(idxLastUpdatedBy);
+                if (idxBodyText >= 0 && !cursor.isNull(idxBodyText)) record.BodyText = cursor.getString(idxBodyText);
+                if (idxComment >= 0 && !cursor.isNull(idxComment)) record.Comment = cursor.getString(idxComment);
+                if (idxInstallOrder >= 0 && !cursor.isNull(idxInstallOrder)) record.InstallOrder = cursor.getString(idxInstallOrder);
+                if (idxKeyWords >= 0 && !cursor.isNull(idxKeyWords)) record.KeyWords = cursor.getString(idxKeyWords);
+                if (idxRevisions >= 0 && !cursor.isNull(idxRevisions)) record.Revisions = cursor.getString(idxRevisions);
+
+                // Parse dates
+                if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
+                    try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e) { record.Okdate = null; }
+                }
+                if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
+                    try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e) { record.LastUpdatedDate = null; }
+                }
+                if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
+                    try { record.StartDate = sdf.parse(cursor.getString(idxStartDate)); } catch (Exception e) { record.StartDate = null; }
+                }
+                if (idxEndDate >= 0 && !cursor.isNull(idxEndDate)) {
+                    try { record.EndDate = sdf.parse(cursor.getString(idxEndDate)); } catch (Exception e) { record.EndDate = null; }
+                }
+                if (idxHoldDate >= 0 && !cursor.isNull(idxHoldDate)) {
+                    try { record.HoldDate = sdf.parse(cursor.getString(idxHoldDate)); } catch (Exception e) { record.HoldDate = null; }
+                }
+
+                recordsList.add(record);
+                cursor.moveToNext();
+            }
+        }
+
+        cursor.close();
+
+        // Convert ArrayList to array
+        calPlanRecord[] records = new calPlanRecord[recordsList.size()];
+        recordsList.toArray(records);
+
+        return records;
+    }
+
     // Get CalParam record (single record) from CALPARAM table
     public CalParamRecord getCalParam() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -290,12 +584,16 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             int idxAddress = cursor.getColumnIndex("Address");
             int idxName = cursor.getColumnIndex("Name");
             int idxPassword = cursor.getColumnIndex("Password");
+            int idxVedushii = cursor.getColumnIndex("Vedushii");
+            int idxVedushiiID = cursor.getColumnIndex("VedushiiID");
 
             // Fill record fields
             if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
             if (idxAddress >= 0 && !cursor.isNull(idxAddress)) record.Address = cursor.getString(idxAddress);
             if (idxName >= 0 && !cursor.isNull(idxName)) record.Name = cursor.getString(idxName);
             if (idxPassword >= 0 && !cursor.isNull(idxPassword)) record.Password = cursor.getString(idxPassword);
+            if (idxVedushii >= 0 && !cursor.isNull(idxVedushii)) record.Vedushii = cursor.getString(idxVedushii);
+            if (idxVedushiiID >= 0 && !cursor.isNull(idxVedushiiID)) record.VedushiiID = cursor.getString(idxVedushiiID);
         }
 
         cursor.close();
@@ -311,6 +609,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.Address != null) values.put("Address", record.Address);
         if (record.Name != null) values.put("Name", record.Name);
         if (record.Password != null) values.put("Password", record.Password);
+        if (record.Vedushii != null) values.put("Vedushii", record.Vedushii);
+        if (record.VedushiiID != null) values.put("VedushiiID", record.VedushiiID);
 
         // Try to update first (if id exists), if no rows affected then insert
         if (record.id != null) {
@@ -460,9 +760,13 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
             if (rowsAffected == 0) {
                 db.insert("CONTACTS", null, values);
+                addHistory("Добавление", record, null);
+            } else {
+                addHistory("Изменение", record, null);
             }
         } else {
             db.insert("CONTACTS", null, values);
+            addHistory("Добавление", record, null);
         }
     }
 

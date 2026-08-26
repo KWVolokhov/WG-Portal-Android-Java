@@ -7,6 +7,8 @@ public class CalParamRecord implements Serializable {
     public String Address;
     public String Name;
     public String Password;
+    public String Vedushii;   // Ведущий (имя контакта, выбирается из CONTACTS)
+    public String VedushiiID; // Идентификатор (EntryID/id) контакта-ведущего
 
     public CalParamRecord() {
     }

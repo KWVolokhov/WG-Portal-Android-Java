@@ -15,21 +15,16 @@ import android.widget.TextView;
 /**
  * Reusable two-line list row control.
  *
- * Layout (single row):
- *   [left column: 48dp placeholder icon (not a button) + Edit(32dp) + Delete(32dp)
- *    stacked under each other]
- *   | top text line (slightly brighter colour)
- *   | bottom text line (slightly darker colour, text size -1)
- *
- * The two buttons are exposed through {@link #setOnEditClickListener} and
- * {@link #setOnDeleteClickListener}. The 48dp icon is a non-clickable stub
- * (placeholder to be changed later).
+ * Layout (single row): [icon 48dp | two text lines (weight 1) | Edit+Delete 32dp]
+ * The icon is on the left, Edit/Delete buttons on the right - same as the
+ * contacts list. The icon is set through {@link #setTypeIcon(int)}.
  */
 public class TwoLineListItem extends LinearLayout {
     private TextView tvTop;
     private TextView tvBottom;
     private ImageButton btnEdit;
     private ImageButton btnDelete;
+    private ImageView ivIcon;
 
     public TwoLineListItem(Context context) {
         this(context, null);
@@ -49,22 +44,22 @@ public class TwoLineListItem extends LinearLayout {
         setGravity(Gravity.CENTER_VERTICAL);
         setPadding(dp(6), dp(6), dp(8), dp(6));
 
-        // ----- left column: placeholder icon + two stacked icon-buttons -----
+        // ----- left column: icon (type / age) -----
         LinearLayout left = new LinearLayout(context);
         left.setOrientation(VERTICAL);
         left.setGravity(Gravity.CENTER_HORIZONTAL);
         left.setPadding(dp(2), 0, dp(6), 0);
 
-        ImageView ivIcon = new ImageView(context);
+        ivIcon = new ImageView(context);
         ivIcon.setImageResource(R.drawable.ic_person_contact);
-        ivIcon.setContentDescription("Иконка");
+        ivIcon.setContentDescription("Актуально");
         left.addView(ivIcon, new LinearLayout.LayoutParams(dp(48), dp(48)));
 
         addView(left, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
-        // ----- right column: two text lines -----
-        LinearLayout rightLine = new LinearLayout(context);
-        rightLine.setOrientation(VERTICAL);
+        // ----- center: two text lines -----
+        LinearLayout textBlock = new LinearLayout(context);
+        textBlock.setOrientation(VERTICAL);
 
         tvTop = new TextView(context);
         //tvTop.setTextColor(0xFF555555); // slightly brighter
@@ -79,10 +74,11 @@ public class TwoLineListItem extends LinearLayout {
         tvBottom.setSingleLine(true);
         tvBottom.setEllipsize(TextUtils.TruncateAt.END);
 
-        rightLine.addView(tvTop, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        rightLine.addView(tvBottom, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        addView(rightLine, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+        textBlock.addView(tvTop, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        textBlock.addView(tvBottom, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        addView(textBlock, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
+        // ----- right column: two stacked icon-buttons -----
         LinearLayout right = new LinearLayout(context);
         right.setOrientation(VERTICAL);
         right.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -115,6 +111,11 @@ public class TwoLineListItem extends LinearLayout {
 
     public void setBottomText(String text) {
         tvBottom.setText(text == null ? "" : text);
+    }
+
+    public void setTypeIcon(int resId) {
+        ivIcon.setImageResource(resId);
+        ivIcon.setContentDescription("Актуально");
     }
 
     public void setOnEditClickListener(View.OnClickListener l) {

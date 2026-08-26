@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -25,8 +26,8 @@ public class EditContactActivity extends AppCompatActivity {
     private DateFieldView editTextBirthDate;
     private EditText editTextHomeAddress;
     private EditText editTextDateReceived;
-    private Button btnOK;
-    private Button btnCancel;
+    private ImageButton btnOK;
+    private ImageButton btnCancel;
     private Button btnCall;
     private Button btnSMS;
 

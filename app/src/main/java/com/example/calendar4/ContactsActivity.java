@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class ContactsActivity extends Activity {
 
@@ -59,6 +60,7 @@ public class ContactsActivity extends Activity {
                 final ContactRecord contact = allContacts.get(position);
                 row.setTopText(fullName(contact));
                 row.setBottomText(contact.Phone != null ? contact.Phone : "");
+                row.setTypeIcon(ageIcon(contact));
                 row.setOnEditClickListener(v -> openContact(contact));
                 row.setOnDeleteClickListener(v -> confirmDeleteContact(contact));
                 return row;
@@ -119,6 +121,19 @@ public class ContactsActivity extends Activity {
         return sb.toString();
     }
 
+    // Person icon by age (from BirthDate); old icon if no BirthDate
+    private int ageIcon(ContactRecord c) {
+        if (c == null || c.BirthDate == null) return R.drawable.ic_person_contact;
+        Calendar dob = Calendar.getInstance();
+        dob.setTime(c.BirthDate);
+        Calendar now = Calendar.getInstance();
+        int age = now.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+        if (now.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) age--;
+        if (age < 18) return R.drawable.ic_person_contact_child;
+        if (age > 55) return R.drawable.ic_person_contact_senior;
+        return R.drawable.ic_person_contact;
+    }
+
     private void openContact(ContactRecord contact) {
         Intent intent = new Intent(ContactsActivity.this, EditContactActivity.class);
         intent.putExtra("contactId", contact.id);
@@ -127,9 +142,10 @@ public class ContactsActivity extends Activity {
 
     private void confirmDeleteContact(final ContactRecord contact) {
         if (contact == null || contact.id == null) return;
+        String contactName = fullName(contact);
         new AlertDialog.Builder(this)
                 .setTitle("Удалить")
-                .setMessage("Удалить запись?")
+                .setMessage("Удалить запись? (" + contactName + ")")
                 .setPositiveButton("Ок", (d, w) -> {
                     owerDb.deleteContact(contact.id);
                     loadContacts(editTextFilter.getText().toString().trim());

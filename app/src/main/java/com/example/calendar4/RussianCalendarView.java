@@ -2,14 +2,18 @@ package com.example.calendar4;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -31,6 +35,8 @@ public class RussianCalendarView extends ConstraintLayout {
     private ImageButton nextMonthButton;
     private ImageView chineseZodiacIcon;
     private ImageView westernZodiacIcon;
+    private GridView weekHeadersGrid;
+    private boolean detailsEnabled = true;
     private HashSet<String> holidays;
     private HashSet<Integer> weekendDays;
     private OnDateSelectedListener dateSelectedListener;
@@ -67,6 +73,38 @@ public class RussianCalendarView extends ConstraintLayout {
         chineseZodiacIcon = findViewById(R.id.chineseZodiacIcon);
         westernZodiacIcon = findViewById(R.id.westernZodiacIcon);
 
+        // Row of weekday column headers (пн, вт, ср, чт, пт, сб, вс) above the day grid
+        weekHeadersGrid = findViewById(R.id.weekHeadersGrid);
+        weekHeadersGrid.setEnabled(false);
+        final String[] weekTitles = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
+        weekHeadersGrid.setAdapter(new BaseAdapter() {
+            @Override
+            public int getCount() { return weekTitles.length; }
+
+            @Override
+            public Object getItem(int position) { return weekTitles[position]; }
+
+            @Override
+            public long getItemId(int position) { return position; }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                TextView tv;
+                if (convertView == null) {
+                    tv = new TextView(context);
+                    tv.setLayoutParams(new GridView.LayoutParams(48, 40));
+                    tv.setGravity(android.view.Gravity.CENTER);
+                    tv.setTextSize(12);
+                    tv.setTextColor(Color.parseColor("#FF777777"));
+                    tv.setTypeface(null, android.graphics.Typeface.BOLD);
+                } else {
+                    tv = (TextView) convertView;
+                }
+                tv.setText(weekTitles[position]);
+                return tv;
+            }
+        });
+
         currentCalendar = Calendar.getInstance();
         currentDate = Calendar.getInstance().getTime();
         activeDate = Calendar.getInstance().getTime(); // Initialize active date to today
@@ -83,7 +121,7 @@ public class RussianCalendarView extends ConstraintLayout {
                 // Set as active date
                 activeDate = selectedDate;
                 // Show date details with calendar and working days count
-                showDateDetails(selectedDate);
+                if (detailsEnabled) showDateDetails(selectedDate);
                 // Also call the external listener if set
                 if (dateSelectedListener != null) {
                     dateSelectedListener.onDateSelected(selectedDate);
@@ -97,11 +135,14 @@ public class RussianCalendarView extends ConstraintLayout {
         prevMonthButton.setOnClickListener(v -> navigateToPreviousMonth());
         nextMonthButton.setOnClickListener(v -> navigateToNextMonth());
 
+        // Tap on the month/year caption opens a scrollable year picker (+/- 100 years, 5 visible)
+        monthYearText.setOnClickListener(v -> showYearPicker());
+
         // Set long click listener for detailed date info
         calendarGridView.setOnItemLongClickListener((parent, view, position, id) -> {
             Date selectedDate = adapter.getItem(position);
             if (selectedDate != null) {
-                showDateDetails(selectedDate);
+                if (detailsEnabled) showDateDetails(selectedDate);
                 return true;
             }
             return false;
@@ -132,12 +173,22 @@ public class RussianCalendarView extends ConstraintLayout {
         this.dateSelectedListener = listener;
     }
 
+    /**
+     * Enables/disables the per-date details Toast shown when tapping a day.
+     * Used by date-picker dialogs where the quick info popup is not wanted.
+     */
+    public void setDetailsEnabled(boolean enabled) {
+        this.detailsEnabled = enabled;
+    }
+
     public void setHolidays(HashSet<String> holidays) {
         this.holidays = holidays != null ? holidays : new HashSet<>();
         updateCalendar();
     }
 
     public void setCurrentMonth(int year, int month) {
+        // Reset day first so that set(year/month) never rolls over into another month
+        currentCalendar.set(Calendar.DAY_OF_MONTH, 1);
         currentCalendar.set(Calendar.YEAR, year);
         currentCalendar.set(Calendar.MONTH, month);
         updateCalendar();
@@ -147,6 +198,49 @@ public class RussianCalendarView extends ConstraintLayout {
         currentCalendar = Calendar.getInstance();
         activeDate = Calendar.getInstance().getTime();
         updateCalendar();
+    }
+
+    /**
+     * Modal scrollable year picker (requirement 3.1).
+     * Shows 5 year values at a time around the current year, scrollable +/- 100 years.
+     * Picking a year navigates the calendar to that year (keeping the month).
+     */
+    private void showYearPicker() {
+        int currentYear = currentCalendar.get(Calendar.YEAR);
+        final int startYear = currentYear - 100;
+        final int endYear = currentYear + 100;
+
+        final List<String> years = new ArrayList<>();
+        for (int y = startYear; y <= endYear; y++) {
+            years.add(String.valueOf(y));
+        }
+
+        final ListView listView = new ListView(getContext());
+        listView.setAdapter(new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_list_item_1, years));
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        float density = getResources().getDisplayMetrics().density;
+        int rowHeightPx = (int) (density * 40);
+        int popupWidthPx = monthYearText.getWidth() > 0
+                ? monthYearText.getWidth()
+                : (int) (density * 150);
+
+        final PopupWindow popup = new PopupWindow(listView, popupWidthPx, rowHeightPx * 5, true);
+        popup.setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        popup.setOutsideTouchable(true);
+        popup.showAsDropDown(monthYearText, 0, 0);
+
+        // Center the current year in the visible 5 rows
+        final int selectedIndex = currentYear - startYear;
+        listView.post(() -> listView.setSelectionFromTop(selectedIndex,
+                listView.getHeight() / 2 - rowHeightPx / 2));
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            int newYear = startYear + position;
+            setCurrentMonth(newYear, currentCalendar.get(Calendar.MONTH));
+            popup.dismiss();
+        });
     }
 
     public int getCalendarDaysBetween(Date startDate, Date endDate) {
@@ -239,26 +333,54 @@ public class RussianCalendarView extends ConstraintLayout {
     }
 
     private void updateZodiacIcons() {
-        // Update Chinese zodiac icon based on year
+        // Chinese zodiac icon based on year (index 0..11 of the 12-animal cycle)
         int year = currentCalendar.get(Calendar.YEAR);
-        String chineseZodiac = getChineseZodiac(year);
-        // Set placeholder icon (in real app, you would have actual zodiac icons)
-        chineseZodiacIcon.setImageResource(android.R.drawable.ic_dialog_info);
+        int cnIndex = getChineseZodiacIndex(year);
+        int[] cnRes = {
+                R.drawable.ic_cn_rat,      // Крыса
+                R.drawable.ic_cn_ox,       // Бык
+                R.drawable.ic_cn_tiger,    // Тигр
+                R.drawable.ic_cn_cat,      // Кот
+                R.drawable.ic_cn_dragon,   // Дракон
+                R.drawable.ic_cn_snake,    // Змея
+                R.drawable.ic_cn_horse,    // Лошадь
+                R.drawable.ic_cn_goat,     // Коза
+                R.drawable.ic_cn_monkey,   // Обезьяна
+                R.drawable.ic_cn_rooster,  // Петух
+                R.drawable.ic_cn_dog,      // Собака
+                R.drawable.ic_cn_pig       // Свинья
+        };
+        chineseZodiacIcon.setImageResource(cnRes[cnIndex]);
 
-        // Update Western zodiac icon based on month
+        // Western zodiac icon based on month (0=Январь .. 11=Декабрь)
         int month = currentCalendar.get(Calendar.MONTH);
-        String westernZodiac = getWesternZodiac(month);
-        // Set placeholder icon (in real app, you would have actual zodiac icons)
-        westernZodiacIcon.setImageResource(android.R.drawable.ic_dialog_info);
-
+        int[] wsRes = {
+                R.drawable.ic_ws_capricorn,   // Козерог
+                R.drawable.ic_ws_aquarius,    // Водолей
+                R.drawable.ic_ws_pisces,      // Рыбы
+                R.drawable.ic_ws_aries,       // Овен
+                R.drawable.ic_ws_taurus,      // Телец
+                R.drawable.ic_ws_gemini,      // Близнецы
+                R.drawable.ic_ws_cancer,      // Рак
+                R.drawable.ic_ws_leo,         // Лев
+                R.drawable.ic_ws_virgo,       // Дева
+                R.drawable.ic_ws_libra,       // Весы
+                R.drawable.ic_ws_scorpio,     // Скорпион
+                R.drawable.ic_ws_sagittarius  // Стрелец
+        };
+        westernZodiacIcon.setImageResource(wsRes[month]);
     }
 
     private String getChineseZodiac(int year) {
-        String[] zodiacs = {"Крыса", "Бык", "Тигр", "Кролик", "Дракон", "Змея",
+        String[] zodiacs = {"Крыса", "Бык", "Тигр", "Кот", "Дракон", "Змея",
                 "Лошадь", "Коза", "Обезьяна", "Петух", "Собака", "Свинья"};
+        return zodiacs[getChineseZodiacIndex(year)];
+    }
+
+    private int getChineseZodiacIndex(int year) {
         int index = (year - 1900) % 12;
         if (index < 0) index += 12;
-        return zodiacs[index];
+        return index;
     }
 
     private String getWesternZodiac(int month) {

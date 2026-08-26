@@ -5,25 +5,31 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Buttons OK and Cancel on top right -->
+    <!-- Buttons OK (left) and Cancel (right-most) on top right -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="end">
 
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
+        <ImageButton
+            android:id="@+id/btnOK"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ok_green"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="OK"
+            android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp" />
 
-        <Button
-            android:id="@+id/btnOK"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OK" />
+        <ImageButton
+            android:id="@+id/btnCancel"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_cancel_gray"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
     <!-- Scrollable form card -->
@@ -39,6 +45,7 @@
 
             <!-- Form field with dropdown -->
             <LinearLayout
+                android:id="@+id/rowForm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -59,14 +66,64 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
-            <!-- Name field -->
+            <!-- Status (Состояние) -->
             <LinearLayout
+                android:id="@+id/rowStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Состояние:"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
+
+            <!-- MainSystem (Основная система) -->
+            <LinearLayout
+                android:id="@+id/rowMainSystem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/labelMainSystem"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Основная система:"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerMainSystem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
+
+            <!-- Name field -->
+            <LinearLayout
+                android:id="@+id/rowName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/labelName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Название:"
@@ -81,14 +138,17 @@
                     android:inputType="text"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
+
             <!-- Priority field -->
             <LinearLayout
+                android:id="@+id/rowPriority"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelPriority"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Приоритет:"
@@ -104,38 +164,16 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
-            <!-- Okdate (not editable: date the project was created = active date) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Дата заведения проекта:"
-                    android:textSize="16sp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:id="@+id/textViewOkdate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:layout_gravity="center_vertical"
-                    android:textColor="#FF666666" />
-            </LinearLayout>
-
             <!-- StartDate: editable date control (defaults to Okdate) -->
             <LinearLayout
+                android:id="@+id/rowStartDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelStartDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Дата старта проекта:"
@@ -149,14 +187,17 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
-            <!-- RequestName field -->
+
+            <!-- RequestName ("Заявка на автоматизацию" for Project, "В Проекте" picker for Task) -->
             <LinearLayout
+                android:id="@+id/rowRequestName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelRequestName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Заявка на автоматизацию:"
@@ -166,57 +207,27 @@
 
                 <EditText
                     android:id="@+id/editTextRequestName"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:inputType="text"
                     android:layout_gravity="center_vertical" />
-            </LinearLayout>
 
-            <!-- Status field with dropdown (English alias goes to StatusID) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Название статуса:"
-                    android:textSize="16sp"
+                <ImageButton
+                    android:id="@+id/btnPickRequest"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_pick_date"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="Выбрать проект"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="8dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical" />
+                    android:layout_marginStart="4dp"
+                    android:visibility="gone" />
             </LinearLayout>
 
-            <!-- MainSystem field with dropdown -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Основная система:"
-                    android:textSize="16sp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginEnd="8dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerMainSystem"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical" />
-            </LinearLayout>
             <!-- AnalitikName: chosen from CONTACTS, EntryID stored to AnalitikID -->
             <LinearLayout
+                android:id="@+id/rowAnalitik"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -239,6 +250,7 @@
 
             <!-- ExectorName: chosen from CONTACTS, EntryID stored to ExectorID -->
             <LinearLayout
+                android:id="@+id/rowExector"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -259,14 +271,16 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
-            <!-- BodyText: reusable InfoFieldView (2-line read-only + expandable scrollable EditText) -->
+            <!-- BodyText: reusable InfoFieldView (underline style) -->
             <LinearLayout
+                android:id="@+id/rowBodyText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelBodyText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Описание задачи:"
@@ -281,12 +295,14 @@
 
             <!-- Comment field -->
             <LinearLayout
+                android:id="@+id/rowComment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelComment"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Комментарий:"
@@ -304,12 +320,14 @@
 
             <!-- InstallOrder field -->
             <LinearLayout
+                android:id="@+id/rowInstallOrder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelInstallOrder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Описание порядка установки или настройки:"
@@ -327,12 +345,14 @@
 
             <!-- KeyWords field -->
             <LinearLayout
+                android:id="@+id/rowKeyWords"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelKeyWords"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Ключевые слова:"
@@ -347,6 +367,7 @@
                     android:inputType="text"
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
+
             <!-- Divider line before the read-only service fields -->
             <View
                 android:layout_width="match_parent"
@@ -356,6 +377,7 @@
                 android:background="#FF888888" />
 
             <TextView
+                android:id="@+id/serviceHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Служебные поля (не редактируются)"
@@ -363,14 +385,42 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- LastUpdatedBy (not editable) -->
+            <!-- Okdate (not editable) - Дата создания -->
             <LinearLayout
+                android:id="@+id/rowOkdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelOkdate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Дата создания:"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/textViewOkdate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:textColor="#FF666666" />
+            </LinearLayout>
+
+            <!-- LastUpdatedBy (not editable) -->
+            <LinearLayout
+                android:id="@+id/rowLastUpdatedBy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/labelLastUpdatedBy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Последний обновивший:"
@@ -389,12 +439,14 @@
 
             <!-- LastUpdatedDate (not editable) -->
             <LinearLayout
+                android:id="@+id/rowLastUpdatedDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelLastUpdatedDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Дата последнего обновления:"
@@ -413,12 +465,14 @@
 
             <!-- EndDate (not editable) -->
             <LinearLayout
+                android:id="@+id/rowEndDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelEndDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Дата завершения проекта (факт):"
@@ -437,12 +491,14 @@
 
             <!-- HoldDate (not editable) -->
             <LinearLayout
+                android:id="@+id/rowHoldDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelHoldDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Дата откладывания проекта:"
@@ -459,14 +515,16 @@
                     android:textColor="#FF666666" />
             </LinearLayout>
 
-            <!-- AuthorName (not editable, constant) -->
+            <!-- AuthorName (not editable) -->
             <LinearLayout
+                android:id="@+id/rowAuthorName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
                 <TextView
+                    android:id="@+id/labelAuthorName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Автор проекта:"
@@ -482,7 +540,6 @@
                     android:layout_gravity="center_vertical"
                     android:textColor="#FF666666" />
             </LinearLayout>
-
         </LinearLayout>
     </ScrollView>
 

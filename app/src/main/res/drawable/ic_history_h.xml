@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- "H" letter (history) with contour -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="1.8"
+        android:pathData="M12,2a10,10 0 1,0 0,20a10,10 0 1,0 0,-20" />
+    <path
+        android:strokeColor="#1565C0"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M8,7.5 L8,16.5 M16,7.5 L16,16.5 M8,12 L16,12" />
+</vector>

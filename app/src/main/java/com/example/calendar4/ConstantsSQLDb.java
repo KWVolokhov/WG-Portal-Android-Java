@@ -71,7 +71,9 @@ public class ConstantsSQLDb {
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "Address TEXT, " +
             "Name TEXT, " +
-            "Password TEXT" +
+            "Password TEXT, " +
+            "Vedushii TEXT, " +
+            "VedushiiID TEXT" +
             ")";
     
     public static final String CREATE_TABLE_HOLIDAYS = "CREATE TABLE IF NOT EXISTS HOLIDAYS (" +

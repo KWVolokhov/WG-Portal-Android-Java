@@ -23,17 +23,24 @@
             android:layout_height="wrap_content"
             android:text="СМС" />
 
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:text="Cancel" />
-
-        <Button
+        <ImageButton
             android:id="@+id/btnOK"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:text="OK" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ok_green"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="OK"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnCancel"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_cancel_gray"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 
     <!-- ScrollView for form fields -->
