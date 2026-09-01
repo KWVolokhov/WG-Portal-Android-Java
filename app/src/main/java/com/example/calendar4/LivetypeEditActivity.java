@@ -27,7 +27,7 @@ public class LivetypeEditActivity extends Activity {
     private static final String[] ORGAN_COLUMNS = {"Head", "Eyes", "Ears", "Nose", "Throat", "Teeth",
             "Stomach", "Intestines", "Liver", "Kidneys", "Heart", "Lungs",
             "Pressure", "Sleep", "Weight", "Nervous", "Morality", "Skin"};
-private EditText editTextName;
+    private EditText editTextName;
     private Spinner spinnerCategory;
     private TextView textViewAuthor;
     private TextView textViewDateCreated;
@@ -42,7 +42,8 @@ private EditText editTextName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_livetype_edit);;
+        setContentView(R.layout.activity_livetype_edit);
+        ;
 
         editTextName = findViewById(R.id.editTextLivetypeName);
         spinnerCategory = findViewById(R.id.spinnerLivetypeCategory);
@@ -81,13 +82,17 @@ private EditText editTextName;
             }
         });
     }
-private void buildOrganFields() {
+
+    private void saveAndFinish() {
+    }
+
+    private void buildOrganFields() {
         for (int i = 0; i < ORGAN_NAMES.length; i++) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
             TextView label = new TextView(this);
             label.setText(ORGAN_NAMES[i]);
@@ -135,8 +140,7 @@ private void buildOrganFields() {
 
     private static int indexOf(String[] arr, String value) {
         if (value == null) return -1;
-        for (
-        (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < arr.length; i++) {
             if (value.equals(arr[i])) return i;
         }
         return -1;
@@ -146,3 +150,4 @@ private void buildOrganFields() {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
+}

@@ -191,4 +191,7 @@ public class NoteRememSQLManage {
     private String fmt(Date date) {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date);
     }
+
+    public void deleteNote(Integer id) {
+    }
 }

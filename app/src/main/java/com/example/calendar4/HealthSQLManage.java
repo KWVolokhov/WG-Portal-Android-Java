@@ -299,4 +299,17 @@ public class HealthSQLManage {
             }
         }
     }
+
+    private String fmt(Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date);
+    }
+
+    private void putInt(ContentValues values, String column, Integer value) {
+        if (value != null) values.put(column, value);
+    }
+
+    private SimpleDateFormat fmtDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    }
+
 }

@@ -71,7 +71,7 @@ public class LivetypeSQLManage {
     // ---------------------------------------------------------------------
 
     /** Insert or update a livetypeRecord in the LIVETYPE table. */
-    public void upsertLivetype(livetypeRecord record)) {
+    public void upsertLivetype(livetypeRecord record) {
 
         if (record == null) return;
         ContentValues values = new ContentValues();
@@ -117,7 +117,7 @@ public class LivetypeSQLManage {
 
 
 
-        if (record.id != null)) {
+        if (record.id != null) {
             int rows = db.update(TABLE_LIVETYPE, values, "id=?", new String[]{String.valueOf(record.id)});
             if (rows == 0) {
                 db.insert(TABLE_LIVETYPE, null, values);
@@ -128,13 +128,13 @@ public class LivetypeSQLManage {
     }
 
     /** Delete a LIVETYPE record by its id. */
-    public void deleteLivetype(Integer id)) {
+    public void deleteLivetype(Integer id) {
         if (id == null) return;
         db.delete(TABLE_LIVETYPE, "id=?", new String[]{String.valueOf(id)});
     }
 
     /** Get a single LIVETYPE record by id, or null when absent. */
-    public livetypeRecord getLivetypeById(int id)) {
+    public livetypeRecord getLivetypeById(int id) {
         livetypeRecord record = null;
         Cursor cursor = db.query(TABLE_LIVETYPE, null, "id=?", new String[]{String.valueOf(id)}, null, null, null);
         try {
@@ -152,7 +152,7 @@ public class LivetypeSQLManage {
      * All LIVETYPE records sorted by Name (A-Z). When the filter is 3+ characters
      * it also filters by Name or Category (LOWER LIKE).
      */
-    public livetypeRecord[] getAllLivetype(String filter)) {
+    public livetypeRecord[] getAllLivetype(String filter) {
         ArrayList<livetypeRecord> list = new ArrayList<>();
         String selection = null;
         String[] args = null;
@@ -176,7 +176,7 @@ public class LivetypeSQLManage {
         return list.toArray(new livetypeRecord[0]);
     }
 
-    private livetypeRecord cursorToRecord(Cursor cursor)) {
+    private livetypeRecord cursorToRecord(Cursor cursor) {
         livetypeRecord record = new livetypeRecord();
         Integer idVal = getInt(cursor, "id");
         if (idVal != null) record.id = idVal;
@@ -217,19 +217,19 @@ public class LivetypeSQLManage {
         return record;
     }
 
-    private String getString(Cursor cursor, String column)) {
+    private String getString(Cursor cursor, String column) {
         int idx = cursor.getColumnIndex(column);
         if (idx >= 0 && !cursor.isNull(idx)) return cursor.getString(idx);
         return null;
     }
 
-    private Integer getInt(Cursor cursor, String column)) {
+    private Integer getInt(Cursor cursor, String column) {
         int idx = cursor.getColumnIndex(column);
         if (idx >= 0 && !cursor.isNull(idx)) return cursor.getInt(idx);
         return null;
     }
 
-    private void putInt(ContentValues values, String column, Integer value)) {
+    private void putInt(ContentValues values, String column, Integer value) {
         if (value != null) values.put(column, value);
     }
 

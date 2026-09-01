@@ -75,13 +75,13 @@ public class LivetypeActivity extends Activity {
                 row.setTopText(record.Name != null ? record.Name : "");
                 row.setBottomText(record.Category != null ? record.Category : "");
                 row.setTypeIcon(R.drawable.ic_type_note);
-                row.setOnEditClickListener(v -> openEdit(record);
-                row.setOnDeleteClickListener(v -> confirmDelete(record);
+                row.setOnEditClickListener(v -> openEdit(record));
+                row.setOnDeleteClickListener(v -> confirmDelete(record));
                 return row;
             }
         };
         listViewLivetype.setAdapter(adapter);
-        listViewLivetype.setOnItemClickListener(null;
+
 
         // Add button - open a brand-new LIVETYPE card
         btnNew.setOnClickListener(new View.OnClickListener() {
