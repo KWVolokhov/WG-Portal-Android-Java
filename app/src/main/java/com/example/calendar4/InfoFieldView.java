@@ -80,11 +80,10 @@ public class InfoFieldView extends LinearLayout {
         tvCollapsed.setBackgroundResource(R.drawable.bg_underline);
         tvCollapsed.setGravity(Gravity.START | Gravity.TOP);
         tvCollapsed.setTextAppearance(context, android.R.style.TextAppearance_Medium);
-        // Expand when the field receives focus (keyboard/tab navigation).
-        tvCollapsed.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) expand();
-        });
-        // Expand on tap as well.
+        // The text can be selected and copied directly in the collapsed view
+        // (long press = selection/copy, short tap = expand to the edit window).
+        tvCollapsed.setTextIsSelectable(true);
+        // Expand only on tap (auto-expand on focus would break long-press selection)
         tvCollapsed.setOnClickListener(v -> expand());
 
         addView(tvCollapsed, new LinearLayout.LayoutParams(

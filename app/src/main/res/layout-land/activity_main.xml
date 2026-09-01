@@ -32,6 +32,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
+        android:id="@+id/buttonHealth"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_health_h"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Health"
+        android:onClick="openHealth"
+        app:layout_constraintStart_toEndOf="@id/button1"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+
+    <ImageButton
         android:id="@+id/buttonH"
         android:layout_width="32dp"
         android:layout_height="32dp"
@@ -40,7 +52,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="История"
         android:onClick="openHistory"
-        app:layout_constraintStart_toEndOf="@id/button1"
+        app:layout_constraintStart_toEndOf="@id/buttonHealth"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ListView

@@ -4,7 +4,7 @@ public class ConstantsSQLDb {
     public static final String CREATE_TABLE_CALPLAN = "CREATE TABLE IF NOT EXISTS CALPLAN (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +	//Label: Номер Проекта	10 bytes
             "UNID TEXT UNIQUE, " +			//Label: Уникальный ID	34 bytes
-            "Form TEXT DEFAULT 'Project', " +	//Label: Форма 'Project', 'Note', 'Remember','Task'
+            "Form TEXT DEFAULT 'Project', " +	//Label: Форма 'Project', 'Task', 'Request'
             "Priority INTEGER, " +		 	//Label: Приоритет	10 bytes
             "Okdate DATE, " + 				//Label: Дата заведения проекта
             "AuthorID TEXT, " +				//Label: ID Автора Проекта
@@ -31,22 +31,101 @@ public class ConstantsSQLDb {
             "KeyWords TEXT, " +				//Label: Ключевые слова
             "Revisions TEXT " +			//Label: Даты изменения друг за друом
             ")";
-    public static final String CREATE_TABLE_REQUESTPLAN = "CREATE TABLE IF NOT EXISTS REQUESTPLAN (" +
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +	//Label: Номер Проекта	10 bytes
-            "UNID TEXT UNIQUE, " +			//Label: Уникальный ID	34 bytes
-            "Okdate DATE, " + 				//Label: Дата заведения проекта
-            "AuthorID TEXT, " +				//Label: ID Автора Проекта
-            "AuthorName TEXT, " +			//Label: Автор Проекта
-            "RequestName TEXT, " +			//Label: Заявка на автоматизацию
-            "AnalitikID TEXT, " +			//Label: ID Постановщика
-            "AnalitikName TEXT, " +			//Label: Постановщик
-            "LastUpdatedByID TEXT, " +		//Label: ID Последнего обновившего
-            "LastUpdatedBy TEXT, " +		//Label: Последний обновивший
-            "LastUpdatedDate DATE, " +		//Label: Дата Последнего обновления
-            "BodyText TEXT, " +				//Label: Описание задачи
-            "Comment TEXT, " +				//Label: Комментарий
-            "Revisions TEXT, " +			//Label: Даты изменения друг за друом
-            "PRIMARY KEY(id, UNID)" +
+        public static final String CREATE_TABLE_HISTORY = "CREATE TABLE IF NOT EXISTS HISTORY (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
+            "Okdate DATE, " + //Label: Дата заведения записи
+            "AuthorID TEXT, " +//Label: ID Автора
+            "AuthorName TEXT, " +//Label: Автор
+            "LastUpdatedByID TEXT, " +//Label: ID Последнего обновившего
+            "LastUpdatedBy TEXT, " +//Label: Последний обновивший
+            "LastUpdatedDate DATE, " +//Label: Дата Последнего обновления
+            "Name TEXT NOT NULL, " +//Label: Название записи
+            "BodyText TEXT, " +//Label: Расшифровка
+            "Comment TEXT, " +//Label: Комментарий
+            "StartDate DATE, " + //Label: Дата записи (для показа в календаре)
+            "Revisions TEXT " +//Label: Даты изменения друг за друом
+            ")";
+    public static final String CREATE_TABLE_NOTEPLAN = "CREATE TABLE IF NOT EXISTS NOTEPLAN (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
+            "Form TEXT DEFAULT 'Note', " +//Label: Форма 'Note', 'Remember'
+            "Okdate DATE, " + //Label: Дата заведения записи
+            "AuthorID TEXT, " +//Label: ID Автора
+            "AuthorName TEXT, " +//Label: Автор
+            "LastUpdatedByID TEXT, " +//Label: ID Последнего обновившего
+            "LastUpdatedBy TEXT, " +//Label: Последний обновивший
+            "LastUpdatedDate DATE, " +//Label: Дата Последнего обновления
+            "Name TEXT NOT NULL, " +//Label: Название
+            "Status TEXT, " +//Label: Состояние
+            "StatusID TEXT, " +//Label: Идентификатор состояния
+            "StartDate DATE, " + //Label: Дата записи/напоминания
+            "BodyText TEXT, " +//Label: Текст Заметки/Напоминания
+            "Comment TEXT, " +//Label: Комментарий
+            "KeyWords TEXT, " +//Label: Ключевые слова
+            "Revisions TEXT " +//Label: Даты изменения друг за друом
+            ")";
+    public static final String CREATE_TABLE_HEALTHPLAN = "CREATE TABLE IF NOT EXISTS HEALTHPLAN (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
+            "Form TEXT DEFAULT 'HealthEat', " +//Label: Форма 'HealthEat', 'HealthDrink', 'HealthSport'
+            "Okdate DATE, " + //Label: Дата заведения записи
+            "AuthorID TEXT, " +//Label: ID Автора
+            "AuthorName TEXT, " +//Label: Автор
+            "LastUpdatedByID TEXT, " +//Label: ID Последнего обновившего
+            "LastUpdatedBy TEXT, " +//Label: Последний обновивший
+            "LastUpdatedDate DATE, " +//Label: Дата Последнего обновления
+            "Name TEXT NOT NULL, " +//Label: Название
+            "BodyText TEXT, " +//Label: Расшифровка
+            "Comment TEXT, " +//Label: Комментарий
+            "StartDate DATE, " + //Label: Дата записи (для показа в календаре)
+            "EndDate DATE, " + //Label: Дата завершения (факт)
+            "Revisions TEXT, " +//Label: Даты изменения друг за друом
+            "Head INTEGER, " +//Label: Голова
+            "Eyes INTEGER, " +//Label: Глаза
+            "Ears INTEGER, " +//Label: Уши
+            "Nose INTEGER, " +//Label: Нос
+            "Throat INTEGER, " +//Label: Горло
+            "Teeth INTEGER, " +//Label: Зубы
+            "Stomach INTEGER, " +//Label: Желудок
+            "Intestines INTEGER, " +//Label: Кишечник
+            "Liver INTEGER, " +//Label: Печень
+            "Kidneys INTEGER, " +//Label: Почки
+            "Heart INTEGER, " +//Label: Сердце
+            "Lungs INTEGER, " +//Label: Лёгкие
+            "Pressure INTEGER, " +//Label: Давление
+            "Sleep INTEGER, " +//Label: Сон
+            "Weight INTEGER, " +//Label: Вес
+            "Nervous INTEGER, " +//Label: Нервная система
+            "Morality INTEGER, " +//Label: Мораль
+            "Skin INTEGER " +//Label: Состояние кожи
+            ")";
+public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS LIVETYPE (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
+            "Name TEXT NOT NULL, " +//Label: Название типа жизнедеятельности
+            "Category TEXT, " +//Label: Категория жизнедеятельности (Пища, Гидратация, Физ. активность, Стресс, Гедонизм)
+            "AuthorID TEXT, " +//Label: ID Автора
+            "AuthorName TEXT, " +//Label: Автор
+            "DateCreated DATE, " +//Label: Дата создания
+            "Head INTEGER, " +//Label: Голова
+            "Eyes INTEGER, " +//Label: Глаза
+            "Ears INTEGER, " +//Label: Уши
+            "Nose INTEGER, " +//Label: Нос
+            "Throat INTEGER, " +//Label: Горло
+            "Teeth INTEGER, " +//Label: Зубы
+            "Stomach INTEGER, " +//Label: Желудок
+            "Intestines INTEGER, " +//Label: Кишечник
+            "Liver INTEGER, " +//Label: Печень
+            "Kidneys INTEGER, " +//Label: Почки
+            "Heart INTEGER, " +//Label: Сердце
+            "Lungs INTEGER, " +//Label: Лёгкие
+            "Pressure INTEGER, " +//Label: Давление
+            "Sleep INTEGER, " +//Label: Сон
+            "Weight INTEGER, " +//Label: Вес
+            "Nervous INTEGER, " +//Label: Нервная система
+            "Morality INTEGER, " +//Label: Мораль
+            "Skin INTEGER " +//Label: Состояние кожи
             ")";
     public static final String CREATE_TABLE_CLASSIFICATOR = "CREATE TABLE IF NOT EXISTS CLASSIFICATOR (" +
             "ID TEXT PRIMARY KEY, " +		//Label: ID

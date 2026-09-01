@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Пока НЕ Включаем наш жесткий перехватчик для всех потоков приложения
-        // Thread.setDefaultUncaughtExceptionHandler(new HardcoreCrashHandler(this));
+        // Включаем наш жесткий перехватчик для всех потоков приложения
+        Thread.setDefaultUncaughtExceptionHandler(new HardcoreCrashHandler(this));
     
         setContentView(R.layout.activity_main);
 
@@ -331,7 +331,11 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 2);
         }
         if(item.getItemId()==R.id.projects_work) JabText = "Меню Проекты Рабочие";
-        if(item.getItemId()==R.id.projects_all) JabText = "Меню Проекты Все";
+        if(item.getItemId()==R.id.projects_all) {
+            // Launch the "Проекты \ Все" screen
+            Intent intent = new Intent(this, ProjectsActivity.class);
+            startActivityForResult(intent, 4);
+        }
         if(item.getItemId()==R.id.sms_income) JabText = "Меню СМС Входящие";
         if(item.getItemId()==R.id.sms_outcome) JabText = "Меню СМС Исходящие";
         /*AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -433,13 +437,20 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /** Opens the day Health screen (list of HealthEat/HealthDrink/HealthSport for the active date). */
+    public void openHealth(View view) {
+        Intent intent = new Intent(this, HealthActivity.class);
+        intent.putExtra("healthDate", russianCalendar.activeDate);
+        startActivity(intent);
+    }
+
     private void confirmDeleteCalPlan(final calPlanRecord record) {
         if (record == null || record.id == null) return;
         new AlertDialog.Builder(this)
                 .setTitle("Удалить")
                 .setMessage("Удалить запись? (" + (record.Name != null ? record.Name : "") + ")")
                 .setPositiveButton("Ок", (d, w) -> {
-                    owerDb.deleteCalPlan(record.id);
+                    owerDb.deleteCalPlanRecord(record);
                     refreshListView();
                 })
                 .setNegativeButton("Cancel", null)
@@ -451,12 +462,13 @@ public class MainActivity extends AppCompatActivity {
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
             if (activeDate != null) {
-                activRecordS = owerDb.getCalPlan(activeDate);
+                activRecordS = owerDb.getDayRecords(activeDate);
                 mainListAdapter.clear();
                 if (activRecordS != null) {
                     for (calPlanRecord record : activRecordS) {
-                        // The day list shows all records EXCEPT Form=History
-                        if (record != null && !"History".equals(record.Form)) {
+                        // History is hidden, Health is hidden, and Project/Task drafts
+                        // are not shown in the MainActivity day list
+                        if (record != null && !shouldHideFromMainList(record)) {
                             mainListAdapter.add(record);
                         }
                     }
@@ -464,6 +476,22 @@ public class MainActivity extends AppCompatActivity {
                 mainListAdapter.notifyDataSetChanged();
             }
         }
+    }
+
+    /**
+     * Records that must NOT appear in the first MainActivity list:
+     * History, Health (HealthEat/HealthDrink/HealthSport are shown on the Health screen),
+     * and drafts (StatusID='Draft') of Projects and Tasks.
+     */
+    private boolean shouldHideFromMainList(calPlanRecord record) {
+        if (record == null) return true;
+        String form = record.Form;
+        if (form == null) return false;
+        if ("History".equals(form)) return true;
+        if ("HealthEat".equals(form) || "HealthDrink".equals(form) || "HealthSport".equals(form)) return true;
+        // черновики проектов и задач
+        if (("Project".equals(form) || "Task".equals(form)) && "Draft".equals(record.StatusID)) return true;
+        return false;
     }
 
     public void taskAdd(View view) {

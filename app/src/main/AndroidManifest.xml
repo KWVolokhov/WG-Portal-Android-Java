@@ -74,6 +74,11 @@
              />
 
         <activity
+            android:name=".HealthActivity"
+            android:exported="false"
+             />
+
+        <activity
             android:name=".ParamsActivity"
             android:exported="false"
              />
@@ -86,6 +91,17 @@
         <activity
             android:name=".EditContactActivity"
             android:exported="false"
+             />
+
+        <activity
+            android:name=".ProjectsActivity"
+            android:exported="false"
+             />
+
+        <activity
+            android:name=".CrashActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
              />
 
     </application>

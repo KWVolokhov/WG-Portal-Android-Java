@@ -9,15 +9,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
+    private final Context mContext;
+
     public ManageSQLDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.mContext = context;
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -25,7 +30,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         //db.execSQL("DROP TABLE IF EXISTS CALPLAN");
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_CALPLAN);
 
-        //db.execSQL("DROP TABLE IF EXISTS REQUESTPLAN");   //Это заявка на проект, пока не нужна
+        // Tables separated from CALPLAN (Form=History -> HISTORY, Form=Note/Remember -> NOTEPLAN,
+        // Form=HealthEat/HealthDrink/HealthSport -> HEALTHPLAN)
+        db.execSQL(ConstantsSQLDb.CREATE_TABLE_HISTORY);
+        db.execSQL(ConstantsSQLDb.CREATE_TABLE_NOTEPLAN);
+        db.execSQL(ConstantsSQLDb.CREATE_TABLE_HEALTHPLAN);
 
         //db.execSQL("DROP TABLE IF EXISTS CLASSIFICATOR");
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_CLASSIFICATOR);
@@ -54,6 +63,36 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
                 // Columns may already exist - ignore
             }
         }
+        // Version 3: HISTORY, NOTEPLAN, HEALTHPLAN tables were split out of CALPLAN
+        if (oldVersion < 3) {
+            try {
+                db.execSQL(ConstantsSQLDb.CREATE_TABLE_HISTORY);
+                db.execSQL(ConstantsSQLDb.CREATE_TABLE_NOTEPLAN);
+                db.execSQL(ConstantsSQLDb.CREATE_TABLE_HEALTHPLAN);
+
+                // Migrate existing rows from CALPLAN into the new tables, then remove them
+                // from CALPLAN so that only Project / Task / Request stay there.
+                db.execSQL("INSERT OR IGNORE INTO HISTORY " +
+                        "(UNID, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, BodyText, Comment, StartDate, Revisions) " +
+                        "SELECT UNID, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, BodyText, Comment, StartDate, Revisions " +
+                        "FROM CALPLAN WHERE Form='History'");
+                db.execSQL("DELETE FROM CALPLAN WHERE Form='History'");
+
+                db.execSQL("INSERT OR IGNORE INTO NOTEPLAN " +
+                        "(UNID, Form, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, Status, StatusID, StartDate, BodyText, Comment, KeyWords, Revisions) " +
+                        "SELECT UNID, Form, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, Status, StatusID, StartDate, BodyText, Comment, KeyWords, Revisions " +
+                        "FROM CALPLAN WHERE Form='Note' OR Form='Remember'");
+                db.execSQL("DELETE FROM CALPLAN WHERE Form='Note' OR Form='Remember'");
+
+                db.execSQL("INSERT OR IGNORE INTO HEALTHPLAN " +
+                        "(UNID, Form, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, BodyText, Comment, StartDate, EndDate, Revisions) " +
+                        "SELECT UNID, Form, Okdate, AuthorID, AuthorName, LastUpdatedByID, LastUpdatedBy, LastUpdatedDate, Name, BodyText, Comment, StartDate, EndDate, Revisions " +
+                        "FROM CALPLAN WHERE Form='HealthEat' OR Form='HealthDrink' OR Form='HealthSport'");
+                db.execSQL("DELETE FROM CALPLAN WHERE Form='HealthEat' OR Form='HealthDrink' OR Form='HealthSport'");
+            } catch (Exception e) {
+                // Tables/rows may already be migrated - ignore
+            }
+        }
     }
 
 
@@ -78,8 +117,27 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return retF;
     }
 
-    // Upsert (Insert or Update) calPlanRecord into CALPLAN table
+    // Upsert (Insert or Update) calPlanRecord. Depending on the Form value the record
+    // is saved to its own table: HISTORY / NOTEPLAN / HEALTHPLAN / CALPLAN (Project, Task, Request)
     public void upsertCalPlan(calPlanRecord record) {
+        if (record == null) return;
+
+        // Form=History -> HISTORY table
+        if ("History".equals(record.Form)) {
+            new HistorySQLManage(this.getWritableDatabase()).upsertHistory(record);
+            return;
+        }
+        // Form=Note / Form=Remember -> NOTEPLAN table
+        if ("Note".equals(record.Form) || "Remember".equals(record.Form)) {
+            new NoteRememSQLManage(this.getWritableDatabase()).upsertNote(record);
+            return;
+        }
+        // Form=HealthEat / HealthDrink / HealthSport -> HEALTHPLAN table
+        if ("HealthEat".equals(record.Form) || "HealthDrink".equals(record.Form) || "HealthSport".equals(record.Form)) {
+            new HealthSQLManage(this.getWritableDatabase()).upsertHealth(record);
+            return;
+        }
+
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -149,6 +207,24 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (id == null) return;
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete("CALPLAN", "id=?", new String[]{String.valueOf(id)});
+    }
+
+    // Delete a record by its Form: HISTORY / NOTEPLAN / HEALTHPLAN / CALPLAN
+    public void deleteCalPlanRecord(calPlanRecord record) {
+        if (record == null || record.id == null) return;
+        if ("History".equals(record.Form)) {
+            new HistorySQLManage(this.getWritableDatabase()).deleteHistory(record.id);
+            return;
+        }
+        if ("Note".equals(record.Form) || "Remember".equals(record.Form)) {
+            new NoteRememSQLManage(this.getWritableDatabase()).deleteNote(record.id);
+            return;
+        }
+        if ("HealthEat".equals(record.Form) || "HealthDrink".equals(record.Form) || "HealthSport".equals(record.Form)) {
+            new HealthSQLManage(this.getWritableDatabase()).deleteHealth(record.id);
+            return;
+        }
+        deleteCalPlan(record.id);
     }
 
     // Delete a CONTACTS record by its id.
@@ -252,7 +328,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
         if (bodyText != null && !bodyText.isEmpty()) history.BodyText = bodyText;
 
-        upsertCalPlan(history);
+        // History is stored in its own HISTORY table
+        new HistorySQLManage(this.getWritableDatabase()).upsertHistory(history);
     }
 
     // Non-empty fields of a contact delimited by ',': "Фамилия=Иванов,Имя=Пётр,...".
@@ -460,11 +537,50 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return queryCalPlan("Form=?", new String[]{form});
     }
 
-    // Get CALPLAN records of Form='History' for a concrete date (day view in HistoryActivity)
+    // Get CALPLAN records of Form='Project' AND Form='Task' (the "Проекты\Все" screen),
+    // sorted by StartDate (earliest first); records without a date go last.
+    // When the filter is 3+ characters it also filters by Name (LOWER LIKE).
+    public calPlanRecord[] getProjectsTasks(String filter) {
+        calPlanRecord[] arr;
+        if (filter != null && filter.trim().length() >= 3) {
+            String pattern = "%" + filter.trim().toLowerCase(java.util.Locale.getDefault()) + "%";
+            arr = queryCalPlan("(Form='Project' OR Form='Task') AND LOWER(Name) LIKE ?",
+                    new String[]{pattern});
+        } else {
+            arr = queryCalPlan("Form='Project' OR Form='Task'", null);
+        }
+        if (arr == null || arr.length == 0) return new calPlanRecord[0];
+
+        ArrayList<calPlanRecord> list = new ArrayList<>(Arrays.asList(arr));
+        // WG: раньше был list.sort(...) — это Java-8 метод ArrayList.sort, которого нет на старых
+        // Android (появился с API 24). ContactsActivity/ParamsActivity этот путь НЕ используют,
+        // поэтому падал только экран Проекты. Collections.sort доступен на всех версиях Android.
+        Collections.sort(list, (a, b) -> {
+            Date da = a.StartDate;
+            Date db = b.StartDate;
+            if (da == null && db == null) return 0;
+            if (da == null) return 1;
+            if (db == null) return -1;
+            return da.compareTo(db);
+        });
+        return list.toArray(new calPlanRecord[0]);
+    }
+
+    // Get CALPLAN records of Form='History' for a concrete date
+    // (day view in HistoryActivity). History lives in its own HISTORY table.
     public calPlanRecord[] getCalPlanHistory(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        return queryCalPlan("StartDate=? AND Form='History'",
-                new String[]{sdf.format(date)});
+        return new HistorySQLManage(this.getWritableDatabase()).getHistoryByDate(date);
+    }
+
+    // Day list for the MainActivity: CALPLAN (Project/Task/Request) + NOTEPLAN (Note/Remember).
+    // History and Health are not shown in the MainActivity day list.
+    public calPlanRecord[] getDayRecords(Date date) {
+        ArrayList<calPlanRecord> list = new ArrayList<>();
+        calPlanRecord[] cal = getCalPlan(date);
+        if (cal != null) list.addAll(Arrays.asList(cal));
+        calPlanRecord[] notes = new NoteRememSQLManage(this.getWritableDatabase()).getNotesByDate(date);
+        if (notes != null) list.addAll(Arrays.asList(notes));
+        return list.toArray(new calPlanRecord[0]);
     }
 
     // Generic CALPLAN query used by getCalPlan / getCalPlanByForm / getCalPlanHistory

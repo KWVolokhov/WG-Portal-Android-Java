@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Day history screen: shows CALPLAN records of Form='History' for a concrete day,
+ * Day history screen: shows History records (their own HISTORY table) for a concrete day,
  * like the contacts list (rows with edit/delete), but without the "Новый" button.
  * Header: "&lt;дата&gt; История" (left) + Back ImageButton like Cancel (right-most).
  */
@@ -28,6 +28,7 @@ public class HistoryActivity extends Activity {
     private ImageButton btnBack;
 
     private ManageSQLDatabase owerDb;
+    private HistorySQLManage historyDb;
     private ArrayAdapter<calPlanRecord> adapter;
     private ArrayList<calPlanRecord> records;
     private Date day;
@@ -47,8 +48,10 @@ public class HistoryActivity extends Activity {
         headerTitle.setText(sdf.format(day) + " История");
 
         owerDb = new ManageSQLDatabase(this);
+        // Reuse the already existing connection to the database
+        historyDb = new HistorySQLManage(owerDb.getWritableDatabase());
         records = new ArrayList<>();
-        calPlanRecord[] arr = owerDb.getCalPlanHistory(day);
+        calPlanRecord[] arr = historyDb.getHistoryByDate(day);
         if (arr != null) {
             for (calPlanRecord r : arr) {
                 if (r != null) records.add(r);
@@ -93,7 +96,7 @@ public class HistoryActivity extends Activity {
                 .setTitle("Удалить")
                 .setMessage("Удалить запись? (" + (record.Name != null ? record.Name : "") + ")")
                 .setPositiveButton("Ок", (d, w) -> {
-                    owerDb.deleteCalPlan(record.id);
+                    historyDb.deleteHistory(record.id);
                     reload();
                 })
                 .setNegativeButton("Cancel", null)
@@ -102,7 +105,7 @@ public class HistoryActivity extends Activity {
 
     private void reload() {
         records.clear();
-        calPlanRecord[] arr = owerDb.getCalPlanHistory(day);
+        calPlanRecord[] arr = historyDb.getHistoryByDate(day);
         if (arr != null) {
             for (calPlanRecord r : arr) {
                 if (r != null) records.add(r);
@@ -115,6 +118,12 @@ public class HistoryActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                calPlanRecord record = (calPlanRecord) data.getSerializableExtra("calPlanRecord");
+                if (record != null) {
+                    historyDb.upsertHistory(record);
+                }
+            }
             reload();
         }
     }

@@ -5,19 +5,19 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Buttons on top: title + "Add"/"Back" image buttons, packed to the right -->
+    <!-- Header: title (left) + "Add" ImageButton + Back ImageButton (right-most) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
         android:layout_marginBottom="8dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/headerTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Контакты"
+            android:layout_weight="1"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_gravity="center_vertical"
@@ -29,7 +29,7 @@
             android:layout_height="32dp"
             android:src="@drawable/ic_add_plus"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Добавить контакт"
+            android:contentDescription="Добавить запись здоровья"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp" />
 
@@ -43,19 +43,19 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- Filter field -->
+    <!-- Filter field (3+ characters filter the list by name) -->
     <EditText
-        android:id="@+id/editTextFilter"
+        android:id="@+id/editTextHealthFilter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Поиск контакта (минимум 3 символа)"
+        android:hint="Поиск по названию (минимум 3 символа)"
         android:inputType="text"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />
 
-    <!-- Contacts list -->
+    <!-- Health records list (HEALTHPLAN for the selected day) -->
     <ListView
-        android:id="@+id/listViewContacts"
+        android:id="@+id/listViewHealth"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Buttons on top: title + "Add"/"Back" image buttons, packed to the right -->
+    <!-- Header: title + "Add"/"Back" image buttons, all packed to the right -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,7 +17,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Контакты"
+            android:text="Проекты"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_gravity="center_vertical"
@@ -29,7 +29,7 @@
             android:layout_height="32dp"
             android:src="@drawable/ic_add_plus"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Добавить контакт"
+            android:contentDescription="Добавить проект"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp" />
 
@@ -43,19 +43,19 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- Filter field -->
+    <!-- Search by name (3+ characters filter the list) -->
     <EditText
-        android:id="@+id/editTextFilter"
+        android:id="@+id/editTextFilterProjects"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Поиск контакта (минимум 3 символа)"
+        android:hint="Поиск по названию (минимум 3 символа)"
         android:inputType="text"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />
 
-    <!-- Contacts list -->
+    <!-- Projects/Tasks list (CALPLAN Form=Project / Form=Task, sorted by StartDate) -->
     <ListView
-        android:id="@+id/listViewContacts"
+        android:id="@+id/listViewProjects"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
