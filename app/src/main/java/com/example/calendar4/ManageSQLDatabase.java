@@ -21,10 +21,16 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 	
 	public static String AuthorName = null;
 	public static String AuthorID = null;
+    private static ManageSQLDatabase instance=null;
 
     // 1. Делаем конструктор приватным
-    private ManageSQLDatabase(Context context) {
+    protected ManageSQLDatabase(Context context) {
         super(context.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
+        CalParamRecord param = getCalParam();
+        if (param != null) {
+            AuthorName = param.Vedushii;
+            AuthorID = param.VedushiiID;
+        }
     }
 
     // 2. Метод для получения единственного экземпляра
@@ -32,13 +38,6 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (instance == null) {
             // Использование getApplicationContext() предотвращает утечки памяти
             instance = new ManageSQLDatabase(context.getApplicationContext());
-			
-	        CalParamRecord param = getCalParam();
-			if (param != null) {
-				AuthorName = param.Vedushii;
-				AuthorID = param.VedushiiID;
-			}
-			
         }
         return instance;
     }
@@ -752,10 +751,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
     // Get CalParam record (single record) from CALPARAM table
     public CalParamRecord getCalParam() {
-        SQLiteDatabase db = this.getReadableDatabase();
+        //SQLiteDatabase db = this.getReadableDatabase();
         CalParamRecord record = null;
 
-        Cursor cursor = db.query("CALPARAM",
+        Cursor cursor = this.getReadableDatabase().query("CALPARAM",
                 null,
                 null, null, null, null, null, "1");
 
