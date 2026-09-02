@@ -3,6 +3,9 @@ package com.example.calendar4;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -28,6 +31,12 @@ import android.os.Build;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -42,6 +51,70 @@ public class MainActivity extends AppCompatActivity {
     Integer rowNum=0;
     private ArrayAdapter<calPlanRecord> mainListAdapter;
     private RussianHolidaysFetcher holidaysFetcher;
+
+    // ===== Real pedometer (Task 27) =====
+    private SensorManager sensorManager;
+    private Sensor stepSensor;
+    private final SensorEventListener stepListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (event == null || event.values == null || event.values.length == 0) return;
+            float steps = event.values[0];
+            lastStepValue = (long) steps;
+            lastStepTimeMs = System.currentTimeMillis();
+            pedometerActive = true;
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+    private static final int PEDOMETER_DURATION_MIN = 120;        // 2 часа
+    private static final long PEDOMETER_UPDATE_INTERVAL_MS = 10 * 60 * 1000L; // каждые 10 минут
+    private static final long PEDOMETER_STOP_TIMEOUT_MS = 20 * 60 * 1000L;    // 20 минут без шагов
+    private Handler uiHandler = new Handler(Looper.getMainLooper());
+    private Runnable pedometerFinishRunnable;
+    private Runnable pedometerTimerRunnable;
+    private Integer pedometerRecordId;      // id записи HEALTHPLAN (HealthSport «Прогулка»)
+    private long pedometerStartTimeMs;      // when the 2-hour window started
+    private long lastStepTimeMs;            // last moment a step was counted
+    private Long lastStepValue;             // raw cumulative value from the sensor
+    private boolean pedometerActive;        // is the pedometer currently running
+
+    private static final int REQUEST_ACTIVITY_RECOGNITION = 101;
+
+    // ===== Modern Activity Result API (replaces deprecated startActivityForResult) =====
+    // Launcher for the shared edit screens (old requestCode=1)
+    private final ActivityResultLauncher<Intent> inputCalPlanLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    // Get calPlanRecord from the edit screen
+                    calPlanRecord record = (calPlanRecord) result.getData().getSerializableExtra("calPlanRecord");
+                    if (record != null && owerDb != null) {
+                        owerDb.upsertCalPlan(record);
+                        refreshListView();
+                        Toast.makeText(MainActivity.this, "Запись сохранена: " + record.Name, Toast.LENGTH_SHORT).show();
+                    }
+                } else if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                    Toast.makeText(MainActivity.this, "Отменено", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> contactsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            });
+
+    private final ActivityResultLauncher<Intent> paramsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            });
+
+    private final ActivityResultLauncher<Intent> projectsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            });
+
+    private final ActivityResultLauncher<Intent> livetypeLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +149,8 @@ public class MainActivity extends AppCompatActivity {
         russianCalendar.activeDate = Calendar.getInstance().getTime();
         
         // Initialize database and load records for today
-        owerDb = new ManageSQLDatabase(this);
+        // owerDb = new ManageSQLDatabase(this); //OLD code
+		owerDb = ManageSQLDatabase.getInstance(this);
         SQLiteDatabase classDb = owerDb.getWritableDatabase();
         owerDb.onCreate(classDb);
 
@@ -89,6 +163,39 @@ public class MainActivity extends AppCompatActivity {
         // Fetch holidays for current year
         fetchRussianHolidays();
 
+        // Open the configured start page (except Календарь/MainActivity)
+        openStartPageIfNeeded();
+
+    }
+
+    /**
+     * Task 26: opens the "Стартовая страница" chosen in Параметры.
+     * null/"Calendar" keeps this MainActivity (default). After reinstall the
+     * database is empty, so the app always starts from MainActivity.
+     */
+    private void openStartPageIfNeeded() {
+        try {
+            if (owerDb == null) return;
+            CalParamRecord param = owerDb.getCalParam();
+            if (param == null || param.StartPage == null || param.StartPage.isEmpty()) return;
+
+            if (CalParamRecord.START_PAGE_CONTACTS.equals(param.StartPage)) {
+                contactsLauncher.launch(startPageIntent(new Intent(this, ContactsActivity.class)));
+            } else if (CalParamRecord.START_PAGE_PROJECTS.equals(param.StartPage)) {
+                projectsLauncher.launch(startPageIntent(new Intent(this, ProjectsActivity.class)));
+            } else if (CalParamRecord.START_PAGE_PARAMS.equals(param.StartPage)) {
+                paramsLauncher.launch(startPageIntent(new Intent(this, ParamsActivity.class)));
+            }
+            // START_PAGE_CALENDAR (or anything else) -> stay on MainActivity
+        } catch (Exception e) {
+            // Never break the app start because of the startup page logic
+        }
+    }
+
+    /** Marks an activity opened as the app start page (system "Back" closes the app then). */
+    private Intent startPageIntent(Intent intent) {
+        intent.putExtra(CalParamRecord.EXTRA_IS_START_PAGE, true);
+        return intent;
     }
 
     /**
@@ -168,6 +275,9 @@ public class MainActivity extends AppCompatActivity {
             }
             if (changed) {
                 owerDb.upsertCalParam(param);
+                // Keep the static author fields (used by all record screens) in sync
+                ManageSQLDatabase.AuthorName = param.Vedushii;
+                ManageSQLDatabase.AuthorID = param.VedushiiID;
             }
         } catch (Exception e) {
             // Non-fatal: ignore device auto-registration errors
@@ -321,20 +431,26 @@ public class MainActivity extends AppCompatActivity {
             JabText = "Меню Контакты";
             // Launch ContactsActivity modally
             Intent intent = new Intent(this, ContactsActivity.class);
-            startActivityForResult(intent, 3);
+            contactsLauncher.launch(intent);
         }
         if(item.getItemId()==R.id.calculator) JabText = "Меню Калькулятор";
+        if(item.getItemId()==R.id.livetype) {
+            JabText = "Меню Типы жизнедеятельности";
+            // Launch the "Типы жизнедеятельности" reference screen
+            Intent intent = new Intent(this, LivetypeActivity.class);
+            livetypeLauncher.launch(intent);
+        }
         if(item.getItemId()==R.id.parametrs) {
             JabText = "Меню Параметры";
             // Launch ParamsActivity modally
             Intent intent = new Intent(this, ParamsActivity.class);
-            startActivityForResult(intent, 2);
+            paramsLauncher.launch(intent);
         }
         if(item.getItemId()==R.id.projects_work) JabText = "Меню Проекты Рабочие";
         if(item.getItemId()==R.id.projects_all) {
             // Launch the "Проекты \ Все" screen
             Intent intent = new Intent(this, ProjectsActivity.class);
-            startActivityForResult(intent, 4);
+            projectsLauncher.launch(intent);
         }
         if(item.getItemId()==R.id.sms_income) JabText = "Меню СМС Входящие";
         if(item.getItemId()==R.id.sms_outcome) JabText = "Меню СМС Исходящие";
@@ -412,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, activityClassFor(record.Form));
         intent.putExtra("activeDate", russianCalendar.activeDate);
         intent.putExtra("calPlanRecord", record);
-        startActivityForResult(intent, 1);
+        inputCalPlanLauncher.launch(intent);
     }
 
     /** Routes to the correct edit screen depending on the record Form. */
@@ -458,7 +574,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshListView() {
-        // Get records for the active date
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
             if (activeDate != null) {
@@ -504,36 +619,11 @@ public class MainActivity extends AppCompatActivity {
             // Launch InputCalPlanActivity modally
             Intent intent = new Intent(this, InputCalPlanActivity.class);
             intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
-            startActivityForResult(intent, 1);
+            inputCalPlanLauncher.launch(intent);
 
         } catch(Exception err) {
             String selected = String.format("Error: "+err.getMessage());
             Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == 1) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                // Get calPlanRecord from InputCalPlanActivity
-                calPlanRecord record = (calPlanRecord) data.getSerializableExtra("calPlanRecord");
-                
-                if (record != null && owerDb != null) {
-                    // Save to database
-                    owerDb.upsertCalPlan(record);
-                    
-                    // Refresh list view with records for the active date
-                    refreshListView();
-                    
-                    Toast.makeText(this, "Запись сохранена: " + record.Name, Toast.LENGTH_SHORT).show();
-                }
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                // User cancelled - do nothing
-                Toast.makeText(this, "Отменено", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 

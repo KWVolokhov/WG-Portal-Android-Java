@@ -33,37 +33,9 @@ public class LivetypeSQLManage {
 
         if (record == null) return;
         if (record.AuthorID == null || record.AuthorID.isEmpty()) {
-            CalParamRecord param = getCalParam();
-            if (param != null) {
-                record.AuthorID = param.VedushiiID;
-
-                record.AuthorName = param.Vedushii;
-            }
+            record.AuthorID = ManageSQLDatabase.AuthorID;
+            record.AuthorName = ManageSQLDatabase.AuthorName;
         }
-    }
-
-    private CalParamRecord getCalParam() {
-
-        CalParamRecord record = null;
-        Cursor cursor = db.query("CALPARAM", null, null, null, null, null, null, "1");
-        try {
-            if (cursor.getCount() > 0) {
-                cursor.moveToFirst();
-                record = new CalParamRecord();
-                int idxId = cursor.getColumnIndex("id");
-                int idxVedushii = cursor.getColumnIndex("Vedushii");
-                int idxVedushiiID = cursor.getColumnIndex("VedushiiID");
-                if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
-                if (idxVedushii >= 0 && !cursor.isNull(idxVedushii)) record.Vedushii = cursor.getString(idxVedushii);
-
-                if (idxVedushiiID >= 0 && !cursor.isNull(idxVedushiiID)) record.VedushiiID = cursor.getString(idxVedushiiID);
-
-
-            }
-        } finally {
-            cursor.close();
-        }
-        return record;
     }
 
     // ---------------------------------------------------------------------
@@ -82,6 +54,8 @@ public class LivetypeSQLManage {
         if (record.UNID != null) values.put("UNID", record.UNID);
         if (record.Name != null) values.put("Name", record.Name);
         if (record.Category != null) values.put("Category", record.Category);
+        if (record.Icon != null) values.put("Icon", record.Icon);
+        if (record.Form != null) values.put("UNID", record.Form); // Тип хранится в UNID префиксно (см. INSERT_LIVETYPE)
         fillAuthorFromParams(record);
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
@@ -148,6 +122,22 @@ public class LivetypeSQLManage {
         return record;
     }
 
+    /** Get the first LIVETYPE record with the given UNID/Form (used as default buttons). */
+    public livetypeRecord getLivetypeByUnid(String unid) {
+        if (unid == null) return null;
+        livetypeRecord record = null;
+        Cursor cursor = db.query(TABLE_LIVETYPE, null, "UNID=?", new String[]{unid}, null, null, "id ASC");
+        try {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                record = cursorToRecord(cursor);
+            }
+        } finally {
+            cursor.close();
+        }
+        return record;
+    }
+
     /**
      * All LIVETYPE records sorted by Name (A-Z). When the filter is 3+ characters
      * it also filters by Name or Category (LOWER LIKE).
@@ -184,6 +174,8 @@ public class LivetypeSQLManage {
         record.UNID = getString(cursor, "UNID");
         record.Name = getString(cursor, "Name");
         record.Category = getString(cursor, "Category");
+        record.Icon = getString(cursor, "Icon");
+        record.Form = getString(cursor, "UNID"); // Тип = UNID (предустановка) / Form (новички)
         record.AuthorID = getString(cursor, "AuthorID");
         record.AuthorName = getString(cursor, "AuthorName");
 

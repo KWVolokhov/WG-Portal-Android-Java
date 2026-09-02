@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class LivetypeEditActivity extends Activity {
@@ -29,6 +30,7 @@ public class LivetypeEditActivity extends Activity {
             "Pressure", "Sleep", "Weight", "Nervous", "Morality", "Skin"};
     private EditText editTextName;
     private Spinner spinnerCategory;
+    private EditText editTextIcon;
     private TextView textViewAuthor;
     private TextView textViewDateCreated;
     private LinearLayout organContainer;
@@ -47,13 +49,14 @@ public class LivetypeEditActivity extends Activity {
 
         editTextName = findViewById(R.id.editTextLivetypeName);
         spinnerCategory = findViewById(R.id.spinnerLivetypeCategory);
+        editTextIcon = findViewById(R.id.editTextLivetypeIcon);
         textViewAuthor = findViewById(R.id.textViewLivetypeAuthor);
         textViewDateCreated = findViewById(R.id.textViewLivetypeDateCreated);
         organContainer = findViewById(R.id.organContainer);
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
 
-        livetypeDb = new LivetypeSQLManage(new ManageSQLDatabase(this).getWritableDatabase());
+        livetypeDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
 
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, CATEGORIES);
@@ -65,6 +68,14 @@ public class LivetypeEditActivity extends Activity {
         int livetypeId = getIntent().getIntExtra("livetypeId", -1);
         if (livetypeId != -1) {
             loadRecord(livetypeId);
+        } else {
+            // Brand-new record: preview author ("Ведущий") and creation date.
+            // DateCreated is actually stored when the record is saved.
+            if (ManageSQLDatabase.AuthorName != null) {
+                textViewAuthor.setText(ManageSQLDatabase.AuthorName);
+            }
+            textViewDateCreated.setText(
+                    new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(new Date()));
         }
 
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -84,6 +95,62 @@ public class LivetypeEditActivity extends Activity {
     }
 
     private void saveAndFinish() {
+        String name = editTextName.getText().toString().trim();
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Название не может быть пустым", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentRecord == null) {
+            currentRecord = new livetypeRecord();
+            currentRecord.DateCreated = new Date();
+        }
+        currentRecord.Name = name;
+
+        int catIdx = spinnerCategory.getSelectedItemPosition();
+        currentRecord.Category = (catIdx >= 0 && catIdx < CATEGORIES.length) ? CATEGORIES[catIdx] : CATEGORIES[0];
+
+        // Иконка (имя drawable для настраиваемых кнопок) - необязательное поле
+        String icon = editTextIcon.getText().toString().trim();
+        currentRecord.Icon = icon.isEmpty() ? null : icon;
+
+        // Read the reference (organ/state) numbers from the generated fields
+        currentRecord.Head        = organValue(0);
+        currentRecord.Eyes        = organValue(1);
+        currentRecord.Ears        = organValue(2);
+        currentRecord.Nose        = organValue(3);
+        currentRecord.Throat      = organValue(4);
+        currentRecord.Teeth       = organValue(5);
+        currentRecord.Stomach     = organValue(6);
+        currentRecord.Intestines  = organValue(7);
+        currentRecord.Liver       = organValue(8);
+        currentRecord.Kidneys     = organValue(9);
+        currentRecord.Heart       = organValue(10);
+        currentRecord.Lungs       = organValue(11);
+        currentRecord.Pressure    = organValue(12);
+        currentRecord.Sleep       = organValue(13);
+        currentRecord.Weight      = organValue(14);
+        currentRecord.Nervous     = organValue(15);
+        currentRecord.Morality    = organValue(16);
+        currentRecord.Skin        = organValue(17);
+
+        livetypeDb.upsertLivetype(currentRecord);
+        setResult(Activity.RESULT_OK);
+        finish();
+    }
+
+    /** Returns the Integer typed in the organ field with the given index (null when empty). */
+    private Integer organValue(int index) {
+        if (organEdits == null || index < 0 || index >= organEdits.length) return null;
+        EditText edit = organEdits[index];
+        if (edit == null) return null;
+        String text = edit.getText().toString().trim();
+        if (text.isEmpty()) return null;
+        try {
+            return Integer.valueOf(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private void buildOrganFields() {
@@ -121,6 +188,7 @@ public class LivetypeEditActivity extends Activity {
             int idx = indexOf(CATEGORIES, currentRecord.Category);
             spinnerCategory.setSelection(idx >= 0 ? idx : 0);
         }
+        if (currentRecord.Icon != null) editTextIcon.setText(currentRecord.Icon);
         if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
         if (currentRecord.DateCreated != null) {
             textViewDateCreated.setText(

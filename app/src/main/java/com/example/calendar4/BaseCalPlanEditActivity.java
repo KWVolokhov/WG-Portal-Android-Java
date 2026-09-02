@@ -145,7 +145,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             record = (calPlanRecord) intent.getSerializableExtra("calPlanRecord");
         }
 
-        owerDb = new ManageSQLDatabase(this);
+		owerDb = ManageSQLDatabase.getInstance(this);
         loadContacts();
 
         applyConfig();

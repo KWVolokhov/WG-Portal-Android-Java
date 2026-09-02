@@ -55,6 +55,42 @@
         app:layout_constraintStart_toEndOf="@id/buttonHealth"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
+    <ImageButton
+        android:id="@+id/buttonPedometer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_pedometer"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Шагомер"
+        android:onClick="onPedometerClick"
+        app:layout_constraintStart_toEndOf="@id/buttonH"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+
+    <ImageButton
+        android:id="@+id/buttonBurger"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_burger"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Бургер"
+        android:onClick="onBurgerClick"
+        app:layout_constraintStart_toEndOf="@id/buttonPedometer"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+
+    <ImageButton
+        android:id="@+id/buttonCoffee"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_coffee"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Кофе 200"
+        android:onClick="onCoffeeClick"
+        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+
     <ListView
         android:id="@+id/listView1"
         android:layout_width="0dp"

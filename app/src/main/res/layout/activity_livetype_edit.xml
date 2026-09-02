@@ -88,6 +88,30 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
+            <!-- Icon field (name of the drawable used for the configurable buttons) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Иконка:"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp" />
+
+                <EditText
+                    android:id="@+id/editTextLivetypeIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:layout_gravity="center_vertical"
+                    android:hint="имя картинки, напр. ic_pedometer" />
+            </LinearLayout>
+
             <!-- Author field (read-only) -->
             <LinearLayout
                 android:layout_width="match_parent"

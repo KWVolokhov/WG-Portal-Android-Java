@@ -14,8 +14,10 @@ public class livetypeRecord implements Serializable {
     // ----- Common fields -----
     public Integer id;
     public String UNID;
+    public String Form;     // Тип (равен Form из HEALTHPLAN: HealthSport/HealthEat/...)
     public String Name;     // Название типа жизнедеятельности
     public String Category; // Категория (Пища, Гидратация, Физ. активность, Стресс, Гедонизм)
+    public String Icon;     // Имя картинки (drawable), например ic_pedometer - для кнопок
     public String AuthorID; // ID Автора (из "Ведущий" в CALPARAM)
     public String AuthorName; // Автор
     public Date DateCreated; // Дата создания

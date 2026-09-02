@@ -102,9 +102,10 @@ public class ConstantsSQLDb {
             ")";
 public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS LIVETYPE (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
-            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes (у предустановленных равен Form из HEALTHPLAN)
             "Name TEXT NOT NULL, " +//Label: Название типа жизнедеятельности
             "Category TEXT, " +//Label: Категория жизнедеятельности (Пища, Гидратация, Физ. активность, Стресс, Гедонизм)
+            "Icon TEXT, " +//Label: Имя картинки (drawable) для кнопки, например ic_pedometer
             "AuthorID TEXT, " +//Label: ID Автора
             "AuthorName TEXT, " +//Label: Автор
             "DateCreated DATE, " +//Label: Дата создания
@@ -145,6 +146,28 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Hold', 'STATUSPLAN', 'Отложенно');",
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('LotusNotes', 'SYSTEMSPLAN', 'HCL Lotus Notes');",
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('RealLife', 'SYSTEMSPLAN', 'Без системы');"};
+
+    // Начальное заполнение справочника LIVETYPE ("Типы жизнедеятельности").
+    // По одной записи: Название, Тип (равен Form из HEALTHPLAN), Категория жизнедеятельности,
+    // Имя картинки (Icon) для трёх настраиваемых кнопок на MainActivity.
+    // Категория указывается сразу под названием в списке Типов жизнедеятельности.
+    // ID предустановок фиксируются явно (1..5), чтобы кнопки по умолчанию
+    // на MainActivity ссылались на них числовым id (Шагомер=1, Бургер=2, Кофе 200мл=3).
+    public static final String[] INSERT_LIVETYPE =
+            {"INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Icon, AuthorName, DateCreated) VALUES (1, 'HealthSport', 'Прогулка', 'Физ. активность', 'ic_pedometer', 'Исходная настройка', CURRENT_TIMESTAMP);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Icon, AuthorName, DateCreated) VALUES (2, 'HealthEat', 'Бургер', 'Пища', 'ic_burger', 'Исходная настройка', CURRENT_TIMESTAMP);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Icon, AuthorName, DateCreated) VALUES (3, 'HealthDrink', 'Кофе 200мл', 'Гидратация', 'ic_coffee', 'Исходная настройка', CURRENT_TIMESTAMP);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Icon, AuthorName, DateCreated) VALUES (4, 'HealthStress', 'Авария', 'Стресс', 'ic_stress', 'Исходная настройка', CURRENT_TIMESTAMP);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Icon, AuthorName, DateCreated) VALUES (5, 'HealthJoy', 'Гулянка', 'Гедонизм', 'ic_joy', 'Исходная настройка', CURRENT_TIMESTAMP);"};
+
+    // Дозаполнение иконок у предустановленных записей LIVETYPE при обновлении уже существующей БД
+    // (только там, где иконка ещё не задана, чтобы не перетирать пользовательские настройки).
+    public static final String[] UPDATE_LIVETYPE_ICONS =
+            {"UPDATE LIVETYPE SET Icon='ic_pedometer' WHERE UNID='HealthSport' AND (Icon IS NULL OR Icon='');",
+                    "UPDATE LIVETYPE SET Icon='ic_burger' WHERE UNID='HealthEat' AND (Icon IS NULL OR Icon='');",
+                    "UPDATE LIVETYPE SET Icon='ic_coffee' WHERE UNID='HealthDrink' AND (Icon IS NULL OR Icon='');",
+                    "UPDATE LIVETYPE SET Icon='ic_stress' WHERE UNID='HealthStress' AND (Icon IS NULL OR Icon='');",
+                    "UPDATE LIVETYPE SET Icon='ic_joy' WHERE UNID='HealthJoy' AND (Icon IS NULL OR Icon='');"};
     
     public static final String CREATE_TABLE_CALPARAM = "CREATE TABLE IF NOT EXISTS CALPARAM (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -152,7 +175,11 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "Name TEXT, " +
             "Password TEXT, " +
             "Vedushii TEXT, " +
-            "VedushiiID TEXT" +
+            "VedushiiID TEXT, " +
+            "StartPage TEXT, " +
+            "Button1Id TEXT, " +//Label: id записи LIVETYPE для кнопки 1 (по умолчанию HealthSport/Шагомер)
+            "Button2Id TEXT, " +//Label: id записи LIVETYPE для кнопки 2 (по умолчанию HealthEat/Бургер)
+            "Button3Id TEXT " +//Label: id записи LIVETYPE для кнопки 3 (по умолчанию HealthDrink/Кофе 200мл)
             ")";
     
     public static final String CREATE_TABLE_HOLIDAYS = "CREATE TABLE IF NOT EXISTS HOLIDAYS (" +

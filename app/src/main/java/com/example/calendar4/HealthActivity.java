@@ -33,7 +33,6 @@ public class HealthActivity extends Activity {
     private ImageButton btnNew;
     private ImageButton btnBack;
 
-    private ManageSQLDatabase owerDb;
     private HealthSQLManage healthDb;
     private ArrayAdapter<healthPlanRecord> adapter;
     private ArrayList<healthPlanRecord> records;
@@ -55,9 +54,8 @@ public class HealthActivity extends Activity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
         headerTitle.setText(sdf.format(day) + " Health");
 
-        owerDb = new ManageSQLDatabase(this);
         // Reuse the already existing connection to the database
-        healthDb = new HealthSQLManage(owerDb.getWritableDatabase());
+        healthDb = new HealthSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
         records = new ArrayList<>();
 
         adapter = new ArrayAdapter<healthPlanRecord>(this, 0, records) {

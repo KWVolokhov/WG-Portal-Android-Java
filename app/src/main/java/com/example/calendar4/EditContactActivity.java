@@ -56,7 +56,8 @@ public class EditContactActivity extends AppCompatActivity {
         btnSMS = findViewById(R.id.btnSMS);
 
         // Initialize database
-        owerDb = new ManageSQLDatabase(this);
+        //owerDb = new ManageSQLDatabase(this);
+		owerDb = ManageSQLDatabase.getInstance(this);
 
         // Check if editing existing contact
         contactId = getIntent().getIntExtra("contactId", -1);

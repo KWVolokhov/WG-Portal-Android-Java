@@ -16,14 +16,37 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
-    private final Context mContext;
+	
+	public static String AuthorName = null;
+	public static String AuthorID = null;
 
-    public ManageSQLDatabase(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.mContext = context;
+    // 1. Делаем конструктор приватным
+    private ManageSQLDatabase(Context context) {
+        super(context.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
     }
+
+    // 2. Метод для получения единственного экземпляра
+    public static synchronized ManageSQLDatabase getInstance(Context context) {
+        if (instance == null) {
+            // Использование getApplicationContext() предотвращает утечки памяти
+            instance = new ManageSQLDatabase(context.getApplicationContext());
+			
+	        CalParamRecord param = getCalParam();
+			if (param != null) {
+				AuthorName = param.Vedushii;
+				AuthorID = param.VedushiiID;
+			}
+			
+        }
+        return instance;
+    }
+
+    /*public ManageSQLDatabase(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }*/
+	
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Execute the SQL statement defined abov
@@ -35,6 +58,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_HISTORY);
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_NOTEPLAN);
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_HEALTHPLAN);
+
+        // LIVETYPE reference table (Типы жизнедеятельности) - created for fresh installs
+        db.execSQL(ConstantsSQLDb.CREATE_TABLE_LIVETYPE);
+        insertLivetypeDefaults(db);
 
         //db.execSQL("DROP TABLE IF EXISTS CLASSIFICATOR");
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_CLASSIFICATOR);
@@ -92,6 +119,50 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             } catch (Exception e) {
                 // Tables/rows may already be migrated - ignore
             }
+        }
+        // Version 4: LIVETYPE reference table + StartPage column in CALPARAM
+        if (oldVersion < 4) {
+            try {
+                db.execSQL(ConstantsSQLDb.CREATE_TABLE_LIVETYPE);
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN StartPage TEXT");
+                insertLivetypeDefaults(db);
+            } catch (Exception e) {
+                // Table/column may already exist - ignore
+            }
+        }
+        // Version 5: Icon column in LIVETYPE + three configurable quick buttons in CALPARAM
+        if (oldVersion < 5) {
+            try {
+                db.execSQL("ALTER TABLE LIVETYPE ADD COLUMN Icon TEXT");
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button1Id TEXT");
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button2Id TEXT");
+                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button3Id TEXT");
+            } catch (Exception e) {
+                // Columns may already exist - ignore
+            }
+            try {
+                for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
+                    db.execSQL(updCom);
+                }
+            } catch (Exception e) {
+                // Non-fatal
+            }
+        }
+    }
+
+    /**
+     * Fills the LIVETYPE reference table with the initial records
+     * (Прогулка/Бургер/Кофе 200мл/Авария/Гулянка). INSERT OR IGNORE keeps the
+     * existing user records - only missing UNIDs are added.
+     */
+    private void insertLivetypeDefaults(SQLiteDatabase db) {
+        try {
+            for (String insertCom : ConstantsSQLDb.INSERT_LIVETYPE) {
+                // Turn "INSERT INTO" into "INSERT OR IGNORE INTO" to avoid duplicates
+                db.execSQL(insertCom.replaceFirst("(?i)^INSERT INTO", "INSERT OR IGNORE INTO"));
+            }
+        } catch (Exception e) {
+            // Non-fatal: seeding failure must not break the app
         }
     }
 
@@ -315,11 +386,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         // History records must appear in the calendar list on the day the entry was made
         history.StartDate = new Date();
 
-        CalParamRecord param = getCalParam();
-        if (param != null) {
-            history.AuthorName = param.Vedushii;
-            history.AuthorID = param.VedushiiID;
-        }
+        history.AuthorName = AuthorName;
+        history.AuthorID = AuthorID;
 
         StringBuilder name = new StringBuilder(action);
         if (record.Surname != null) name.append(" ").append(record.Surname);
@@ -702,6 +770,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             int idxPassword = cursor.getColumnIndex("Password");
             int idxVedushii = cursor.getColumnIndex("Vedushii");
             int idxVedushiiID = cursor.getColumnIndex("VedushiiID");
+            int idxStartPage = cursor.getColumnIndex("StartPage");
+            int idxButton1Id = cursor.getColumnIndex("Button1Id");
+            int idxButton2Id = cursor.getColumnIndex("Button2Id");
+            int idxButton3Id = cursor.getColumnIndex("Button3Id");
 
             // Fill record fields
             if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
@@ -710,13 +782,23 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             if (idxPassword >= 0 && !cursor.isNull(idxPassword)) record.Password = cursor.getString(idxPassword);
             if (idxVedushii >= 0 && !cursor.isNull(idxVedushii)) record.Vedushii = cursor.getString(idxVedushii);
             if (idxVedushiiID >= 0 && !cursor.isNull(idxVedushiiID)) record.VedushiiID = cursor.getString(idxVedushiiID);
+            if (idxStartPage >= 0 && !cursor.isNull(idxStartPage)) record.StartPage = cursor.getString(idxStartPage);
+            if (idxButton1Id >= 0 && !cursor.isNull(idxButton1Id)) {
+                try { record.Button1Id = Integer.valueOf(cursor.getString(idxButton1Id)); } catch (Exception e) { record.Button1Id = null; }
+            }
+            if (idxButton2Id >= 0 && !cursor.isNull(idxButton2Id)) {
+                try { record.Button2Id = Integer.valueOf(cursor.getString(idxButton2Id)); } catch (Exception e) { record.Button2Id = null; }
+            }
+            if (idxButton3Id >= 0 && !cursor.isNull(idxButton3Id)) {
+                try { record.Button3Id = Integer.valueOf(cursor.getString(idxButton3Id)); } catch (Exception e) { record.Button3Id = null; }
+            }
         }
 
         cursor.close();
 
         return record;
     }
-
+	
     // Upsert CalParamRecord into CALPARAM table
     public void upsertCalParam(CalParamRecord record) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -727,6 +809,12 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.Password != null) values.put("Password", record.Password);
         if (record.Vedushii != null) values.put("Vedushii", record.Vedushii);
         if (record.VedushiiID != null) values.put("VedushiiID", record.VedushiiID);
+        // StartPage: null = default (Календарь / MainActivity)
+        if (record.StartPage != null) values.put("StartPage", record.StartPage);
+        // Three configurable quick buttons (values = числовой id записи LIVETYPE)
+        if (record.Button1Id != null) values.put("Button1Id", String.valueOf(record.Button1Id));
+        if (record.Button2Id != null) values.put("Button2Id", String.valueOf(record.Button2Id));
+        if (record.Button3Id != null) values.put("Button3Id", String.valueOf(record.Button3Id));
 
         // Try to update first (if id exists), if no rows affected then insert
         if (record.id != null) {

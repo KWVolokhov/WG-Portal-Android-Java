@@ -36,35 +36,9 @@ public class NoteRememSQLManage {
     // ---------------------------------------------------------------------
     private void fillAuthorFromParams(calPlanRecord record) {
         if (record.AuthorID == null || record.AuthorID.isEmpty()) {
-            CalParamRecord param = getCalParam();
-            if (param != null) {
-                record.AuthorID = param.VedushiiID;
-                record.AuthorName = param.Vedushii;
-            }
+			record.AuthorName = ManageSQLDatabase.AuthorName;
+			record.AuthorID = ManageSQLDatabase.AuthorID;
         }
-    }
-
-    private CalParamRecord getCalParam() {
-        CalParamRecord record = null;
-        Cursor cursor = db.query("CALPARAM", null, null, null, null, null, null, "1");
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            record = new CalParamRecord();
-            int idxId = cursor.getColumnIndex("id");
-            int idxAddress = cursor.getColumnIndex("Address");
-            int idxName = cursor.getColumnIndex("Name");
-            int idxPassword = cursor.getColumnIndex("Password");
-            int idxVedushii = cursor.getColumnIndex("Vedushii");
-            int idxVedushiiID = cursor.getColumnIndex("VedushiiID");
-            if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
-            if (idxAddress >= 0 && !cursor.isNull(idxAddress)) record.Address = cursor.getString(idxAddress);
-            if (idxName >= 0 && !cursor.isNull(idxName)) record.Name = cursor.getString(idxName);
-            if (idxPassword >= 0 && !cursor.isNull(idxPassword)) record.Password = cursor.getString(idxPassword);
-            if (idxVedushii >= 0 && !cursor.isNull(idxVedushii)) record.Vedushii = cursor.getString(idxVedushii);
-            if (idxVedushiiID >= 0 && !cursor.isNull(idxVedushiiID)) record.VedushiiID = cursor.getString(idxVedushiiID);
-        }
-        cursor.close();
-        return record;
     }
 
     // ---------------------------------------------------------------------

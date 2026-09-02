@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Needed to read the device phone number and IMEI on app start -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Physical activity recognition (real pedometer, Android 10+) -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application
         android:allowBackup="true"
@@ -102,6 +104,16 @@
             android:name=".CrashActivity"
             android:exported="false"
             android:launchMode="singleTask"
+             />
+
+        <activity
+            android:name=".LivetypeActivity"
+            android:exported="false"
+             />
+
+        <activity
+            android:name=".LivetypeEditActivity"
+            android:exported="false"
              />
 
     </application>

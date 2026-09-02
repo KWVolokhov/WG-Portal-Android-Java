@@ -3,18 +3,35 @@ package com.example.calendar4;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
 public class ParamsActivity extends Activity {
 
+    // "Стартовая страница" picker: display labels -> stored values (CALPARAM.StartPage)
+    private static final String[] START_PAGE_LABELS = {
+            "Календарь", "Контакты", "Проекты", "Параметры"
+    };
+    private static final String[] START_PAGE_VALUES = {
+            CalParamRecord.START_PAGE_CALENDAR,
+            CalParamRecord.START_PAGE_CONTACTS,
+            CalParamRecord.START_PAGE_PROJECTS,
+            CalParamRecord.START_PAGE_PARAMS
+    };
+
     private Spinner spinnerVedushii;
+    private Spinner spinnerStartPage;
     private EditText editTextAddress;
     private EditText editTextName;
     private EditText editTextPassword;
@@ -35,6 +52,7 @@ public class ParamsActivity extends Activity {
 
         // Initialize views
         spinnerVedushii = findViewById(R.id.spinnerVedushii);
+        spinnerStartPage = findViewById(R.id.spinnerStartPage);
         editTextAddress = findViewById(R.id.editTextAddress);
         editTextName = findViewById(R.id.editTextName);
         editTextPassword = findViewById(R.id.editTextPassword);
@@ -42,7 +60,8 @@ public class ParamsActivity extends Activity {
         btnCancel = findViewById(R.id.btnCancel);
 
         // Initialize database and load current parameters
-        owerDb = new ManageSQLDatabase(this);
+        // owerDb = new ManageSQLDatabase(this);
+		owerDb = ManageSQLDatabase.getInstance(this);
         currentRecord = owerDb.getCalParam();
 
         loadContacts();
@@ -60,6 +79,9 @@ public class ParamsActivity extends Activity {
             if (currentRecord.Name != null) editTextName.setText(currentRecord.Name);
             if (currentRecord.Password != null) editTextPassword.setText(currentRecord.Password);
         }
+
+        // Populate "Стартовая страница" (default = Календарь when not set yet)
+        setupStartPageSpinner(currentRecord != null ? currentRecord.StartPage : null);
 
         // OK button click handler
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -89,6 +111,15 @@ public class ParamsActivity extends Activity {
                     currentRecord.VedushiiID = null;
                 }
 
+                // Save the chosen "Стартовая страница" (default = Календарь)
+                int sp = spinnerStartPage.getSelectedItemPosition();
+                currentRecord.StartPage = (sp >= 0 && sp < START_PAGE_VALUES.length)
+                        ? START_PAGE_VALUES[sp] : CalParamRecord.START_PAGE_CALENDAR;
+
+                // Keep the static author fields (used by all record screens) in sync
+                ManageSQLDatabase.AuthorName = currentRecord.Vedushii;
+                ManageSQLDatabase.AuthorID = currentRecord.VedushiiID;
+
                 // Save to database
                 owerDb.upsertCalParam(currentRecord);
 
@@ -107,6 +138,17 @@ public class ParamsActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        // As start page (launched instead of MainActivity): system "Back" closes the app.
+        // The internal "X" button above still returns to MainActivity via finish().
+        if (getIntent().getBooleanExtra(CalParamRecord.EXTRA_IS_START_PAGE, false)) {
+            finishAndRemoveTask();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void loadContacts() {
@@ -133,5 +175,22 @@ public class ParamsActivity extends Activity {
         spinnerVedushii.setAdapter(adapter);
         int idx = current != null ? contactLabels.indexOf(current) : -1;
         spinnerVedushii.setSelection(idx >= 0 ? idx : 0);
+    }
+
+    private void setupStartPageSpinner(String current) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, START_PAGE_LABELS);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerStartPage.setAdapter(adapter);
+        int idx = 0; // По умолчанию "Календарь" (MainActivity)
+        if (current != null) {
+            for (int i = 0; i < START_PAGE_VALUES.length; i++) {
+                if (current.equals(START_PAGE_VALUES[i])) {
+                    idx = i;
+                    break;
+                }
+            }
+        }
+        spinnerStartPage.setSelection(idx);
     }
 }

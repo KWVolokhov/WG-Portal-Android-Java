@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Бургер (HealthEat): булочка, котлета, кунжут -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Верхняя булочка -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E65100"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M3,9 Q3,4 12,4 Q21,4 21,9 L21,9 Q21,11 19,11 L5,11 Q3,11 3,9 Z" />
+    <!-- Котлета -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#8D6E63"
+        android:strokeWidth="1.8"
+        android:pathData="M4,13 L20,13 L20,15 L4,15 Z" />
+    <!-- Нижняя булочка -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E65100"
+        android:strokeWidth="1.8"
+        android:pathData="M4,17 L20,17 L20,18 Q20,20 12,20 Q4,20 4,18 Z" />
+    <!-- Кунжут -->
+    <path
+        android:fillColor="#E65100"
+        android:pathData="M8,7 a1,1 0 1,0 0.1,0 M12,5.5 a1,1 0 1,0 0.1,0 M16,7 a1,1 0 1,0 0.1,0" />
+</vector>

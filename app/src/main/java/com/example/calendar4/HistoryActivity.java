@@ -47,7 +47,8 @@ public class HistoryActivity extends Activity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
         headerTitle.setText(sdf.format(day) + " История");
 
-        owerDb = new ManageSQLDatabase(this);
+        //owerDb = new ManageSQLDatabase(this);
+		owerDb = ManageSQLDatabase.getInstance(this);
         // Reuse the already existing connection to the database
         historyDb = new HistorySQLManage(owerDb.getWritableDatabase());
         records = new ArrayList<>();

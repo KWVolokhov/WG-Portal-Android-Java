@@ -73,18 +73,24 @@ public class InfoFieldView extends LinearLayout {
         // ----- collapsed: 2-line read-only TextView (looks like an EditText) -----
         tvCollapsed = new TextView(context);
         tvCollapsed.setMaxLines(2);
-        tvCollapsed.setEllipsize(TextUtils.TruncateAt.END);
+        //tvCollapsed.setEllipsize(TextUtils.TruncateAt.END);
         tvCollapsed.setSingleLine(false);
         tvCollapsed.setFocusable(true);
         tvCollapsed.setClickable(true);
         tvCollapsed.setBackgroundResource(R.drawable.bg_underline);
         tvCollapsed.setGravity(Gravity.START | Gravity.TOP);
         tvCollapsed.setTextAppearance(context, android.R.style.TextAppearance_Medium);
-        // The text can be selected and copied directly in the collapsed view
-        // (long press = selection/copy, short tap = expand to the edit window).
         tvCollapsed.setTextIsSelectable(true);
         // Expand only on tap (auto-expand on focus would break long-press selection)
         tvCollapsed.setOnClickListener(v -> expand());
+		
+		
+		/*tvCollapsed.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// Код для открытия окна редактирования (например, запуск новой Activity)
+			}
+		}); // Тут явно еще надо искать решение с длинным тапом по выделению */
 
         addView(tvCollapsed, new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));

@@ -1,6 +1,9 @@
 package com.example.calendar4;
 
-import android.app.Activity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,7 +24,7 @@ import java.util.ArrayList;
  * The search field filters by Name or Category when 3+ characters are typed.
  * "Add" opens a new LIVETYPE card.
  */
-public class LivetypeActivity extends Activity {
+public class LivetypeActivity extends AppCompatActivity {
 
     private ListView listViewLivetype;
     private EditText editTextFilter;
@@ -31,6 +34,10 @@ public class LivetypeActivity extends Activity {
     private LivetypeSQLManage livetypeDb;
     private ArrayAdapter<livetypeRecord> adapter;
     private final ArrayList<livetypeRecord> allRecords = new ArrayList<>();
+
+    // Reloads the list after the edit screen returns (add/edit closed)
+    private final ActivityResultLauncher<Intent> editLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> reload());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +49,7 @@ public class LivetypeActivity extends Activity {
         btnNew = findViewById(R.id.btnNew);
         btnBack = findViewById(R.id.btnBack);
 
-        livetypeDb = new LivetypeSQLManage(new ManageSQLDatabase(this).getWritableDatabase());
+		livetypeDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
 
         reload();
 
@@ -88,7 +95,7 @@ public class LivetypeActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(LivetypeActivity.this, LivetypeEditActivity.class);
-                startActivityForResult(intent, 1);
+                editLauncher.launch(intent);
             }
         });
 
@@ -105,7 +112,7 @@ public class LivetypeActivity extends Activity {
         if (record == null || record.id == null) return;
         Intent intent = new Intent(LivetypeActivity.this, LivetypeEditActivity.class);
         intent.putExtra("livetypeId", record.id);
-        startActivityForResult(intent, 1);
+        editLauncher.launch(intent);
     }
 
     private void confirmDelete(final livetypeRecord record) {
@@ -122,6 +129,7 @@ public class LivetypeActivity extends Activity {
     }
 
     private void reload() {
+        if (livetypeDb == null) return;
         allRecords.clear();
         String filter = editTextFilter != null ? editTextFilter.getText().toString().trim() : "";
         livetypeRecord[] arr = livetypeDb.getAllLivetype(filter);
@@ -131,13 +139,5 @@ public class LivetypeActivity extends Activity {
             }
         }
         if (adapter != null) adapter.notifyDataSetChanged();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            reload();
-        }
     }
 }

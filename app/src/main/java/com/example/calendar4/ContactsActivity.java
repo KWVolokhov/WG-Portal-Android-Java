@@ -39,7 +39,8 @@ public class ContactsActivity extends Activity {
         btnBack = findViewById(R.id.btnBack);
 
         // Initialize database
-        owerDb = new ManageSQLDatabase(this);
+        //owerDb = new ManageSQLDatabase(this);
+		owerDb = ManageSQLDatabase.getInstance(this);
 
         // Load all contacts
         allContacts = new ArrayList<>();
@@ -105,6 +106,17 @@ public class ContactsActivity extends Activity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        // As start page (launched instead of MainActivity): system "Back" closes the app.
+        // The internal "X" button above still returns to MainActivity via finish().
+        if (getIntent().getBooleanExtra(CalParamRecord.EXTRA_IS_START_PAGE, false)) {
+            finishAndRemoveTask();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private String fullName(ContactRecord c) {
