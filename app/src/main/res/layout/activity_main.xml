@@ -82,7 +82,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Бургер"
         android:onClick="onAction2"
-        app:layout_constraintStart_toEndOf="@id/buttonPedometer"
+        app:layout_constraintStart_toEndOf="@id/buttonAction1"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
@@ -94,7 +94,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
         android:onClick="onAction3"
-        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        app:layout_constraintStart_toEndOf="@id/buttonAction2"
         app:layout_constraintTop_toTopOf="@id/button1" />
 	<ImageButton
         android:id="@+id/buttonAction4"
@@ -104,8 +104,8 @@
         android:src="@drawable/ic_coffee"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
-        android:onClick="onAction3"
-        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        android:onClick="onAction4"
+        app:layout_constraintStart_toEndOf="@id/buttonAction3"
         app:layout_constraintTop_toTopOf="@id/button1" />
 	<ImageButton
         android:id="@+id/buttonAction5"
@@ -115,7 +115,7 @@
         android:src="@drawable/ic_coffee"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
-        android:onClick="onAction3"
-        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        android:onClick="onAction5"
+        app:layout_constraintStart_toEndOf="@id/buttonAction4"
         app:layout_constraintTop_toTopOf="@id/button1" />
 </androidx.constraintlayout.widget.ConstraintLayout>
