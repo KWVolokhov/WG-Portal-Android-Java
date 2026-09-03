@@ -58,4 +58,29 @@ public class healthPlanRecord implements Serializable {
         this.Form = form;
         this.Name = name;
     }
+    public healthPlanRecord(livetypeRecord typeRecord) {
+        this();
+		
+        this.Form = typeRecord.Form;
+        this.Name = typeRecord.Name;
+		
+		this.Head = typeRecord.Head;
+		this.Eyes = typeRecord.Eyes;
+		this.Ears = typeRecord.Ears;
+		this.Nose = typeRecord.Nose;
+		this.Throat = typeRecord.Throat;
+		this.Teeth = typeRecord.Teeth;
+		this.Stomach = typeRecord.Stomach;
+		this.Intestines = typeRecord.Intestines;
+		this.Liver = typeRecord.Liver;
+		this.Kidneys = typeRecord.Kidneys;
+		this.Heart = typeRecord.Heart;
+		this.Lungs = typeRecord.Lungs;
+		this.Pressure = typeRecord.Pressure;
+		this.Sleep = typeRecord.Sleep;
+		this.Weight = typeRecord.Weight;
+		this.Nervous = typeRecord.Nervous;
+		this.Morality = typeRecord.Morality;
+		this.Skin = typeRecord.Skin;
+    }
 }

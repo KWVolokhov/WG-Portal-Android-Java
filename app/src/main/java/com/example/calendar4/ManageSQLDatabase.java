@@ -773,6 +773,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             int idxButton1Id = cursor.getColumnIndex("Button1Id");
             int idxButton2Id = cursor.getColumnIndex("Button2Id");
             int idxButton3Id = cursor.getColumnIndex("Button3Id");
+			int idxButton4Id = cursor.getColumnIndex("Button4Id");
+			int idxButton5Id = cursor.getColumnIndex("Button5Id");
 
             // Fill record fields
             if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
@@ -790,6 +792,12 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             }
             if (idxButton3Id >= 0 && !cursor.isNull(idxButton3Id)) {
                 try { record.Button3Id = Integer.valueOf(cursor.getString(idxButton3Id)); } catch (Exception e) { record.Button3Id = null; }
+            }
+			if (idxButton4Id >= 0 && !cursor.isNull(idxButton4Id)) {
+                try { record.Button4Id = Integer.valueOf(cursor.getString(idxButton4Id)); } catch (Exception e) { record.Button4Id = null; }
+            }
+            if (idxButton5Id >= 0 && !cursor.isNull(idxButton5Id)) {
+                try { record.Button5Id = Integer.valueOf(cursor.getString(idxButton5Id)); } catch (Exception e) { record.Button5Id = null; }
             }
         }
 
@@ -814,6 +822,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.Button1Id != null) values.put("Button1Id", String.valueOf(record.Button1Id));
         if (record.Button2Id != null) values.put("Button2Id", String.valueOf(record.Button2Id));
         if (record.Button3Id != null) values.put("Button3Id", String.valueOf(record.Button3Id));
+		if (record.Button4Id != null) values.put("Button4Id", String.valueOf(record.Button4Id));
+		if (record.Button5Id != null) values.put("Button5Id", String.valueOf(record.Button5Id));
 
         // Try to update first (if id exists), if no rows affected then insert
         if (record.id != null) {

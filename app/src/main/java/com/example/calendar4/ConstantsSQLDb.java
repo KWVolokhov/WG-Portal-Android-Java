@@ -179,7 +179,9 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "StartPage TEXT, " +
             "Button1Id TEXT, " +//Label: id записи LIVETYPE для кнопки 1 (по умолчанию HealthSport/Шагомер)
             "Button2Id TEXT, " +//Label: id записи LIVETYPE для кнопки 2 (по умолчанию HealthEat/Бургер)
-            "Button3Id TEXT " +//Label: id записи LIVETYPE для кнопки 3 (по умолчанию HealthDrink/Кофе 200мл)
+			"Button3Id TEXT, " +//Label: id записи LIVETYPE для кнопки 3 (по умолчанию HealthDrink/Кофе 200мл)
+			"Button4Id TEXT, " +//Label: id записи LIVETYPE для кнопки 4 (по умолчанию HealthStress/Авария)
+            "Button5Id TEXT " +//Label: id записи LIVETYPE для кнопки 5 (по умолчанию HealthJoy/Гулянка)
             ")";
     
     public static final String CREATE_TABLE_HOLIDAYS = "CREATE TABLE IF NOT EXISTS HOLIDAYS (" +

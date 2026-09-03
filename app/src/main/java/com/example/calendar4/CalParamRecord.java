@@ -19,6 +19,8 @@ public class CalParamRecord implements Serializable {
     public static final int DEFAULT_BUTTON1_ID = 1; // Шагомер / Прогулка
     public static final int DEFAULT_BUTTON2_ID = 2; // Бургер
     public static final int DEFAULT_BUTTON3_ID = 3; // Кофе 200мл
+	public static final int DEFAULT_BUTTON4_ID = 4; // Стресс
+	public static final int DEFAULT_BUTTON5_ID = 5; // Гулянка
 
     public Integer id;
     public String Address;
@@ -30,6 +32,8 @@ public class CalParamRecord implements Serializable {
     public Integer Button1Id; // Числовой id записи LIVETYPE для кнопки 1 (null = по умолчанию 1)
     public Integer Button2Id; // Числовой id записи LIVETYPE для кнопки 2 (null = по умолчанию 2)
     public Integer Button3Id; // Числовой id записи LIVETYPE для кнопки 3 (null = по умолчанию 3)
+    public Integer Button4Id; // Числовой id записи LIVETYPE для кнопки 4 (null = по умолчанию 4)
+    public Integer Button5Id; // Числовой id записи LIVETYPE для кнопки 5 (null = по умолчанию 5)
 
     public CalParamRecord() {
     }

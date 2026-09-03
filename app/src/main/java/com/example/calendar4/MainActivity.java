@@ -628,12 +628,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onAction1(View view) {
+        try {
+			livetypeRecord recordIn = new livetypeRecord();
+            healthPlanRecord recordOut = new healthPlanRecord(recordIn);
+			
 
+        } catch(Exception err) {
+            String selected = String.format("Error: "+err.getMessage());
+            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+        }
     }
     public void onAction2(View view) {
+        try {
+            
 
+        } catch(Exception err) {
+            String selected = String.format("Error: "+err.getMessage());
+            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+        }
     }
     public void onAction3(View view) {
+        try {
+            
+
+        } catch(Exception err) {
+            String selected = String.format("Error: "+err.getMessage());
+            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+        }
+    }
+	public void onAction4(View view) {
+        try {
+            
+
+        } catch(Exception err) {
+            String selected = String.format("Error: "+err.getMessage());
+            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+        }
+    }
+	public void onAction5(View view) {
+        try {
+            
+
+        } catch(Exception err) {
+            String selected = String.format("Error: "+err.getMessage());
+            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+        }
 
     }
+
 }

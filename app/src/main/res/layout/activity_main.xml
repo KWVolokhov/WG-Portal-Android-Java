@@ -62,7 +62,7 @@
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
-        android:id="@+id/buttonPedometer"
+        android:id="@+id/buttonAction1"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
@@ -74,7 +74,7 @@
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
-        android:id="@+id/buttonBurger"
+        android:id="@+id/buttonAction2"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
@@ -86,7 +86,29 @@
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
-        android:id="@+id/buttonCoffee"
+        android:id="@+id/buttonAction3"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_coffee"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Кофе 200"
+        android:onClick="onAction3"
+        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+	<ImageButton
+        android:id="@+id/buttonAction4"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_coffee"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Кофе 200"
+        android:onClick="onAction3"
+        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+	<ImageButton
+        android:id="@+id/buttonAction5"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
