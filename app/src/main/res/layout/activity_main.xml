@@ -69,7 +69,7 @@
         android:src="@drawable/ic_pedometer"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Шагомер"
-        android:onClick="onPedometerClick"
+        android:onClick="onAction1"
         app:layout_constraintStart_toEndOf="@id/buttonH"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
@@ -81,7 +81,7 @@
         android:src="@drawable/ic_burger"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Бургер"
-        android:onClick="onBurgerClick"
+        android:onClick="onAction2"
         app:layout_constraintStart_toEndOf="@id/buttonPedometer"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
@@ -93,7 +93,7 @@
         android:src="@drawable/ic_coffee"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
-        android:onClick="onCoffeeClick"
+        android:onClick="onAction3"
         app:layout_constraintStart_toEndOf="@id/buttonBurger"
         app:layout_constraintTop_toTopOf="@id/button1" />
 </androidx.constraintlayout.widget.ConstraintLayout>

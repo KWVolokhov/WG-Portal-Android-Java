@@ -10,40 +10,40 @@
             android:title="Контакты" />
         <item
             android:id="@+id/calculator"
-            android:orderInCategory="2"
+            android:orderInCategory="3"
             android:title="Калькулятор" />
         <item
+            android:id="@+id/livetype"
+            android:orderInCategory="4"
+            android:title="Типы жизнедеятельности" />
+        <item
             android:id="@+id/projects"
-            android:orderInCategory="3"
+            android:orderInCategory="5"
             android:title="Проекты">
                 <menu>
-                        <item android:id="@+id/projects_work"
-                            android:orderInCategory="4"
-                            android:title="Рабочие" />
                         <item android:id="@+id/projects_all"
-                            android:orderInCategory="5"
+                            android:orderInCategory="6"
                             android:title="Все" />
+                        <item android:id="@+id/projects_work"
+                            android:orderInCategory="7"
+                            android:title="Рабочие" />
                 </menu>
         </item>
         <item
-            android:id="@+id/livetype"
-            android:orderInCategory="6"
-            android:title="Типы жизнедеятельности" />
-        <item
             android:id="@+id/open_settings"
-            android:orderInCategory="6"
+            android:orderInCategory="8"
             android:title="SMS">
                 <menu>
                         <item android:id="@+id/sms_income"
-                            android:orderInCategory="7"
+                            android:orderInCategory="9"
                             android:title="Входящие" />
                         <item android:id="@+id/sms_outcome"
-                            android:orderInCategory="8"
+                            android:orderInCategory="10"
                             android:title="Исходящие" />
                 </menu>
         </item>
         <item
             android:id="@+id/parametrs"
-            android:orderInCategory="9"
+            android:orderInCategory="20"
             android:title="Параметры" />
 </menu>

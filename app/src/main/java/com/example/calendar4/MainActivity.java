@@ -627,30 +627,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void taskAddOLD(View view) {
-        try{
-            owerDb = new ManageSQLDatabase(view.getContext());
-            SQLiteDatabase classDb = owerDb.getWritableDatabase();
-            owerDb.onCreate(classDb);
-            String selected = null;
+    public void onAction1(View view) {
 
-            Map<Integer, Object> classRez = owerDb.execSelectArrMap("Select * From CLASSIFICATOR");
-            if (classRez.size()>0){
-
-
-                selected = String.format("Жаба: Row=" +rowNum +", ID="+ ((Map<String, String>)classRez.get(rowNum)).get("ID")
-                        + ", CATEGORY="+((Map<String, String>)classRez.get(rowNum)).get("CATEGORY") +
-                        ", SONAME="+((Map<String, String>)classRez.get(rowNum)).get("SONAME"));
-                rowNum++; if(rowNum>10) rowNum=0;
-            } else {
-                selected = String.format("Жаба: Row=0");
-            }
-
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
     }
+    public void onAction2(View view) {
+
     }
+    public void onAction3(View view) {
+
+    }
+}
