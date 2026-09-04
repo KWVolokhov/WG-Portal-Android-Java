@@ -22,6 +22,7 @@ import android.widget.TextView;
 public class TwoLineListItem extends LinearLayout {
     private TextView tvTop;
     private TextView tvBottom;
+    private TextView tvMarker;
     private ImageButton btnEdit;
     private ImageButton btnDelete;
     private ImageView ivIcon;
@@ -78,6 +79,16 @@ public class TwoLineListItem extends LinearLayout {
         textBlock.addView(tvBottom, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         addView(textBlock, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
+        // ----- marker of "every fifth" line (blue, "--5--" style, smaller font) -----
+        // Font size is 3 sp smaller than the main list text (16sp -> 13sp).
+        tvMarker = new TextView(context);
+        tvMarker.setTextColor(Color.rgb(10, 60, 160)); // dark blue for contrast on light-blue row
+        tvMarker.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        tvMarker.setSingleLine(true);
+        tvMarker.setPadding(0, 0, dp(4), 0);
+        tvMarker.setVisibility(GONE);
+        addView(tvMarker, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
         // ----- right column: two stacked icon-buttons -----
         LinearLayout right = new LinearLayout(context);
         right.setOrientation(VERTICAL);
@@ -111,6 +122,41 @@ public class TwoLineListItem extends LinearLayout {
 
     public void setBottomText(String text) {
         tvBottom.setText(text == null ? "" : text);
+    }
+
+    /**
+     * Task 32: marks the "every fifth" line of a list.
+     * <p>
+     * Pass the 0-based row position from the adapter's getView(): the 5th, 10th,
+     * 15th, 20th ... rows become blue and get a "--5--", "--10--", "--15--",
+     * "--20--" marker with a font 3 sp smaller than the main list text.
+     */
+    public void setPosition(int position) {
+        if (position < 0) {
+            clearFiveLine();
+            return;
+        }
+        int lineNumber = position + 1;
+        if (lineNumber % 5 == 0) {
+            setFiveLine(lineNumber);
+        } else {
+            clearFiveLine();
+        }
+    }
+
+    /** Shows the blue "every fifth" row highlight with the given multiple-of-5 marker. */
+    private void setFiveLine(int lineNumber) {
+        tvMarker.setVisibility(VISIBLE);
+        tvMarker.setText("--" + lineNumber + "--");
+        // Light blue row background ("каждая пятая линия синяя")
+        setBackgroundColor(Color.rgb(198, 224, 255));
+    }
+
+    /** Removes the fifth-line marker/highlight (used for non-fifth rows and recycled views). */
+    private void clearFiveLine() {
+        tvMarker.setVisibility(GONE);
+        tvMarker.setText("");
+        setBackgroundColor(Color.TRANSPARENT);
     }
 
     public void setTypeIcon(int resId) {

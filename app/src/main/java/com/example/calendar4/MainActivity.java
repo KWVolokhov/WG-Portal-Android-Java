@@ -31,12 +31,6 @@ import android.os.Build;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Handler;
-import android.os.Looper;
 import android.telephony.TelephonyManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -52,36 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<calPlanRecord> mainListAdapter;
     private RussianHolidaysFetcher holidaysFetcher;
 
-    // ===== Real pedometer (Task 27) =====
-    private SensorManager sensorManager;
-    private Sensor stepSensor;
-    private final SensorEventListener stepListener = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            if (event == null || event.values == null || event.values.length == 0) return;
-            float steps = event.values[0];
-            lastStepValue = (long) steps;
-            lastStepTimeMs = System.currentTimeMillis();
-            pedometerActive = true;
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        }
-    };
-    private static final int PEDOMETER_DURATION_MIN = 120;        // 2 часа
-    private static final long PEDOMETER_UPDATE_INTERVAL_MS = 10 * 60 * 1000L; // каждые 10 минут
-    private static final long PEDOMETER_STOP_TIMEOUT_MS = 20 * 60 * 1000L;    // 20 минут без шагов
-    private Handler uiHandler = new Handler(Looper.getMainLooper());
-    private Runnable pedometerFinishRunnable;
-    private Runnable pedometerTimerRunnable;
-    private Integer pedometerRecordId;      // id записи HEALTHPLAN (HealthSport «Прогулка»)
-    private long pedometerStartTimeMs;      // when the 2-hour window started
-    private long lastStepTimeMs;            // last moment a step was counted
-    private Long lastStepValue;             // raw cumulative value from the sensor
-    private boolean pedometerActive;        // is the pedometer currently running
-
-    private static final int REQUEST_ACTIVITY_RECOGNITION = 101;
+    // ===== Real pedometer (Task 29): управление вынесено в отдельный класс Pedometer =====
+    private Pedometer pedometer;
 
     // ===== Modern Activity Result API (replaces deprecated startActivityForResult) =====
     // Launcher for the shared edit screens (old requestCode=1)
@@ -490,6 +456,7 @@ public class MainActivity extends AppCompatActivity {
                     row.setOnEditClickListener(v -> editCalPlan(record));
                     row.setOnDeleteClickListener(v -> confirmDeleteCalPlan(record));
                 }
+                row.setPosition(position);
                 return row;
             }
         };
@@ -603,7 +570,8 @@ public class MainActivity extends AppCompatActivity {
         String form = record.Form;
         if (form == null) return false;
         if ("History".equals(form)) return true;
-        if ("HealthEat".equals(form) || "HealthDrink".equals(form) || "HealthSport".equals(form)) return true;
+        if ("HealthEat".equals(form) || "HealthDrink".equals(form) || "HealthSport".equals(form)
+                || "HealthStress".equals(form) || "HealthJoy".equals(form)) return true;
         // черновики проектов и задач
         if (("Project".equals(form) || "Task".equals(form)) && "Draft".equals(record.StatusID)) return true;
         return false;
@@ -627,53 +595,97 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onAction1(View view) {
-        try {
-			livetypeRecord recordIn = new livetypeRecord();
-            healthPlanRecord recordOut = new healthPlanRecord(recordIn);
-			
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-    }
-    public void onAction2(View view) {
-        try {
-            
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-    }
-    public void onAction3(View view) {
-        try {
-            
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-    }
-	public void onAction4(View view) {
-        try {
-            
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-    }
-	public void onAction5(View view) {
-        try {
-            
-
-        } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
-        }
-
+    public void onQuickButtonClick(View view) {
+        int buttonIndex = buttonIndexForView(view);
+        if (buttonIndex < 1) return;
+        handleQuickButton(buttonIndex, defaultButtonIdForIndex(buttonIndex));
     }
 
+    /** Номер быстрой кнопки (1..5) по её id - позволяет масштабировать количество кнопок копированием. */
+    private int buttonIndexForView(View view) {
+        if (view == null) return -1;
+        int id = view.getId();
+        if (id == R.id.buttonAction1) return 1;
+        if (id == R.id.buttonAction2) return 2;
+        if (id == R.id.buttonAction3) return 3;
+        if (id == R.id.buttonAction4) return 4;
+        if (id == R.id.buttonAction5) return 5;
+        return -1;
+    }
+
+    /** Id LIVETYPE по умолчанию для номера кнопки (соответствует предустановкам справочника). */
+    private int defaultButtonIdForIndex(int index) {
+        switch (index) {
+            case 1: return CalParamRecord.DEFAULT_BUTTON1_ID;
+            case 2: return CalParamRecord.DEFAULT_BUTTON2_ID;
+            case 3: return CalParamRecord.DEFAULT_BUTTON3_ID;
+            case 4: return CalParamRecord.DEFAULT_BUTTON4_ID;
+            case 5: return CalParamRecord.DEFAULT_BUTTON5_ID;
+            default: return index;
+        }
+    }
+
+    /**
+     * Quick-button handler (задачи 27/28/29).
+     * Создаёт запись HEALTHPLAN из значения справочника LIVETYPE, соответствующего кнопке:
+     * Название, Form и все поля органов берутся из записи LIVETYPE; автор = Ведущий (CALPARAM),
+     * Дата создания = сегодня, Дата старта = выбранная дата кастомного календаря над кнопками.
+     * Для активности типа HealthSport дополнительно запускается реальный шагомер (задача 29).
+     */
+    private void handleQuickButton(int buttonIndex, int defaultId) {
+        try {
+            if (owerDb == null) owerDb = ManageSQLDatabase.getInstance(this);
+
+            Integer configuredId = getConfiguredButtonId(buttonIndex, defaultId);
+            LivetypeSQLManage livetypeDb = new LivetypeSQLManage(owerDb.getWritableDatabase());
+            livetypeRecord typeRecord = livetypeDb.getLivetypeById(configuredId);
+            if (typeRecord == null) {
+                Toast.makeText(this, "Не найден тип жизнедеятельности (id=" + configuredId + ")", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            // Название, Form и все поля органов переписываются из справочника
+            healthPlanRecord record = new healthPlanRecord(typeRecord);
+            record.AuthorID = ManageSQLDatabase.AuthorID;         // Ведущий
+            record.AuthorName = ManageSQLDatabase.AuthorName;     // Ведущий
+            record.Okdate = new Date();                            // Дата создания = сегодня
+            record.StartDate = (russianCalendar != null && russianCalendar.activeDate != null)
+                    ? russianCalendar.activeDate : new Date();     // Дата старта из календаря
+
+            HealthSQLManage healthDb = new HealthSQLManage(owerDb.getWritableDatabase());
+            healthDb.upsertHealth(record);
+
+            Toast.makeText(this, "Создано: " + (record.Name != null ? record.Name : ""), Toast.LENGTH_SHORT).show();
+            refreshListView();
+
+            // Задача 29: активности типа HealthSport включают реальный шагомер
+            // (логика вынесена в отдельный класс Pedometer, здесь только вызов управления)
+            if ("HealthSport".equals(record.Form)) {
+                if (pedometer == null) {
+                    pedometer = new Pedometer(this, owerDb.getWritableDatabase());
+                }
+                pedometer.start(record.id);
+            }
+        } catch (Exception err) {
+            Toast.makeText(this, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** Возвращает настроенный id LIVETYPE для кнопки (из CALPARAM), иначе значение по умолчанию. */
+    private Integer getConfiguredButtonId(int buttonIndex, int defaultId) {
+        try {
+            CalParamRecord param = owerDb.getCalParam();
+            if (param == null) return defaultId;
+            switch (buttonIndex) {
+                case 1: return param.Button1Id != null ? param.Button1Id : defaultId;
+                case 2: return param.Button2Id != null ? param.Button2Id : defaultId;
+                case 3: return param.Button3Id != null ? param.Button3Id : defaultId;
+                case 4: return param.Button4Id != null ? param.Button4Id : defaultId;
+                case 5: return param.Button5Id != null ? param.Button5Id : defaultId;
+                default: return defaultId;
+            }
+        } catch (Exception e) {
+            return defaultId;
+        }
+    }
 }

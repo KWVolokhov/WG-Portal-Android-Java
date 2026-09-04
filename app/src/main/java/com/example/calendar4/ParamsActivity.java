@@ -32,6 +32,11 @@ public class ParamsActivity extends Activity {
 
     private Spinner spinnerVedushii;
     private Spinner spinnerStartPage;
+    private Spinner spinnerButton1;
+    private Spinner spinnerButton2;
+    private Spinner spinnerButton3;
+    private Spinner spinnerButton4;
+    private Spinner spinnerButton5;
     private EditText editTextAddress;
     private EditText editTextName;
     private EditText editTextPassword;
@@ -45,6 +50,11 @@ public class ParamsActivity extends Activity {
     private final ArrayList<String> contactLabels = new ArrayList<>();
     private final ArrayList<String> contactIds = new ArrayList<>();
 
+    // Types of life activity ("Типы жизнедеятельности") for the 5 quick buttons
+    // (display text and числовой id записи LIVETYPE - only the id is stored in CALPARAM)
+    private final ArrayList<String> livetypeLabels = new ArrayList<>();
+    private final ArrayList<Integer> livetypeIds = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +63,11 @@ public class ParamsActivity extends Activity {
         // Initialize views
         spinnerVedushii = findViewById(R.id.spinnerVedushii);
         spinnerStartPage = findViewById(R.id.spinnerStartPage);
+        spinnerButton1 = findViewById(R.id.spinnerButton1);
+        spinnerButton2 = findViewById(R.id.spinnerButton2);
+        spinnerButton3 = findViewById(R.id.spinnerButton3);
+        spinnerButton4 = findViewById(R.id.spinnerButton4);
+        spinnerButton5 = findViewById(R.id.spinnerButton5);
         editTextAddress = findViewById(R.id.editTextAddress);
         editTextName = findViewById(R.id.editTextName);
         editTextPassword = findViewById(R.id.editTextPassword);
@@ -65,6 +80,7 @@ public class ParamsActivity extends Activity {
         currentRecord = owerDb.getCalParam();
 
         loadContacts();
+        loadLivetypes();
 
         // Populate "Ведущий" with the saved contact (if any)
         if (currentRecord != null) {
@@ -82,6 +98,14 @@ public class ParamsActivity extends Activity {
 
         // Populate "Стартовая страница" (default = Календарь when not set yet)
         setupStartPageSpinner(currentRecord != null ? currentRecord.StartPage : null);
+
+        // Populate the 5 quick buttons from the "Типы жизнедеятельности" reference
+        // (stored value = числовой id записи LIVETYPE; default = предустановки 1..5)
+        setupButtonSpinner(spinnerButton1, currentRecord != null ? currentRecord.Button1Id : null, CalParamRecord.DEFAULT_BUTTON1_ID);
+        setupButtonSpinner(spinnerButton2, currentRecord != null ? currentRecord.Button2Id : null, CalParamRecord.DEFAULT_BUTTON2_ID);
+        setupButtonSpinner(spinnerButton3, currentRecord != null ? currentRecord.Button3Id : null, CalParamRecord.DEFAULT_BUTTON3_ID);
+        setupButtonSpinner(spinnerButton4, currentRecord != null ? currentRecord.Button4Id : null, CalParamRecord.DEFAULT_BUTTON4_ID);
+        setupButtonSpinner(spinnerButton5, currentRecord != null ? currentRecord.Button5Id : null, CalParamRecord.DEFAULT_BUTTON5_ID);
 
         // OK button click handler
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +139,13 @@ public class ParamsActivity extends Activity {
                 int sp = spinnerStartPage.getSelectedItemPosition();
                 currentRecord.StartPage = (sp >= 0 && sp < START_PAGE_VALUES.length)
                         ? START_PAGE_VALUES[sp] : CalParamRecord.START_PAGE_CALENDAR;
+
+                // Save the chosen quick buttons (only the числовой id записи LIVETYPE is stored)
+                currentRecord.Button1Id = selectedButtonId(spinnerButton1);
+                currentRecord.Button2Id = selectedButtonId(spinnerButton2);
+                currentRecord.Button3Id = selectedButtonId(spinnerButton3);
+                currentRecord.Button4Id = selectedButtonId(spinnerButton4);
+                currentRecord.Button5Id = selectedButtonId(spinnerButton5);
 
                 // Keep the static author fields (used by all record screens) in sync
                 ManageSQLDatabase.AuthorName = currentRecord.Vedushii;
@@ -192,5 +223,43 @@ public class ParamsActivity extends Activity {
             }
         }
         spinnerStartPage.setSelection(idx);
+    }
+
+    /** Loads the "Типы жизнедеятельности" reference for the quick buttons (id + name). */
+    private void loadLivetypes() {
+        livetypeLabels.clear();
+        livetypeIds.clear();
+        try {
+            LivetypeSQLManage livetypeDb = new LivetypeSQLManage(owerDb.getWritableDatabase());
+            livetypeRecord[] records = livetypeDb.getAllLivetype("");
+            if (records != null) {
+                for (livetypeRecord r : records) {
+                    if (r.id == null) continue;
+                    String label = (r.Name != null && !r.Name.trim().isEmpty()) ? r.Name.trim() : "(без названия)";
+                    livetypeLabels.add(label);
+                    livetypeIds.add(r.id);
+                }
+            }
+        } catch (Exception e) {
+            // Non-fatal: without the reference the spinners stay empty
+        }
+    }
+
+    /** Fills one quick-button spinner with the LIVETYPE names and selects the saved id (or the default). */
+    private void setupButtonSpinner(Spinner spinner, Integer currentId, int defaultId) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, livetypeLabels);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        int target = currentId != null ? currentId : defaultId;
+        int idx = livetypeIds.indexOf(target);
+        spinner.setSelection(idx >= 0 ? idx : 0);
+    }
+
+    /** Returns the числовой id LIVETYPE selected in the given quick-button spinner (or null). */
+    private Integer selectedButtonId(Spinner spinner) {
+        int pos = spinner.getSelectedItemPosition();
+        if (pos >= 0 && pos < livetypeIds.size()) return livetypeIds.get(pos);
+        return null;
     }
 }

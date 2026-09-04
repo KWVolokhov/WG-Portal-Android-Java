@@ -19,19 +19,6 @@
 
     <!-- Everything that was below the calendar in portrait goes to the right -->
     <ImageButton
-        android:id="@+id/button1"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="1dp"
-        android:src="@drawable/ic_add_plus"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Добавить"
-        android:onClick="taskAdd"
-        app:layout_constraintStart_toEndOf="@id/calendarView1"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageButton
         android:id="@+id/buttonHealth"
         android:layout_width="32dp"
         android:layout_height="32dp"
@@ -40,8 +27,8 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Health"
         android:onClick="openHealth"
-        app:layout_constraintStart_toEndOf="@id/button1"
-        app:layout_constraintTop_toTopOf="@id/button1" />
+        app:layout_constraintStart_toEndOf="@id/calendarView1"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/buttonH"
@@ -53,43 +40,99 @@
         android:contentDescription="История"
         android:onClick="openHistory"
         app:layout_constraintStart_toEndOf="@id/buttonHealth"
-        app:layout_constraintTop_toTopOf="@id/button1" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Spacer ("пробел") size of one button between История and Добавить -->
+    <View
+        android:id="@+id/buttonSpacer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        app:layout_constraintStart_toEndOf="@id/buttonH"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/buttonPedometer"
+        android:id="@+id/button1"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="1dp"
+        android:src="@drawable/ic_add_plus"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Добавить"
+        android:onClick="taskAdd"
+        app:layout_constraintStart_toEndOf="@id/buttonSpacer"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/buttonAction1"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
         android:src="@drawable/ic_pedometer"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Шагомер"
-        android:onClick="onPedometerClick"
-        app:layout_constraintStart_toEndOf="@id/buttonH"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/button1"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
-        android:id="@+id/buttonBurger"
+        android:id="@+id/buttonAction2"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
         android:src="@drawable/ic_burger"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Бургер"
-        android:onClick="onBurgerClick"
-        app:layout_constraintStart_toEndOf="@id/buttonPedometer"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/buttonAction1"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
-        android:id="@+id/buttonCoffee"
+        android:id="@+id/buttonAction3"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
         android:src="@drawable/ic_coffee"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
-        android:onClick="onCoffeeClick"
-        app:layout_constraintStart_toEndOf="@id/buttonBurger"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/buttonAction2"
         app:layout_constraintTop_toTopOf="@id/button1" />
+		
+	<ImageButton
+        android:id="@+id/buttonAction4"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_stress"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Авария"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/buttonAction3"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+		
+	<ImageButton
+        android:id="@+id/buttonAction5"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:src="@drawable/ic_joy"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Гулянка"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/buttonAction4"
+        app:layout_constraintTop_toTopOf="@id/button1" />
+
+    <!-- Landscape: contrast line only below the button row -->
+    <View
+        android:id="@+id/buttonRowBottomLine"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_button_row_line"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button1" />
 
     <ListView
         android:id="@+id/listView1"
@@ -100,7 +143,7 @@
         android:layout_marginStart="2dp"
         app:layout_constraintStart_toEndOf="@id/calendarView1"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/button1"
+        app:layout_constraintTop_toBottomOf="@id/buttonRowBottomLine"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

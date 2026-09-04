@@ -81,6 +81,7 @@ public class ProjectsActivity extends Activity {
                 row.setTypeIcon("Task".equals(record.Form) ? R.drawable.ic_type_task : R.drawable.ic_type_project);
                 row.setOnEditClickListener(v -> openProject(record));
                 row.setOnDeleteClickListener(v -> confirmDeleteProject(record));
+                row.setPosition(position);
                 return row;
             }
         };

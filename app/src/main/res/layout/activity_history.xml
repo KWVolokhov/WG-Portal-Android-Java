@@ -32,7 +32,17 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- History records list (CALPLAN Form=History for the selected day) -->
+    <!-- Filter by name (3+ characters filter the list, like contacts/projects) -->
+    <EditText
+        android:id="@+id/editTextFilterHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Поиск по названию (минимум 3 символа)"
+        android:inputType="text"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- History records list (HISTORY table records for the selected day) -->
     <ListView
         android:id="@+id/listViewHistory"
         android:layout_width="match_parent"

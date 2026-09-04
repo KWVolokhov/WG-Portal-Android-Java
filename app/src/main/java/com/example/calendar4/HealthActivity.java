@@ -73,6 +73,7 @@ public class HealthActivity extends Activity {
                 row.setTypeIcon(iconForForm(record.Form));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
+                row.setPosition(position);
                 return row;
             }
         };

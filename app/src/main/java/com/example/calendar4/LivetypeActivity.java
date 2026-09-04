@@ -84,6 +84,7 @@ public class LivetypeActivity extends AppCompatActivity {
                 row.setTypeIcon(R.drawable.ic_type_note);
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
+                row.setPosition(position);
                 return row;
             }
         };

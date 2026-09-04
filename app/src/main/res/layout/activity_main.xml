@@ -21,21 +21,49 @@
         android:layout_marginTop="1dp"
         android:layout_marginBottom="1dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/button1"
+        app:layout_constraintTop_toBottomOf="@id/buttonRowBottomLine"
         app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Contrast line above the button row (portrait only) -->
+    <View
+        android:id="@+id/buttonRowTopLine"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_button_row_line"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/calendarView1" />
+
+    <!-- Contrast line below the button row -->
+    <View
+        android:id="@+id/buttonRowBottomLine"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@drawable/bg_button_row_line"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button1" />
+
+    <View
+        android:id="@+id/buttonSpacer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        app:layout_constraintStart_toEndOf="@id/buttonH"
+        app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
         android:id="@+id/button1"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="0dp"
         android:layout_marginTop="1dp"
         android:src="@drawable/ic_add_plus"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Добавить"
         android:onClick="taskAdd"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/calendarView1" />
+        app:layout_constraintStart_toEndOf="@id/buttonSpacer"
+        app:layout_constraintTop_toBottomOf="@id/buttonRowTopLine" />
 
     <ImageButton
         android:id="@+id/buttonHealth"
@@ -46,7 +74,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Health"
         android:onClick="openHealth"
-        app:layout_constraintStart_toEndOf="@id/button1"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
@@ -69,8 +97,8 @@
         android:src="@drawable/ic_pedometer"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Шагомер"
-        android:onClick="onAction1"
-        app:layout_constraintStart_toEndOf="@id/buttonH"
+        android:onClick="onQuickButtonClick"
+        app:layout_constraintStart_toEndOf="@id/button1"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
     <ImageButton
@@ -81,7 +109,7 @@
         android:src="@drawable/ic_burger"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Бургер"
-        android:onClick="onAction2"
+        android:onClick="onQuickButtonClick"
         app:layout_constraintStart_toEndOf="@id/buttonAction1"
         app:layout_constraintTop_toTopOf="@id/button1" />
 
@@ -93,29 +121,29 @@
         android:src="@drawable/ic_coffee"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Кофе 200"
-        android:onClick="onAction3"
+        android:onClick="onQuickButtonClick"
         app:layout_constraintStart_toEndOf="@id/buttonAction2"
         app:layout_constraintTop_toTopOf="@id/button1" />
-	<ImageButton
+    <ImageButton
         android:id="@+id/buttonAction4"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
-        android:src="@drawable/ic_coffee"
+        android:src="@drawable/ic_stress"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Кофе 200"
-        android:onClick="onAction4"
+        android:contentDescription="Авария"
+        android:onClick="onQuickButtonClick"
         app:layout_constraintStart_toEndOf="@id/buttonAction3"
         app:layout_constraintTop_toTopOf="@id/button1" />
-	<ImageButton
+    <ImageButton
         android:id="@+id/buttonAction5"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="4dp"
-        android:src="@drawable/ic_coffee"
+        android:src="@drawable/ic_joy"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Кофе 200"
-        android:onClick="onAction5"
+        android:contentDescription="Гулянка"
+        android:onClick="onQuickButtonClick"
         app:layout_constraintStart_toEndOf="@id/buttonAction4"
         app:layout_constraintTop_toTopOf="@id/button1" />
 </androidx.constraintlayout.widget.ConstraintLayout>

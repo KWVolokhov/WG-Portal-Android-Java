@@ -31,7 +31,7 @@ public class ConstantsSQLDb {
             "KeyWords TEXT, " +				//Label: Ключевые слова
             "Revisions TEXT " +			//Label: Даты изменения друг за друом
             ")";
-        public static final String CREATE_TABLE_HISTORY = "CREATE TABLE IF NOT EXISTS HISTORY (" +
+    public static final String CREATE_TABLE_HISTORY = "CREATE TABLE IF NOT EXISTS HISTORY (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
             "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes
             "Okdate DATE, " + //Label: Дата заведения записи

@@ -158,6 +158,7 @@ public class RussianCalendarView extends ConstraintLayout {
         tempCal.set(Calendar.DAY_OF_MONTH, tempCal.getActualMaximum(Calendar.DAY_OF_MONTH));
         activeDate = tempCal.getTime();
         updateCalendar();
+        notifyDateSelected();
     }
 
     private void navigateToNextMonth() {
@@ -167,6 +168,14 @@ public class RussianCalendarView extends ConstraintLayout {
         tempCal.set(Calendar.DAY_OF_MONTH, 1);
         activeDate = tempCal.getTime();
         updateCalendar();
+        notifyDateSelected();
+    }
+
+    /** Informs the listener that activeDate has changed (month/year navigation). */
+    private void notifyDateSelected() {
+        if (dateSelectedListener != null && activeDate != null) {
+            dateSelectedListener.onDateSelected(activeDate);
+        }
     }
 
     public void setOnDateSelectedListener(OnDateSelectedListener listener) {
@@ -191,7 +200,21 @@ public class RussianCalendarView extends ConstraintLayout {
         currentCalendar.set(Calendar.DAY_OF_MONTH, 1);
         currentCalendar.set(Calendar.YEAR, year);
         currentCalendar.set(Calendar.MONTH, month);
+        // Keep the previously selected day-of-month when it exists in the new month,
+        // otherwise fall back to the 1st - this updates activeDate so the MainActivity
+        // day filter follows month/year navigation (year picker too).
+        Calendar tempCal = (Calendar) currentCalendar.clone();
+        if (activeDate != null) {
+            Calendar prev = Calendar.getInstance();
+            prev.setTime(activeDate);
+            int desiredDay = prev.get(Calendar.DAY_OF_MONTH);
+            tempCal.set(Calendar.DAY_OF_MONTH,
+                    desiredDay <= tempCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+                            ? desiredDay : 1);
+        }
+        activeDate = tempCal.getTime();
         updateCalendar();
+        notifyDateSelected();
     }
 
     public void goToToday() {

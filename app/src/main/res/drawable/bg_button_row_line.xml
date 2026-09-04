@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Contrast line separating the MainActivity button row (top/bottom in portrait, bottom in landscape). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FF979797" />
+    <size android:height="2dp" />
+</shape>

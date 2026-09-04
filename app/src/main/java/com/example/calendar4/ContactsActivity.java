@@ -64,6 +64,7 @@ public class ContactsActivity extends Activity {
                 row.setTypeIcon(ageIcon(contact));
                 row.setOnEditClickListener(v -> openContact(contact));
                 row.setOnDeleteClickListener(v -> confirmDeleteContact(contact));
+                row.setPosition(position);
                 return row;
             }
         };

@@ -100,10 +100,26 @@ public class HistorySQLManage {
 
     /** All History records whose StartDate equals the given day. */
     public calPlanRecord[] getHistoryByDate(Date date) {
+        return getHistoryByDate(date, null);
+    }
+
+    /**
+     * History records whose StartDate equals the given day.
+     * When the filter is 3+ characters it also filters by Name (LOWER LIKE),
+     * like the contacts/projects search fields.
+     */
+    public calPlanRecord[] getHistoryByDate(Date date, String filter) {
         ArrayList<calPlanRecord> list = new ArrayList<>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        Cursor cursor = db.query(TABLE_HISTORY, null,
-                "StartDate=?", new String[]{sdf.format(date)}, null, null, "StartDate");
+        StringBuilder selection = new StringBuilder("StartDate=?");
+        ArrayList<String> args = new ArrayList<>();
+        args.add(sdf.format(date));
+        if (filter != null && filter.trim().length() >= 3) {
+            selection.append(" AND LOWER(Name) LIKE ?");
+            args.add("%" + filter.trim().toLowerCase(Locale.getDefault()) + "%");
+        }
+        Cursor cursor = db.query(TABLE_HISTORY, null, selection.toString(),
+                args.toArray(new String[0]), null, null, "StartDate");
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {

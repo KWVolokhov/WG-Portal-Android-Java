@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -25,6 +28,7 @@ public class HistoryActivity extends Activity {
 
     private ListView listViewHistory;
     private TextView headerTitle;
+    private EditText editTextFilterHistory;
     private ImageButton btnBack;
 
     private ManageSQLDatabase owerDb;
@@ -40,6 +44,7 @@ public class HistoryActivity extends Activity {
 
         listViewHistory = findViewById(R.id.listViewHistory);
         headerTitle = findViewById(R.id.headerTitle);
+        editTextFilterHistory = findViewById(R.id.editTextFilterHistory);
         btnBack = findViewById(R.id.btnBack);
 
         day = (Date) getIntent().getSerializableExtra("historyDate");
@@ -52,12 +57,7 @@ public class HistoryActivity extends Activity {
         // Reuse the already existing connection to the database
         historyDb = new HistorySQLManage(owerDb.getWritableDatabase());
         records = new ArrayList<>();
-        calPlanRecord[] arr = historyDb.getHistoryByDate(day);
-        if (arr != null) {
-            for (calPlanRecord r : arr) {
-                if (r != null) records.add(r);
-            }
-        }
+        reload();
 
         adapter = new ArrayAdapter<calPlanRecord>(this, 0, records) {
             @Override
@@ -74,11 +74,28 @@ public class HistoryActivity extends Activity {
                 row.setTypeIcon(R.drawable.ic_type_history);
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
+                row.setPosition(position);
                 return row;
             }
         };
         listViewHistory.setAdapter(adapter);
         listViewHistory.setOnItemClickListener(null);
+
+        // Search by name: 3+ characters filter the list (same as contacts/projects)
+        editTextFilterHistory.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                reload();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         btnBack.setOnClickListener(v -> finish());
     }
@@ -106,7 +123,8 @@ public class HistoryActivity extends Activity {
 
     private void reload() {
         records.clear();
-        calPlanRecord[] arr = historyDb.getHistoryByDate(day);
+        String filter = editTextFilterHistory != null ? editTextFilterHistory.getText().toString() : "";
+        calPlanRecord[] arr = historyDb.getHistoryByDate(day, filter);
         if (arr != null) {
             for (calPlanRecord r : arr) {
                 if (r != null) records.add(r);
