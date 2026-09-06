@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,14 +27,21 @@ import java.util.Locale;
  */
 public class ProjectsActivity extends Activity {
 
+    // Intent extra marking the "Проекты\Рабочие" work mode (vs "Проекты\Все")
+    public static final String EXTRA_WORK_MODE = "extra_work_mode";
+
     private ListView listViewProjects;
     private EditText editTextFilter;
     private ImageButton btnNew;
     private ImageButton btnBack;
+    private TextView textViewTitle;
 
     private ManageSQLDatabase owerDb;
     private ArrayAdapter<calPlanRecord> adapter;
     private final ArrayList<calPlanRecord> allProjects = new ArrayList<>();
+
+    /** true = "Проекты\Рабочие" (only Inwork/Intest), false = "Проекты\Все" */
+    private boolean workMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +52,12 @@ public class ProjectsActivity extends Activity {
         editTextFilter = findViewById(R.id.editTextFilterProjects);
         btnNew = findViewById(R.id.btnNew);
         btnBack = findViewById(R.id.btnBack);
+        textViewTitle = findViewById(R.id.textViewProjectsTitle);
+
+        // "Проекты\Рабочие" menu item opens the same activity in Work mode
+        workMode = getIntent() != null
+                && getIntent().getBooleanExtra(EXTRA_WORK_MODE, false);
+        updateTitle();
 
         //owerDb = new ManageSQLDatabase(this);
 		owerDb = ManageSQLDatabase.getInstance(this);
@@ -78,7 +92,9 @@ public class ProjectsActivity extends Activity {
                 final calPlanRecord record = allProjects.get(position);
                 row.setTopText(record.Name != null ? record.Name : "");
                 row.setBottomText(displayStartDate(record));
-                row.setTypeIcon("Task".equals(record.Form) ? R.drawable.ic_type_task : R.drawable.ic_type_project);
+                // Task 36: state-aware icon for Project / Task / Request
+                row.setTypeIcon(StatusIconFactory.getStatusDrawable(
+                        ProjectsActivity.this, record.Form, record.StatusID, record.Status));
                 row.setOnEditClickListener(v -> openProject(record));
                 row.setOnDeleteClickListener(v -> confirmDeleteProject(record));
                 row.setPosition(position);
@@ -94,6 +110,8 @@ public class ProjectsActivity extends Activity {
             public void onClick(View v) {
                 Intent intent = new Intent(ProjectsActivity.this, InputCalPlanActivity.class);
                 intent.putExtra("activeDate", new Date());
+                // Task 35: Form picker offers only Проекты/Задачи/Заявка на автоматизацию
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
                 startActivityForResult(intent, 1);
             }
         });
@@ -118,6 +136,13 @@ public class ProjectsActivity extends Activity {
         }
     }
 
+    /** Sets the header text and window title: "Проекты\Все" or "Проекты\Рабочие". */
+    private void updateTitle() {
+        String title = workMode ? "Проекты\\Рабочие" : "Проекты\\Все";
+        if (textViewTitle != null) textViewTitle.setText(title);
+        setTitle(title);
+    }
+
     private void openProject(calPlanRecord project) {
         if (project == null) return;
         // Tasks open the Task card, everything else (Project/Request) opens the Project card
@@ -125,6 +150,9 @@ public class ProjectsActivity extends Activity {
         Intent intent = new Intent(ProjectsActivity.this, cls);
         intent.putExtra("activeDate", new Date());
         intent.putExtra("calPlanRecord", project);
+        // Task 35: keep the Form picker limited to Проекты/Задачи/Заявка на автоматизацию
+        // (also keeps the "Request" form value from falling back to the full form list)
+        intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
         startActivityForResult(intent, 1);
     }
 
@@ -144,7 +172,7 @@ public class ProjectsActivity extends Activity {
     private void reload() {
         allProjects.clear();
         String filter = editTextFilter != null ? editTextFilter.getText().toString().trim() : "";
-        calPlanRecord[] arr = owerDb.getProjectsTasks(filter);
+        calPlanRecord[] arr = owerDb.getProjectsTasks(filter, workMode);
         if (arr != null) {
             for (calPlanRecord record : arr) {
                 if (record != null) allProjects.add(record);

@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 	
 	public static String AuthorName = null;
@@ -131,14 +131,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         }
         // Version 5: Icon column in LIVETYPE + three configurable quick buttons in CALPARAM
         if (oldVersion < 5) {
-            try {
-                db.execSQL("ALTER TABLE LIVETYPE ADD COLUMN Icon TEXT");
-                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button1Id TEXT");
-                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button2Id TEXT");
-                db.execSQL("ALTER TABLE CALPARAM ADD COLUMN Button3Id TEXT");
-            } catch (Exception e) {
-                // Columns may already exist - ignore
-            }
+            addColumnIfMissing(db, "LIVETYPE", "Icon", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button1Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button2Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button3Id", "TEXT");
             try {
                 for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
                     db.execSQL(updCom);
@@ -146,6 +142,67 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             } catch (Exception e) {
                 // Non-fatal
             }
+        }
+        // Version 6: Button4Id / Button5Id quick buttons (5 buttons total).
+        // Re-runs for every database older than 6; "addColumnIfMissing" is safe
+        // even when some of the columns already exist.
+        if (oldVersion < 6) {
+            addColumnIfMissing(db, "CALPARAM", "Button1Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button2Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button3Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button4Id", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "Button5Id", "TEXT");
+        }
+
+        // Safety net (Task 34): whatever version the old database recorded, make sure
+        // that every column the application needs really exists. Old production builds
+        // suffered from "no such column: Button1Id / Button4Id ... while compiling:
+        // UPDATE CALPARAM SET ..." because their recorded version was already high,
+        // so the classic oldVersion < N checks never ran for them.
+        try { db.execSQL(ConstantsSQLDb.CREATE_TABLE_LIVETYPE); } catch (Exception e) { }
+        addColumnIfMissing(db, "CALPARAM", "Vedushii", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "VedushiiID", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "StartPage", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Button1Id", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Button2Id", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Button3Id", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Button4Id", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Button5Id", "TEXT");
+        addColumnIfMissing(db, "LIVETYPE", "Icon", "TEXT");
+        try {
+            for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
+                db.execSQL(updCom);
+            }
+            insertLivetypeDefaults(db);
+        } catch (Exception e) {
+            // Non-fatal
+        }
+    }
+
+    /** True when the given column already exists in the table. */
+    private boolean columnExists(SQLiteDatabase db, String table, String column) {
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+        try {
+            int nameIdx = cursor.getColumnIndex("name");
+            while (cursor.moveToNext()) {
+                if (column.equals(cursor.getString(nameIdx))) return true;
+            }
+        } catch (Exception e) {
+            // ignore
+        } finally {
+            cursor.close();
+        }
+        return false;
+    }
+
+    /** Adds the given text column to the table when it is still missing. */
+    private void addColumnIfMissing(SQLiteDatabase db, String table, String column, String type) {
+        try {
+            if (!columnExists(db, table, column)) {
+                db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+            }
+        } catch (Exception e) {
+            // ignore
         }
     }
 
@@ -608,13 +665,28 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
     // sorted by StartDate (earliest first); records without a date go last.
     // When the filter is 3+ characters it also filters by Name (LOWER LIKE).
     public calPlanRecord[] getProjectsTasks(String filter) {
+        return getProjectsTasks(filter, false);
+    }
+
+    /**
+     * "Проекты" screen query (All or Work mode).
+     *
+     * @param workOnly when true keeps only projects/tasks in status
+     *                 "В работе"/"Тестирование" (StatusID Inwork/Intest);
+     *                 when false all projects and tasks are returned.
+     */
+    public calPlanRecord[] getProjectsTasks(String filter, boolean workOnly) {
+        String baseWhere = "(Form='Project' OR Form='Task')";
+        if (workOnly) {
+            baseWhere += " AND (StatusID IN ('Inwork','Intest') OR Status IN ('В работе','Тестирование'))";
+        }
         calPlanRecord[] arr;
         if (filter != null && filter.trim().length() >= 3) {
             String pattern = "%" + filter.trim().toLowerCase(java.util.Locale.getDefault()) + "%";
-            arr = queryCalPlan("(Form='Project' OR Form='Task') AND LOWER(Name) LIKE ?",
+            arr = queryCalPlan(baseWhere + " AND LOWER(Name) LIKE ?",
                     new String[]{pattern});
         } else {
-            arr = queryCalPlan("Form='Project' OR Form='Task'", null);
+            arr = queryCalPlan(baseWhere, null);
         }
         if (arr == null || arr.length == 0) return new calPlanRecord[0];
 

@@ -2,6 +2,7 @@ package com.example.calendar4;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -18,14 +19,24 @@ import android.widget.TextView;
  * Layout (single row): [icon 48dp | two text lines (weight 1) | Edit+Delete 32dp]
  * The icon is on the left, Edit/Delete buttons on the right - same as the
  * contacts list. The icon is set through {@link #setTypeIcon(int)}.
+ *
+ * The row is vertical: the main content line is topped with an optional
+ * "every fifth line" horizontal divider (a line with the centered number,
+ * e.g. "--5--", "--10--") which replaces the old blue row highlight.
  */
 public class TwoLineListItem extends LinearLayout {
+    private LinearLayout contentRow;
+    private LinearLayout fifthLineDivider;
+
     private TextView tvTop;
     private TextView tvBottom;
     private TextView tvMarker;
     private ImageButton btnEdit;
     private ImageButton btnDelete;
     private ImageView ivIcon;
+
+    // Color of the horizontal "every fifth" line and its number
+    private static final int FIFTH_LINE_COLOR = Color.rgb(30, 96, 200);
 
     public TwoLineListItem(Context context) {
         this(context, null);
@@ -41,11 +52,15 @@ public class TwoLineListItem extends LinearLayout {
     }
 
     private void init(Context context) {
-        setOrientation(HORIZONTAL);
-        setGravity(Gravity.CENTER_VERTICAL);
-        setPadding(dp(6), dp(6), dp(8), dp(6));
+        setOrientation(VERTICAL);
+        setPadding(dp(6), dp(4), dp(8), dp(2));
 
-        // ----- left column: icon (type / age) -----
+        // ----- content row: [left icon | two text lines | right buttons] -----
+        contentRow = new LinearLayout(context);
+        contentRow.setOrientation(HORIZONTAL);
+        contentRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        // left column: icon (type / age)
         LinearLayout left = new LinearLayout(context);
         left.setOrientation(VERTICAL);
         left.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -56,9 +71,9 @@ public class TwoLineListItem extends LinearLayout {
         ivIcon.setContentDescription("Актуально");
         left.addView(ivIcon, new LinearLayout.LayoutParams(dp(48), dp(48)));
 
-        addView(left, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        contentRow.addView(left, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
-        // ----- center: two text lines -----
+        // center: two text lines
         LinearLayout textBlock = new LinearLayout(context);
         textBlock.setOrientation(VERTICAL);
 
@@ -77,19 +92,9 @@ public class TwoLineListItem extends LinearLayout {
 
         textBlock.addView(tvTop, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         textBlock.addView(tvBottom, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        addView(textBlock, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+        contentRow.addView(textBlock, new LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
 
-        // ----- marker of "every fifth" line (blue, "--5--" style, smaller font) -----
-        // Font size is 3 sp smaller than the main list text (16sp -> 13sp).
-        tvMarker = new TextView(context);
-        tvMarker.setTextColor(Color.rgb(10, 60, 160)); // dark blue for contrast on light-blue row
-        tvMarker.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        tvMarker.setSingleLine(true);
-        tvMarker.setPadding(0, 0, dp(4), 0);
-        tvMarker.setVisibility(GONE);
-        addView(tvMarker, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-        // ----- right column: two stacked icon-buttons -----
+        // right column: two stacked icon-buttons
         LinearLayout right = new LinearLayout(context);
         right.setOrientation(VERTICAL);
         right.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -109,7 +114,36 @@ public class TwoLineListItem extends LinearLayout {
         btnDelete.setBackgroundColor(Color.TRANSPARENT);
         right.addView(btnDelete, new LinearLayout.LayoutParams(dp(32), dp(32)));
 
-        addView(right, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        contentRow.addView(right, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+        addView(contentRow, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+        // ----- divider for every fifth line: ----5---- (line - number - line) -----
+        // Visible only under the 5th, 10th, 15th ... item of the list.
+        fifthLineDivider = new LinearLayout(context);
+        fifthLineDivider.setOrientation(HORIZONTAL);
+        fifthLineDivider.setGravity(Gravity.CENTER_VERTICAL);
+        fifthLineDivider.setPadding(0, dp(2), 0, 0);
+        fifthLineDivider.setVisibility(GONE);
+
+        View lineLeft = new View(context);
+        lineLeft.setBackgroundColor(FIFTH_LINE_COLOR);
+
+        tvMarker = new TextView(context);
+        tvMarker.setTextColor(FIFTH_LINE_COLOR);
+        // Font is 3 sp smaller than the main list text (16sp -> 13sp)
+        tvMarker.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        tvMarker.setSingleLine(true);
+        tvMarker.setPadding(dp(6), 0, dp(6), 0);
+
+        View lineRight = new View(context);
+        lineRight.setBackgroundColor(FIFTH_LINE_COLOR);
+
+        fifthLineDivider.addView(lineLeft, new LinearLayout.LayoutParams(0, dp(2), 1f));
+        fifthLineDivider.addView(tvMarker, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+        fifthLineDivider.addView(lineRight, new LinearLayout.LayoutParams(0, dp(2), 1f));
+
+        addView(fifthLineDivider, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     }
 
     // ---------------------------------------------------------------------
@@ -125,11 +159,12 @@ public class TwoLineListItem extends LinearLayout {
     }
 
     /**
-     * Task 32: marks the "every fifth" line of a list.
+     * Task 32/33: marks the "every fifth" line of a list.
      * <p>
-     * Pass the 0-based row position from the adapter's getView(): the 5th, 10th,
-     * 15th, 20th ... rows become blue and get a "--5--", "--10--", "--15--",
-     * "--20--" marker with a font 3 sp smaller than the main list text.
+     * Pass the 0-based row position from the adapter's getView(): under the 5th,
+     * 10th, 15th, 20th ... rows a horizontal line is drawn with a centered
+     * "--5--", "--10--", "--15--", "--20--" number whose font is 3 sp smaller
+     * than the main list text. The row itself is NOT highlighted any more.
      */
     public void setPosition(int position) {
         if (position < 0) {
@@ -144,23 +179,30 @@ public class TwoLineListItem extends LinearLayout {
         }
     }
 
-    /** Shows the blue "every fifth" row highlight with the given multiple-of-5 marker. */
+    /** Shows the "every fifth" horizontal divider with the given multiple-of-5 marker. */
     private void setFiveLine(int lineNumber) {
         tvMarker.setVisibility(VISIBLE);
         tvMarker.setText("--" + lineNumber + "--");
-        // Light blue row background ("каждая пятая линия синяя")
-        setBackgroundColor(Color.rgb(198, 224, 255));
+        fifthLineDivider.setVisibility(VISIBLE);
     }
 
-    /** Removes the fifth-line marker/highlight (used for non-fifth rows and recycled views). */
+    /** Removes the "every fifth" divider (used for non-fifth rows and recycled views). */
     private void clearFiveLine() {
-        tvMarker.setVisibility(GONE);
-        tvMarker.setText("");
+        if (fifthLineDivider != null) fifthLineDivider.setVisibility(GONE);
+        if (tvMarker != null) tvMarker.setText("");
         setBackgroundColor(Color.TRANSPARENT);
     }
 
     public void setTypeIcon(int resId) {
         ivIcon.setImageResource(resId);
+        ivIcon.setContentDescription("Актуально");
+    }
+
+    /** Sets the type/state icon from an already built drawable (e.g. status icons). */
+    public void setTypeIcon(Drawable drawable) {
+        if (drawable != null) {
+            ivIcon.setImageDrawable(drawable);
+        }
         ivIcon.setContentDescription("Актуально");
     }
 

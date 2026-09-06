@@ -25,6 +25,12 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 
     protected static final String[] FORM_VALUES = {"Project", "Note", "Remember", "Task",
             "History", "HealthEat", "HealthDrink", "HealthSport"};
+
+    // Task 35: when the card is opened from the "Проекты" screen (Add / edit), the Form
+    // picker offers only Проекты/Задачи/Заявка на автоматизацию (Project/Task/Request).
+    public static final String EXTRA_PROJECTS_FORM_MODE = "extra_projects_form_mode";
+    protected static final String[] PROJECT_FORM_LABELS = {"Проекты", "Задачи", "Заявка на автоматизацию"};
+    protected static final String[] PROJECT_FORM_VALUES = {"Project", "Task", "Request"};
     protected static final String[] STATUS_LABELS = {"Черновик", "В работе", "Тестирование",
             "Выполнено", "Отменено", "Отложено"};
     protected static final String[] STATUS_IDS = {"Draft", "Inwork", "Intest",
@@ -82,6 +88,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     protected Date okdateValue;
     protected ManageSQLDatabase owerDb;
     protected String selectedRequestUNID;
+
+    /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проекты/Задачи/Заявка). */
+    private boolean projectsFormMode = false;
 
     protected final ArrayList<String> contactLabels = new ArrayList<>();
     protected final ArrayList<String> contactIds = new ArrayList<>();
@@ -148,9 +157,16 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 		owerDb = ManageSQLDatabase.getInstance(this);
         loadContacts();
 
+        // Task 35: "Проекты"-mode restricts the Form picker to Проекты/Задачи/Заявка
+        projectsFormMode = intent.getBooleanExtra(EXTRA_PROJECTS_FORM_MODE, false);
+
         applyConfig();
 
-        setupSpinner(spinnerForm, FORM_VALUES, record != null ? record.Form : getFormType());
+        if (projectsFormMode) {
+            setupSpinner(spinnerForm, PROJECT_FORM_LABELS, formLabelFor(record != null ? record.Form : getFormType()));
+        } else {
+            setupSpinner(spinnerForm, FORM_VALUES, record != null ? record.Form : getFormType());
+        }
         setupSpinner(spinnerStatus, STATUS_LABELS, record != null ? statusLabel(record) : null);
         setupSpinner(spinnerMainSystem, MAIN_SYSTEMS, record != null ? record.MainSystem : null);
         setupContactSpinner(spinnerAnalitik, record != null ? record.AnalitikName : null);
@@ -316,7 +332,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     }
 
     private void saveAndFinish() {
-        String form = spinnerForm.getSelectedItem().toString();
+        String form = selectedFormValue();
         String name = editTextName.getText().toString().trim();
 
         if (name.isEmpty()) {
@@ -398,6 +414,27 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         resultIntent.putExtra("calPlanRecord", record);
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
+    }
+
+    /** "Проекты"-mode display label for a Form value (Project/Task/Request). */
+    private String formLabelFor(String form) {
+        if ("Project".equals(form)) return PROJECT_FORM_LABELS[0];
+        if ("Task".equals(form)) return PROJECT_FORM_LABELS[1];
+        if ("Request".equals(form)) return PROJECT_FORM_LABELS[2];
+        return form;
+    }
+
+    /**
+     * Form value read from the spinner.
+     * In "Проекты"-mode the spinner shows "Проекты"/"Задачи"/"Заявка на автоматизацию"
+     * and the value is mapped back to Project/Task/Request before saving.
+     */
+    private String selectedFormValue() {
+        if (projectsFormMode) {
+            int pos = spinnerForm.getSelectedItemPosition();
+            if (pos >= 0 && pos < PROJECT_FORM_VALUES.length) return PROJECT_FORM_VALUES[pos];
+        }
+        return spinnerForm.getSelectedItem().toString();
     }
 
     /** Modal picker for "В Проекте" (Task): chooses from all CALPLAN Form=Project records. */

@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.view.Menu;
@@ -172,6 +174,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Task 37: icons of the 5 quick buttons may have changed in Параметры /
+        // Типы жизнедеятельности since MainActivity was paused.
+        refreshQuickButtonIcons();
         if (owerDb != null && russianCalendar != null) {
             refreshListView();
         }
@@ -412,7 +417,13 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ParamsActivity.class);
             paramsLauncher.launch(intent);
         }
-        if(item.getItemId()==R.id.projects_work) JabText = "Меню Проекты Рабочие";
+        if(item.getItemId()==R.id.projects_work) {
+            JabText = "Меню Проекты Рабочие";
+            // Task 35: same ProjectsActivity, filtered to "В работе"/"Тестирование"
+            Intent intent = new Intent(this, ProjectsActivity.class);
+            intent.putExtra(ProjectsActivity.EXTRA_WORK_MODE, true);
+            projectsLauncher.launch(intent);
+        }
         if(item.getItemId()==R.id.projects_all) {
             // Launch the "Проекты \ Все" screen
             Intent intent = new Intent(this, ProjectsActivity.class);
@@ -451,8 +462,14 @@ public class MainActivity extends AppCompatActivity {
                     // First line = Name, second line = first line / first 20 chars of BodyText
                     row.setTopText(record.Name != null ? record.Name : "");
                     row.setBottomText(shortBodyText(record.BodyText));
-                    // Type icon according to Form field
-                    row.setTypeIcon(typeIconForForm(record.Form));
+                    // Type icon: Project/Task/Request get the state-aware status icon (Task 36),
+                    // other forms use their fixed form icons
+                    if ("Project".equals(record.Form) || "Task".equals(record.Form) || "Request".equals(record.Form)) {
+                        row.setTypeIcon(StatusIconFactory.getStatusDrawable(
+                                MainActivity.this, record.Form, record.StatusID, record.Status));
+                    } else {
+                        row.setTypeIcon(typeIconForForm(record.Form));
+                    }
                     row.setOnEditClickListener(v -> editCalPlan(record));
                     row.setOnDeleteClickListener(v -> confirmDeleteCalPlan(record));
                 }
@@ -495,6 +512,11 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, activityClassFor(record.Form));
         intent.putExtra("activeDate", russianCalendar.activeDate);
         intent.putExtra("calPlanRecord", record);
+        // Task 35/36: from the day list, Project/Task/Request cards keep the
+        // restricted "Проекты/Задачи/Заявка на автоматизацию" Form picker.
+        if ("Project".equals(record.Form) || "Task".equals(record.Form) || "Request".equals(record.Form)) {
+            intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
+        }
         inputCalPlanLauncher.launch(intent);
     }
 
@@ -686,6 +708,97 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             return defaultId;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Task 37: quick button icons come from the LIVETYPE "Icon" field
+    // ---------------------------------------------------------------------
+    private static final int[] QUICK_BUTTON_VIEW_IDS = {
+            R.id.buttonAction1, R.id.buttonAction2, R.id.buttonAction3,
+            R.id.buttonAction4, R.id.buttonAction5
+    };
+
+    /**
+     * Refreshes the icons of the 5 quick "жизнедеятельность" buttons.
+     * The icon name is taken from the LIVETYPE "Icon" field of the button's
+     * configured record; when the drawable is not found by name (or the record
+     * is missing) the hardcoded icon bound to the Form field is used
+     * (ic_pedometer / ic_burger / ic_coffee / ic_stress / ic_joy).
+     */
+    private void refreshQuickButtonIcons() {
+        try {
+            if (owerDb == null) owerDb = ManageSQLDatabase.getInstance(this);
+            LivetypeSQLManage livetypeDb = new LivetypeSQLManage(owerDb.getReadableDatabase());
+            for (int i = 0; i < QUICK_BUTTON_VIEW_IDS.length; i++) {
+                ImageButton btn = findViewById(QUICK_BUTTON_VIEW_IDS[i]);
+                if (btn == null) continue;
+
+                int buttonIndex = i + 1;
+                Integer configuredId = getConfiguredButtonId(buttonIndex, defaultQuickButtonId(buttonIndex));
+
+                livetypeRecord typeRecord = null;
+                if (configuredId != null) {
+                    try {
+                        typeRecord = livetypeDb.getLivetypeById(configuredId);
+                    } catch (Exception e) {
+                        typeRecord = null;
+                    }
+                }
+
+                int fallbackRes = defaultIconForQuickButton(typeRecord, buttonIndex);
+                int iconRes = findIconDrawable(typeRecord != null ? typeRecord.Icon : null, fallbackRes);
+                btn.setImageResource(iconRes);
+            }
+        } catch (Exception e) {
+            // Non-fatal: icons are a visual improvement, the buttons still work
+        }
+    }
+
+    /** Находит drawable по имени (поле Icon); если не найдено - запасная иконка. */
+    private int findIconDrawable(String iconName, int fallbackRes) {
+        if (iconName != null && !iconName.trim().isEmpty()) {
+            int res = getResources().getIdentifier(iconName.trim(), "drawable", getPackageName());
+            if (res != 0) return res;
+        }
+        return fallbackRes;
+    }
+
+    /** Значение id LIVETYPE по умолчанию для кнопки с индексом 1..5. */
+    private int defaultQuickButtonId(int buttonIndex) {
+        switch (buttonIndex) {
+            case 1: return CalParamRecord.DEFAULT_BUTTON1_ID;
+            case 2: return CalParamRecord.DEFAULT_BUTTON2_ID;
+            case 3: return CalParamRecord.DEFAULT_BUTTON3_ID;
+            case 4: return CalParamRecord.DEFAULT_BUTTON4_ID;
+            case 5: return CalParamRecord.DEFAULT_BUTTON5_ID;
+            default: return 1;
+        }
+    }
+
+    /**
+     * Возвращает иконку привязанную к Form жизнедеятельности (как раньше):
+     * HealthSport -> ic_pedometer, HealthEat -> ic_burger, HealthDrink -> ic_coffee,
+     * HealthStress -> ic_stress, HealthJoy -> ic_joy; иначе - по индексу кнопки.
+     */
+    private int defaultIconForQuickButton(livetypeRecord typeRecord, int buttonIndex) {
+        if (typeRecord != null && typeRecord.Form != null) {
+            switch (typeRecord.Form) {
+                case "HealthSport": return R.drawable.ic_pedometer;
+                case "HealthEat":   return R.drawable.ic_burger;
+                case "HealthDrink": return R.drawable.ic_coffee;
+                case "HealthStress": return R.drawable.ic_stress;
+                case "HealthJoy":   return R.drawable.ic_joy;
+                default: break;
+            }
+        }
+        switch (buttonIndex) {
+            case 1: return R.drawable.ic_pedometer;
+            case 2: return R.drawable.ic_burger;
+            case 3: return R.drawable.ic_coffee;
+            case 4: return R.drawable.ic_stress;
+            case 5: return R.drawable.ic_joy;
+            default: return R.drawable.ic_pedometer;
         }
     }
 }
