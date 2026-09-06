@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.core.net.ParseException;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -233,10 +235,15 @@ public class HealthSQLManage {
         if (idxRevisions >= 0 && !cursor.isNull(idxRevisions)) record.Revisions = cursor.getString(idxRevisions);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        parseDate(cursor, idxOkdate, sdf, d -> record.Okdate = d);
+        /*parseDate(cursor, idxOkdate, sdf, d -> record.Okdate = d);
         parseDate(cursor, idxLastUpdatedDate, sdf, d -> record.LastUpdatedDate = d);
         parseDate(cursor, idxStartDate, sdf, d -> record.StartDate = d);
-        parseDate(cursor, idxEndDate, sdf, d -> record.EndDate = d);
+        parseDate(cursor, idxEndDate, sdf, d -> record.EndDate = d);*/
+
+        record.Okdate = parseDate(cursor, idxOkdate, sdf);
+        record.LastUpdatedDate = parseDate(cursor, idxLastUpdatedDate, sdf);
+        record.StartDate = parseDate(cursor, idxStartDate, sdf);
+        record.EndDate = parseDate(cursor, idxEndDate, sdf);
 
         record.Head = getInt(cursor, "Head");
         record.Eyes = getInt(cursor, "Eyes");
@@ -265,7 +272,7 @@ public class HealthSQLManage {
         return null;
     }
 
-    private void parseDate(Cursor cursor, int idx, SimpleDateFormat sdf,
+    /*private void parseDate(Cursor cursor, int idx, SimpleDateFormat sdf,
                            java.util.function.Consumer<Date> setter) {
         if (idx >= 0 && !cursor.isNull(idx)) {
             try {
@@ -273,6 +280,18 @@ public class HealthSQLManage {
             } catch (Exception e) {
                 setter.accept(null);
             }
+        }
+    }*/
+    private Date parseDate(Cursor cursor, int columnIndex, SimpleDateFormat sdf) {
+        if (columnIndex == -1 || cursor.isNull(columnIndex)) {
+            return null;
+        }
+        String dateStr = cursor.getString(columnIndex);
+        try {
+            return sdf.parse(dateStr);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

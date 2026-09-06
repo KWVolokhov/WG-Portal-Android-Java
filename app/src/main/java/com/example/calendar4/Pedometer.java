@@ -81,7 +81,9 @@ public class Pedometer implements SensorEventListener {
                 toast("На устройстве нет датчика шагов");
                 return;
             }
-            stepSensor.registerListener(this);
+            //stepSensor.registerListener(this);
+            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
 
             active = true;
             this.recordId = recordId;
@@ -115,7 +117,8 @@ public class Pedometer implements SensorEventListener {
 
             if (stepSensor != null) {
                 try {
-                    stepSensor.unregisterListener(this);
+                    //stepSensor.unregisterListener(this);
+                    sensorManager.unregisterListener(this, stepSensor);
                 } catch (Exception ignored) {
                 }
                 stepSensor = null;
