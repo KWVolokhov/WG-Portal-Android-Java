@@ -48,6 +48,11 @@ public class healthPlanRecord implements Serializable {
     public Integer Nervous;     // Нервная система
     public Integer Morality;    // Мораль
     public Integer Skin;        // Состояние кожи
+	
+	public Integer Steps;        // Шаги
+	public Integer FoodWeight;   // Вес еды
+	public Integer DrinkValue;        // Объем питья
+	public Integer Kallory;        // Каллории
 
     public healthPlanRecord() {
         this.Form = "HealthEat";
@@ -82,5 +87,11 @@ public class healthPlanRecord implements Serializable {
 		this.Nervous = typeRecord.Nervous;
 		this.Morality = typeRecord.Morality;
 		this.Skin = typeRecord.Skin;
+
+		// Task 41/42: новые числовые поля копируются из справочника в запись события
+		this.Steps = typeRecord.Steps;
+		this.FoodWeight = typeRecord.FoodWeight;
+		this.DrinkValue = typeRecord.DrinkValue;
+		this.Kallory = typeRecord.Kallory;
     }
 }

@@ -540,6 +540,15 @@
                     android:layout_gravity="center_vertical"
                     android:textColor="#FF666666" />
             </LinearLayout>
+
+            <!-- Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории).
+                 Видимы только на карточках Health; генерируются кодом BaseCalPlanEditActivity. -->
+            <LinearLayout
+                android:id="@+id/healthContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 

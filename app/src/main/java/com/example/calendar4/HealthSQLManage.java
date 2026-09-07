@@ -56,6 +56,11 @@ public class HealthSQLManage {
         h.BodyText = r.BodyText;
         h.Comment = r.Comment;
         h.Revisions = r.Revisions;
+        // Task 41: новые числовые поля (шаги/еда/питьё/калории)
+        h.Steps = r.Steps;
+        h.FoodWeight = r.FoodWeight;
+        h.DrinkValue = r.DrinkValue;
+        h.Kallory = r.Kallory;
         return h;
     }
 
@@ -78,6 +83,11 @@ public class HealthSQLManage {
         r.BodyText = h.BodyText;
         r.Comment = h.Comment;
         r.Revisions = h.Revisions;
+        // Task 41: новые числовые поля (шаги/еда/питьё/калории)
+        r.Steps = h.Steps;
+        r.FoodWeight = h.FoodWeight;
+        r.DrinkValue = h.DrinkValue;
+        r.Kallory = h.Kallory;
         return r;
     }
 
@@ -140,6 +150,12 @@ public class HealthSQLManage {
         putInt(values, "Nervous", record.Nervous);
         putInt(values, "Morality", record.Morality);
         putInt(values, "Skin", record.Skin);
+
+        // Task 41: новые числовые поля HEALTHPLAN
+        putInt(values, "Steps", record.Steps);
+        putInt(values, "FoodWeight", record.FoodWeight);
+        putInt(values, "DrinkValue", record.DrinkValue);
+        putInt(values, "Kallory", record.Kallory);
 
         if (record.id != null) {
             int rows = db.update(TABLE_HEALTHPLAN, values, "id=?",
@@ -263,6 +279,11 @@ public class HealthSQLManage {
         record.Nervous = getInt(cursor, "Nervous");
         record.Morality = getInt(cursor, "Morality");
         record.Skin = getInt(cursor, "Skin");
+        // Task 41: новые числовые поля HEALTHPLAN
+        record.Steps = getInt(cursor, "Steps");
+        record.FoodWeight = getInt(cursor, "FoodWeight");
+        record.DrinkValue = getInt(cursor, "DrinkValue");
+        record.Kallory = getInt(cursor, "Kallory");
         return record;
     }
 

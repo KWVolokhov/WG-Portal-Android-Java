@@ -528,9 +528,13 @@ public class MainActivity extends AppCompatActivity {
             case "Remember":    return RememberActivity.class;
             case "Task":        return TaskActivity.class;
             case "History":     return HistoryEditActivity.class;
-            case "HealthEat":   return HealthEatActivity.class;
-            case "HealthDrink": return HealthDrinkActivity.class;
-            case "HealthSport": return HealthSportActivity.class;
+            // Task 40: все Health-формы (включая HealthStress/HealthJoy) правятся
+            // объединённым редактором HealthEditActivity.
+            case "HealthEat":
+            case "HealthDrink":
+            case "HealthSport":
+            case "HealthStress":
+            case "HealthJoy":   return HealthEditActivity.class;
             default:            return InputCalPlanActivity.class;
         }
     }
@@ -609,6 +613,9 @@ public class MainActivity extends AppCompatActivity {
             // Launch InputCalPlanActivity modally
             Intent intent = new Intent(this, InputCalPlanActivity.class);
             intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
+            // Task 39: выбор форм тот же, что и при добавлении из проектов
+            // (Проекты / Задачи / Заявка на автоматизацию)
+            intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
             inputCalPlanLauncher.launch(intent);
 
         } catch(Exception err) {
@@ -680,9 +687,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Создано: " + (record.Name != null ? record.Name : ""), Toast.LENGTH_SHORT).show();
             refreshListView();
 
-            // Задача 29: активности типа HealthSport включают реальный шагомер
-            // (логика вынесена в отдельный класс Pedometer, здесь только вызов управления)
-            if ("HealthSport".equals(record.Form)) {
+            // Задача 29/42: реальный шагомер включается только для активностей HealthSport,
+            // у которых он разрешён в справочнике Типы жизнедеятельности (StepCounter=1).
+            // При запуске нового шагомера старый сеанс автоматически завершается
+            // (внутри Pedometer.start -> stop), и это завершение пишется в Историю.
+            if ("HealthSport".equals(record.Form) && isPedometerAllowed(typeRecord)) {
                 if (pedometer == null) {
                     pedometer = new Pedometer(this, owerDb.getWritableDatabase());
                 }
@@ -691,6 +700,11 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception err) {
             Toast.makeText(this, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /** Task 42: шагомер разрешён только если в справочнике LIVETYPE включён StepCounter. */
+    private boolean isPedometerAllowed(livetypeRecord typeRecord) {
+        return typeRecord != null && typeRecord.StepCounter != null && typeRecord.StepCounter == 1;
     }
 
     /** Возвращает настроенный id LIVETYPE для кнопки (из CALPARAM), иначе значение по умолчанию. */

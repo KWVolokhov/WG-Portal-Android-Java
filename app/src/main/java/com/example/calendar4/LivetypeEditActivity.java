@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -23,14 +24,17 @@ public class LivetypeEditActivity extends Activity {
 
     private static final String[] ORGAN_NAMES = {"Голова", "Глаза", "Уши", "Нос", "Горло", "Зубы",
             "Желудок", "Кишечник", "Печень", "Почки", "Сердце", "Лёгкие",
-            "Давление", "Сон", "Вес", "Нервная система", "Мораль", "Состояние кожи"};
+            "Давление", "Сон", "Вес", "Нервная система", "Мораль", "Состояние кожи",
+            "Шаги", "Вес еды", "Объем питья", "Каллории"};
 
     private static final String[] ORGAN_COLUMNS = {"Head", "Eyes", "Ears", "Nose", "Throat", "Teeth",
             "Stomach", "Intestines", "Liver", "Kidneys", "Heart", "Lungs",
-            "Pressure", "Sleep", "Weight", "Nervous", "Morality", "Skin"};
+            "Pressure", "Sleep", "Weight", "Nervous", "Morality", "Skin",
+            "Steps", "FoodWeight", "DrinkValue", "Kallory"};
     private EditText editTextName;
     private Spinner spinnerCategory;
     private EditText editTextIcon;
+    private CheckBox checkboxStepCounter;
     private TextView textViewAuthor;
     private TextView textViewDateCreated;
     private LinearLayout organContainer;
@@ -50,6 +54,7 @@ public class LivetypeEditActivity extends Activity {
         editTextName = findViewById(R.id.editTextLivetypeName);
         spinnerCategory = findViewById(R.id.spinnerLivetypeCategory);
         editTextIcon = findViewById(R.id.editTextLivetypeIcon);
+        checkboxStepCounter = findViewById(R.id.checkboxLivetypePedometer);
         textViewAuthor = findViewById(R.id.textViewLivetypeAuthor);
         textViewDateCreated = findViewById(R.id.textViewLivetypeDateCreated);
         organContainer = findViewById(R.id.organContainer);
@@ -107,8 +112,13 @@ public class LivetypeEditActivity extends Activity {
         }
         currentRecord.Name = name;
 
+        // Одно поле выбора - Категория; Form выводится автоматически (Form - ID-поле для Category).
         int catIdx = spinnerCategory.getSelectedItemPosition();
-        currentRecord.Category = (catIdx >= 0 && catIdx < CATEGORIES.length) ? CATEGORIES[catIdx] : CATEGORIES[0];
+        currentRecord.Category = (catIdx >= 0 && catIdx < livetypeRecord.CATEGORIES.length) ? livetypeRecord.CATEGORIES[catIdx] : livetypeRecord.CATEGORIES[0];
+        currentRecord.Form = livetypeRecord.formForCategory(currentRecord.Category);
+
+        // Task 42: разрешение шагомера для этого типа
+        currentRecord.StepCounter = (checkboxStepCounter != null && checkboxStepCounter.isChecked()) ? 1 : 0;
 
         // Иконка (имя drawable для настраиваемых кнопок) - необязательное поле
         String icon = editTextIcon.getText().toString().trim();
@@ -133,6 +143,11 @@ public class LivetypeEditActivity extends Activity {
         currentRecord.Nervous     = organValue(15);
         currentRecord.Morality    = organValue(16);
         currentRecord.Skin        = organValue(17);
+        // Task 41: новые числовые поля справочника
+        currentRecord.Steps       = organValue(18);
+        currentRecord.FoodWeight  = organValue(19);
+        currentRecord.DrinkValue  = organValue(20);
+        currentRecord.Kallory     = organValue(21);
 
         livetypeDb.upsertLivetype(currentRecord);
         setResult(Activity.RESULT_OK);
@@ -200,9 +215,16 @@ public class LivetypeEditActivity extends Activity {
                 currentRecord.Stomach, currentRecord.Intestines, currentRecord.Liver,
                 currentRecord.Kidneys, currentRecord.Heart, currentRecord.Lungs,
                 currentRecord.Pressure, currentRecord.Sleep, currentRecord.Weight,
-                currentRecord.Nervous, currentRecord.Morality, currentRecord.Skin};
+                currentRecord.Nervous, currentRecord.Morality, currentRecord.Skin,
+                currentRecord.Steps, currentRecord.FoodWeight, currentRecord.DrinkValue,
+                currentRecord.Kallory};
         for (int i = 0; i < organEdits.length; i++) {
             if (vals[i] != null) organEdits[i].setText(String.valueOf(vals[i]));
+        }
+
+        // Task 42: разрешён ли шагомер
+        if (checkboxStepCounter != null && currentRecord.StepCounter != null && currentRecord.StepCounter == 1) {
+            checkboxStepCounter.setChecked(true);
         }
     }
 

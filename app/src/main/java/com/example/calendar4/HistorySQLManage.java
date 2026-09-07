@@ -55,7 +55,8 @@ public class HistorySQLManage {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
         if (record.UNID != null) values.put("UNID", record.UNID);
-        if (record.Okdate != null) values.put("Okdate", fmt(record.Okdate));
+        // Okdate (дата создания/заведения) хранится со временем создания, как в Health*
+        if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
         fillAuthorFromParams(record);
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
@@ -161,7 +162,10 @@ public class HistorySQLManage {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
-            try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e) { record.Okdate = null; }
+            // Okdate может хранить время (yyyy-MM-dd HH:mm:ss) - пробуем сначала формат с временем,
+            // затем (для старых записей) только дату.
+            try { record.Okdate = fmtDateTime().parse(cursor.getString(idxOkdate)); }
+            catch (Exception e) { try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e2) { record.Okdate = null; } }
         }
         if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
             try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e) { record.LastUpdatedDate = null; }
@@ -174,5 +178,9 @@ public class HistorySQLManage {
 
     private String fmt(Date date) {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date);
+    }
+
+    private SimpleDateFormat fmtDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     }
 }

@@ -55,7 +55,8 @@ public class LivetypeSQLManage {
         if (record.Name != null) values.put("Name", record.Name);
         if (record.Category != null) values.put("Category", record.Category);
         if (record.Icon != null) values.put("Icon", record.Icon);
-        if (record.Form != null) values.put("UNID", record.Form); // Тип хранится в UNID префиксно (см. INSERT_LIVETYPE)
+        // Task 40: Form - ID-поле для Category, хранится в своей колонке Form
+        if (record.Form != null) values.put("Form", record.Form);
         fillAuthorFromParams(record);
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
@@ -87,6 +88,13 @@ public class LivetypeSQLManage {
         putInt(values, "Morality", record.Morality);
 
         putInt(values, "Skin", record.Skin);
+
+        // Task 41/42: новые числовые поля LIVETYPE
+        putInt(values, "Steps", record.Steps);
+        putInt(values, "FoodWeight", record.FoodWeight);
+        putInt(values, "DrinkValue", record.DrinkValue);
+        putInt(values, "Kallory", record.Kallory);
+        putInt(values, "StepCounter", record.StepCounter);
 
 
 
@@ -175,7 +183,12 @@ public class LivetypeSQLManage {
         record.Name = getString(cursor, "Name");
         record.Category = getString(cursor, "Category");
         record.Icon = getString(cursor, "Icon");
-        record.Form = getString(cursor, "UNID"); // Тип = UNID (предустановка) / Form (новички)
+        // Task 40: Form хранится в своей колонке; если у старых записей его нет,
+        // Form выводится из Category (Form - ID-поле для Category).
+        record.Form = getString(cursor, "Form");
+        if (record.Form == null || record.Form.isEmpty()) {
+            record.Form = livetypeRecord.formForCategory(record.Category);
+        }
         record.AuthorID = getString(cursor, "AuthorID");
         record.AuthorName = getString(cursor, "AuthorName");
 
@@ -206,6 +219,12 @@ public class LivetypeSQLManage {
         record.Nervous = getInt(cursor, "Nervous");
         record.Morality = getInt(cursor, "Morality");
         record.Skin = getInt(cursor, "Skin");
+        // Task 41/42: новые числовые поля LIVETYPE
+        record.Steps = getInt(cursor, "Steps");
+        record.FoodWeight = getInt(cursor, "FoodWeight");
+        record.DrinkValue = getInt(cursor, "DrinkValue");
+        record.Kallory = getInt(cursor, "Kallory");
+        record.StepCounter = getInt(cursor, "StepCounter");
         return record;
     }
 

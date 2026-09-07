@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 	
 	public static String AuthorName = null;
@@ -153,6 +153,30 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             addColumnIfMissing(db, "CALPARAM", "Button4Id", "TEXT");
             addColumnIfMissing(db, "CALPARAM", "Button5Id", "TEXT");
         }
+        // Version 7 (Tasks 40-42): LIVETYPE - Form is its own column (ID of Category),
+        // StepCounter flag for the pedometer, Steps/FoodWeight/DrinkValue/Kallory
+        // in both LIVETYPE and HEALTHPLAN.
+        if (oldVersion < 7) {
+            addColumnIfMissing(db, "LIVETYPE", "Form", "TEXT");
+            addColumnIfMissing(db, "LIVETYPE", "StepCounter", "INTEGER");
+            addColumnIfMissing(db, "LIVETYPE", "Steps", "INTEGER");
+            addColumnIfMissing(db, "LIVETYPE", "FoodWeight", "INTEGER");
+            addColumnIfMissing(db, "LIVETYPE", "DrinkValue", "INTEGER");
+            addColumnIfMissing(db, "LIVETYPE", "Kallory", "INTEGER");
+            addColumnIfMissing(db, "HEALTHPLAN", "Steps", "INTEGER");
+            addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "INTEGER");
+            addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "INTEGER");
+            addColumnIfMissing(db, "HEALTHPLAN", "Kallory", "INTEGER");
+            try {
+                // У старых предустановленных записей Form хранился внутри UNID
+                db.execSQL("UPDATE LIVETYPE SET Form=UNID WHERE UNID IN ('HealthSport','HealthEat','HealthDrink','HealthStress','HealthJoy') AND (Form IS NULL OR Form='')");
+                for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_DEFAULTS) {
+                    db.execSQL(updCom);
+                }
+            } catch (Exception e) {
+                // Non-fatal
+            }
+        }
 
         // Safety net (Task 34): whatever version the old database recorded, make sure
         // that every column the application needs really exists. Old production builds
@@ -169,8 +193,24 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "CALPARAM", "Button4Id", "TEXT");
         addColumnIfMissing(db, "CALPARAM", "Button5Id", "TEXT");
         addColumnIfMissing(db, "LIVETYPE", "Icon", "TEXT");
+        addColumnIfMissing(db, "LIVETYPE", "Form", "TEXT");
+        addColumnIfMissing(db, "LIVETYPE", "StepCounter", "INTEGER");
+        addColumnIfMissing(db, "LIVETYPE", "Steps", "INTEGER");
+        addColumnIfMissing(db, "LIVETYPE", "FoodWeight", "INTEGER");
+        addColumnIfMissing(db, "LIVETYPE", "DrinkValue", "INTEGER");
+        addColumnIfMissing(db, "LIVETYPE", "Kallory", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "Steps", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "Kallory", "INTEGER");
         try {
             for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
+                db.execSQL(updCom);
+            }
+            try {
+                db.execSQL("UPDATE LIVETYPE SET Form=UNID WHERE UNID IN ('HealthSport','HealthEat','HealthDrink','HealthStress','HealthJoy') AND (Form IS NULL OR Form='')");
+            } catch (Exception e) {}
+            for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_DEFAULTS) {
                 db.execSQL(updCom);
             }
             insertLivetypeDefaults(db);
@@ -538,11 +578,13 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         String dateStr = sdf.format(date);
 
-        // Query records where StartDate matches the given date
+        // Task 38: запись показывается на выбранный день, если день лежит внутри
+        // [StartDate .. EndDate]; если EndDate не задан - запись действует бесконечно.
+        // Query records where the given date is within the validity range
         Cursor cursor = db.query("CALPLAN",
                 null,
-                "StartDate=?",
-                new String[]{dateStr},
+                "StartDate<=? AND (EndDate IS NULL OR EndDate>=?)",
+                new String[]{dateStr, dateStr},
                 null, null, null);
 
         if (cursor.getCount() > 0) {

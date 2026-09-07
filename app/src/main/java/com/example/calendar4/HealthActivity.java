@@ -118,6 +118,7 @@ public class HealthActivity extends Activity {
         if (record == null) return;
         Intent intent = new Intent(this, activityForForm(record.Form));
         intent.putExtra("activeDate", day);
+        intent.putExtra("healthForm", record.Form);
         intent.putExtra("calPlanRecord", HealthSQLManage.toCalPlan(record));
         startActivityForResult(intent, 1);
     }
@@ -136,13 +137,16 @@ public class HealthActivity extends Activity {
     }
 
     private void chooseTypeAndAdd() {
+        // Task 40: выбор только по Категории; Form выводится из Категории.
+        // Здоровье: Пища/Гидратация/Физ. активность/Стресс/Гедонизм.
         new AlertDialog.Builder(this)
                 .setTitle("Добавить запись здоровья")
-                .setItems(new String[]{"Питание (HealthEat)", "Питьё (HealthDrink)", "Спорт (HealthSport)"},
+                .setItems(new String[]{"Питание", "Питьё", "Спорт", "Стресс", "Гедонизм"},
                         (d, which) -> {
-                            String form = which == 0 ? "HealthEat" : which == 1 ? "HealthDrink" : "HealthSport";
-                            Intent intent = new Intent(HealthActivity.this, activityForForm(form));
+                            String form = livetypeRecord.CATEGORY_FORMS[which];
+                            Intent intent = new Intent(HealthActivity.this, HealthEditActivity.class);
                             intent.putExtra("activeDate", day);
+                            intent.putExtra("healthForm", form);
                             startActivityForResult(intent, 1);
                         })
                 .setNegativeButton("Cancel", null)
@@ -166,13 +170,14 @@ public class HealthActivity extends Activity {
     private int iconForForm(String form) {
         if ("HealthDrink".equals(form)) return R.drawable.ic_type_health_drink;
         if ("HealthSport".equals(form)) return R.drawable.ic_type_health_sport;
+        if ("HealthStress".equals(form)) return R.drawable.ic_stress;
+        if ("HealthJoy".equals(form)) return R.drawable.ic_joy;
         return R.drawable.ic_type_health_eat;
     }
 
+    /** Task 40: все Health-формы правятся одним объединённым редактором HealthEditActivity. */
     private Class<?> activityForForm(String form) {
-        if ("HealthDrink".equals(form)) return HealthDrinkActivity.class;
-        if ("HealthSport".equals(form)) return HealthSportActivity.class;
-        return HealthEatActivity.class;
+        return HealthEditActivity.class;
     }
 
     // Second text line: first line of BodyText or no more than 20 characters

@@ -40,6 +40,7 @@ public class Pedometer implements SensorEventListener {
     private long startTimeMs;       // когда начался 2-часовой интервал
     private long lastStepTimeMs;    // момент последнего отсчитанного шага
     private Long lastStepValue;     // сырое накопительное значение датчика
+    private long lastPersistedStepValue; // последнее значение датчика, уже учтённое в Steps
     private boolean active;         // включён ли шагомер
 
     public Pedometer(Context context, SQLiteDatabase db) {
@@ -90,6 +91,7 @@ public class Pedometer implements SensorEventListener {
             startTimeMs = System.currentTimeMillis();
             lastStepTimeMs = startTimeMs;
             lastStepValue = null;
+            lastPersistedStepValue = 0;
 
             // Запись в Историю о включении шагомера
             addHistoryRecord("Шагомер включен");
@@ -169,22 +171,26 @@ public class Pedometer implements SensorEventListener {
         handler.postDelayed(timerRunnable, UPDATE_INTERVAL_MS);
     }
 
-    /** Обновляет запись HEALTHPLAN текущим количеством шагов (раз в 10 минут и при выключении). */
+    /** Обновляет запись HEALTHPLAN текущим количеством шагов (раз в 10 минут и при выключении).
+     * Task 42: число шагов накапливается в поле Steps записи события. */
     private void updateRecord() {
         try {
             if (db == null || recordId == null) return;
-            long steps = (lastStepValue != null) ? lastStepValue : 0L;
+            long current = (lastStepValue != null) ? lastStepValue : 0L;
+            long delta = current - lastPersistedStepValue;
+            if (delta < 0) delta = 0; // датчик мог сброситься между сеансами
             HealthSQLManage healthDb = new HealthSQLManage(db);
             healthPlanRecord rec = healthDb.getHealthById(recordId);
             if (rec != null) {
-                rec.BodyText = "Шагов: " + steps;
-                rec.Comment = "Шагомер: " + steps + " шагов";
+                int base = (rec.Steps != null) ? rec.Steps : 0;
+                rec.Steps = base + (int) delta;
+                rec.BodyText = "Шагов: " + rec.Steps;
+                rec.Comment = "Шагомер: " + rec.Steps + " шагов";
                 rec.LastUpdatedDate = new java.util.Date();
                 rec.LastUpdatedBy = ManageSQLDatabase.AuthorName;
                 rec.LastUpdatedByID = ManageSQLDatabase.AuthorID;
-                // Число шагов дополнительно сохраняем в поле Weight (орган "Вес")
-                rec.Weight = (int) steps;
                 healthDb.upsertHealth(rec);
+                lastPersistedStepValue = current;
             }
         } catch (Exception e) {
             // Не критично: обновление шагов не должно прерывать приложение

@@ -36,6 +36,13 @@ public class calPlanRecord implements Serializable {
     public String InstallOrder;
     public String KeyWords;
 
+    // Health numbers added for the Health edit screens and quick buttons
+    // (Task 41/42): согласованы с healthPlanRecord / livetypeRecord.
+    public Integer Steps;        // Шаги
+    public Integer FoodWeight;   // Вес еды
+    public Integer DrinkValue;   // Объем питья
+    public Integer Kallory;      // Каллории
+
     public calPlanRecord() {
         // Initialize with defaults
         this.AuthorID = "BUSINESS";

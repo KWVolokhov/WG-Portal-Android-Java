@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,7 +26,7 @@ import java.util.Locale;
 public abstract class BaseCalPlanEditActivity extends Activity {
 
     protected static final String[] FORM_VALUES = {"Project", "Note", "Remember", "Task",
-            "History", "HealthEat", "HealthDrink", "HealthSport"};
+            "History", "HealthEat", "HealthDrink", "HealthSport", "HealthStress", "HealthJoy"};
 
     // Task 35: when the card is opened from the "Проекты" screen (Add / edit), the Form
     // picker offers only Проекты/Задачи/Заявка на автоматизацию (Project/Task/Request).
@@ -67,6 +69,12 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     protected boolean isRequestPicker() { return false; }
     protected boolean allowFormChange() { return true; }
 
+    // Task 41: показывать ли на карточке числовые поля Health
+    // (Шаги / Вес еды / Объем питья / Каллории). Включено только для Health-форм.
+    protected boolean showHealthNumbers() { return false; }
+
+    private static final String[] HEALTH_NUMBER_NAMES = {"Шаги", "Вес еды", "Объем питья", "Каллории"};
+
     // ----- views -----
     protected Spinner spinnerForm, spinnerStatus, spinnerMainSystem, spinnerAnalitik, spinnerExector;
     protected EditText editTextName, editTextPriority, editTextRequestName,
@@ -82,6 +90,10 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             rowEndDate, rowHoldDate;
     protected TextView labelStartDate, labelBodyText, labelRequestName, labelAuthorName,
             labelEndDate, labelHoldDate;
+
+    // Task 41: контейнер числовых полей Health на карточке
+    protected LinearLayout healthContainer;
+    protected EditText[] healthNumberEdits;
 
     protected calPlanRecord record;
     protected Date activeDate;
@@ -126,6 +138,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
         btnPickRequest = findViewById(R.id.btnPickRequest);
+        healthContainer = findViewById(R.id.healthContainer);
 
         rowStatus = findViewById(R.id.rowStatus);
         rowMainSystem = findViewById(R.id.rowMainSystem);
@@ -161,6 +174,8 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         projectsFormMode = intent.getBooleanExtra(EXTRA_PROJECTS_FORM_MODE, false);
 
         applyConfig();
+
+        setupHealthNumbers();
 
         if (projectsFormMode) {
             setupSpinner(spinnerForm, PROJECT_FORM_LABELS, formLabelFor(record != null ? record.Form : getFormType()));
@@ -288,6 +303,66 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     }
 
     // =====================================================================
+    // Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории)
+    // =====================================================================
+
+    /** Builds the Health number fields (only when the subclass asks for them). */
+    private void setupHealthNumbers() {
+        if (healthContainer == null) return;
+        boolean visible = showHealthNumbers();
+        setRowVisible(healthContainer, visible);
+        if (!visible) return;
+
+        if (healthContainer.getChildCount() == 0) {
+            healthNumberEdits = new EditText[HEALTH_NUMBER_NAMES.length];
+            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                TextView label = new TextView(this);
+                label.setText(HEALTH_NUMBER_NAMES[i]);
+                label.setTextSize(16);
+                label.setGravity(Gravity.CENTER_VERTICAL);
+                row.addView(label);
+
+                EditText edit = new EditText(this);
+                edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+                edit.setSingleLine(true);
+                LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
+                        0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                row.addView(edit, weightLp);
+                healthNumberEdits[i] = edit;
+
+                healthContainer.addView(row);
+            }
+        }
+    }
+
+    /** Value typed in the Health number field with the given index (null when empty). */
+    private Integer healthNumberValue(int index) {
+        if (healthNumberEdits == null || index < 0 || index >= healthNumberEdits.length) return null;
+        EditText edit = healthNumberEdits[index];
+        if (edit == null) return null;
+        String text = edit.getText().toString().trim();
+        if (text.isEmpty()) return null;
+        try {
+            return Integer.valueOf(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private void setHealthNumber(int index, Integer value) {
+        if (healthNumberEdits != null && index >= 0 && index < healthNumberEdits.length
+                && healthNumberEdits[index] != null && value != null) {
+            healthNumberEdits[index].setText(String.valueOf(value));
+        }
+    }
+
+    // =====================================================================
     // Fill / save
     // =====================================================================
 
@@ -329,6 +404,14 @@ public abstract class BaseCalPlanEditActivity extends Activity {
                 record.LastUpdatedDate != null ? DISPLAY_DATE.format(record.LastUpdatedDate) : "");
         textViewEndDate.setText(record.EndDate != null ? DISPLAY_DATE.format(record.EndDate) : "");
         textViewHoldDate.setText(record.HoldDate != null ? DISPLAY_DATE.format(record.HoldDate) : "");
+
+        // Task 41: числовые поля Health на карточке
+        if (showHealthNumbers()) {
+            setHealthNumber(0, record.Steps);
+            setHealthNumber(1, record.FoodWeight);
+            setHealthNumber(2, record.DrinkValue);
+            setHealthNumber(3, record.Kallory);
+        }
     }
 
     private void saveAndFinish() {
@@ -408,6 +491,14 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         }
         if (showKeyWords()) {
             record.KeyWords = editTextKeyWords.getText().toString().trim();
+        }
+
+        // Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории)
+        if (showHealthNumbers()) {
+            record.Steps = healthNumberValue(0);
+            record.FoodWeight = healthNumberValue(1);
+            record.DrinkValue = healthNumberValue(2);
+            record.Kallory = healthNumberValue(3);
         }
 
         Intent resultIntent = new Intent();
