@@ -168,11 +168,12 @@ public class HealthActivity extends Activity {
     }
 
     private int iconForForm(String form) {
-        if ("HealthDrink".equals(form)) return R.drawable.ic_type_health_drink;
-        if ("HealthSport".equals(form)) return R.drawable.ic_type_health_sport;
+        if ("HealthEat".equals(form)) return R.drawable.ic_burger;
+        if ("HealthDrink".equals(form)) return R.drawable.ic_coffee;
+        if ("HealthSport".equals(form)) return R.drawable.ic_pedometer;
         if ("HealthStress".equals(form)) return R.drawable.ic_stress;
         if ("HealthJoy".equals(form)) return R.drawable.ic_joy;
-        return R.drawable.ic_type_health_eat;
+        return R.drawable.ic_type_note;
     }
 
     /** Task 40: все Health-формы правятся одним объединённым редактором HealthEditActivity. */

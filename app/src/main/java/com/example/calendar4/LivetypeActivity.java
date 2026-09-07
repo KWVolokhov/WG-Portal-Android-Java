@@ -50,7 +50,6 @@ public class LivetypeActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
 
 		livetypeDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
-
         reload();
 
         // Search by name/category: 3+ characters filter the list (same as contacts screen)
@@ -81,7 +80,7 @@ public class LivetypeActivity extends AppCompatActivity {
                 final livetypeRecord record = allRecords.get(position);
                 row.setTopText(record.Name != null ? record.Name : "");
                 row.setBottomText(record.Category != null ? record.Category : "");
-                row.setTypeIcon(R.drawable.ic_type_note);
+                row.setTypeIcon(iconForForm(record.Form));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
                 row.setPosition(position);
@@ -140,5 +139,13 @@ public class LivetypeActivity extends AppCompatActivity {
             }
         }
         if (adapter != null) adapter.notifyDataSetChanged();
+    }
+    private int iconForForm(String form) {
+        if ("HealthEat".equals(form)) return R.drawable.ic_burger;
+        if ("HealthDrink".equals(form)) return R.drawable.ic_coffee;
+        if ("HealthSport".equals(form)) return R.drawable.ic_pedometer;
+        if ("HealthStress".equals(form)) return R.drawable.ic_stress;
+        if ("HealthJoy".equals(form)) return R.drawable.ic_joy;
+        return R.drawable.ic_type_note;
     }
 }

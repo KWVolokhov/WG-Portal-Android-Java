@@ -130,9 +130,9 @@
         android:layout_width="0dp"
         android:layout_height="2dp"
         android:background="@drawable/bg_button_row_line"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/buttonHealth"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/button1" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonHealth" />
 
     <ListView
         android:id="@+id/listView1"
