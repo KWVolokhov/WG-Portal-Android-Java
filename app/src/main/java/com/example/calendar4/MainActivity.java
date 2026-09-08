@@ -390,6 +390,11 @@ public class MainActivity extends AppCompatActivity {
         if (holidaysFetcher != null) {
             holidaysFetcher.shutdown();
         }
+        // Task 44: при завершении приложения шагомер автоматически выключается,
+        // обновляется связанная запись HealthSport и в Историю пишется, что шагомер выключен.
+        if (pedometer != null) {
+            pedometer.stop();
+        }
     }
     public boolean onCreateOptionsMenu(Menu menu1) {
         getMenuInflater().inflate(R.menu.main_menu, menu1);

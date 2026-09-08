@@ -61,6 +61,25 @@ public class HealthSQLManage {
         h.FoodWeight = r.FoodWeight;
         h.DrinkValue = r.DrinkValue;
         h.Kallory = r.Kallory;
+        // Task 45: полный набор полей "Голова".."Состояние кожи"
+        h.Head = r.Head;
+        h.Eyes = r.Eyes;
+        h.Ears = r.Ears;
+        h.Nose = r.Nose;
+        h.Throat = r.Throat;
+        h.Teeth = r.Teeth;
+        h.Stomach = r.Stomach;
+        h.Intestines = r.Intestines;
+        h.Liver = r.Liver;
+        h.Kidneys = r.Kidneys;
+        h.Heart = r.Heart;
+        h.Lungs = r.Lungs;
+        h.Pressure = r.Pressure;
+        h.Sleep = r.Sleep;
+        h.Weight = r.Weight;
+        h.Nervous = r.Nervous;
+        h.Morality = r.Morality;
+        h.Skin = r.Skin;
         return h;
     }
 
@@ -88,6 +107,25 @@ public class HealthSQLManage {
         r.FoodWeight = h.FoodWeight;
         r.DrinkValue = h.DrinkValue;
         r.Kallory = h.Kallory;
+        // Task 45: полный набор полей "Голова".."Состояние кожи"
+        r.Head = h.Head;
+        r.Eyes = h.Eyes;
+        r.Ears = h.Ears;
+        r.Nose = h.Nose;
+        r.Throat = h.Throat;
+        r.Teeth = h.Teeth;
+        r.Stomach = h.Stomach;
+        r.Intestines = h.Intestines;
+        r.Liver = h.Liver;
+        r.Kidneys = h.Kidneys;
+        r.Heart = h.Heart;
+        r.Lungs = h.Lungs;
+        r.Pressure = h.Pressure;
+        r.Sleep = h.Sleep;
+        r.Weight = h.Weight;
+        r.Nervous = h.Nervous;
+        r.Morality = h.Morality;
+        r.Skin = h.Skin;
         return r;
     }
 
@@ -117,14 +155,14 @@ public class HealthSQLManage {
         if (record.UNID != null) values.put("UNID", record.UNID);
         if (record.Form == null) record.Form = "HealthEat";
         values.put("Form", record.Form);
-        if (record.Okdate != null) values.put("Okdate", fmt(record.Okdate));
+        if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
         // Author comes from the "Ведущий" (CALPARAM) parameters
         fillAuthorFromParams(record);
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
         if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
         if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
-        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmt(record.LastUpdatedDate));
+        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
         if (record.Name != null) values.put("Name", record.Name);
         if (record.BodyText != null) values.put("BodyText", record.BodyText);
         if (record.Comment != null) values.put("Comment", record.Comment);
@@ -256,8 +294,8 @@ public class HealthSQLManage {
         parseDate(cursor, idxStartDate, sdf, d -> record.StartDate = d);
         parseDate(cursor, idxEndDate, sdf, d -> record.EndDate = d);*/
 
-        record.Okdate = parseDate(cursor, idxOkdate, sdf);
-        record.LastUpdatedDate = parseDate(cursor, idxLastUpdatedDate, sdf);
+        record.Okdate = parseDateOrDateTime(cursor, idxOkdate);
+        record.LastUpdatedDate = parseDateOrDateTime(cursor, idxLastUpdatedDate);
         record.StartDate = parseDate(cursor, idxStartDate, sdf);
         record.EndDate = parseDate(cursor, idxEndDate, sdf);
 
@@ -313,6 +351,22 @@ public class HealthSQLManage {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /** Task 44: Okdate/LastUpdatedDate хранятся со временем (yyyy-MM-dd HH:mm:ss),
+     * но старые записи могут содержать только дату - пробуем оба формата. */
+    private Date parseDateOrDateTime(Cursor cursor, int columnIndex) {
+        if (columnIndex == -1 || cursor.isNull(columnIndex)) return null;
+        String s = cursor.getString(columnIndex);
+        try {
+            return fmtDateTime().parse(s);
+        } catch (Exception e) {
+            try {
+                return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(s);
+            } catch (Exception e2) {
+                return null;
+            }
         }
     }
 

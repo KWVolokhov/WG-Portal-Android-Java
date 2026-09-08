@@ -316,19 +316,16 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         }
         if (record.UNID != null) values.put("UNID", record.UNID);
         if (record.Okdate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("Okdate", sdf.format(record.Okdate));
+            values.put("Okdate", fmtDateTimeString(record.Okdate));
         }
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
         if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
         if (record.LastUpdatedDate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("LastUpdatedDate", sdf.format(record.LastUpdatedDate));
+            values.put("LastUpdatedDate", fmtDateTimeString(record.LastUpdatedDate));
         }
         if (record.HoldDate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("HoldDate", sdf.format(record.HoldDate));
+            values.put("HoldDate", fmtDateTimeString(record.HoldDate));
         }
         if (record.Revisions != null) values.put("Revisions", record.Revisions);
 
@@ -353,8 +350,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             values.put("StartDate", sdf.format(record.StartDate));
         }
         if (record.EndDate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("EndDate", sdf.format(record.EndDate));
+            values.put("EndDate", fmtDateTimeString(record.EndDate));
         }
         if (record.InstallOrder != null) values.put("InstallOrder", record.InstallOrder);
         if (record.KeyWords != null) values.put("KeyWords", record.KeyWords);
@@ -570,6 +566,25 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return record;
     }
 
+    // Task 44: Okdate/LastUpdatedDate/EndDate/HoldDate хранятся со временем.
+    private Date parseDateFlexible(Cursor cursor, int columnIndex) {
+        if (columnIndex == -1 || cursor.isNull(columnIndex)) return null;
+        String s = cursor.getString(columnIndex);
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).parse(s);
+        } catch (Exception e) {
+            try {
+                return new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).parse(s);
+            } catch (Exception e2) {
+                return null;
+            }
+        }
+    }
+
+    private String fmtDateTimeString(Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(date);
+    }
+
     // Get calPlan records by date from CALPLAN table
     public calPlanRecord[] getCalPlan(Date date) {
         ArrayList<calPlanRecord> recordsList = new ArrayList<>();
@@ -648,41 +663,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
                 if (idxRevisions >= 0 && !cursor.isNull(idxRevisions)) record.Revisions = cursor.getString(idxRevisions);
 
                 // Parse dates
-                if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
-                    try {
-                        record.Okdate = sdf.parse(cursor.getString(idxOkdate));
-                    } catch (Exception e) {
-                        record.Okdate = null;
-                    }
-                }
-                if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
-                    try {
-                        record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate));
-                    } catch (Exception e) {
-                        record.LastUpdatedDate = null;
-                    }
-                }
-                if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
-                    try {
-                        record.StartDate = sdf.parse(cursor.getString(idxStartDate));
-                    } catch (Exception e) {
-                        record.StartDate = null;
-                    }
-                }
-                if (idxEndDate >= 0 && !cursor.isNull(idxEndDate)) {
-                    try {
-                        record.EndDate = sdf.parse(cursor.getString(idxEndDate));
-                    } catch (Exception e) {
-                        record.EndDate = null;
-                    }
-                }
-                if (idxHoldDate >= 0 && !cursor.isNull(idxHoldDate)) {
-                    try {
-                        record.HoldDate = sdf.parse(cursor.getString(idxHoldDate));
-                    } catch (Exception e) {
-                        record.HoldDate = null;
-                    }
-                }
+                record.Okdate = parseDateFlexible(cursor, idxOkdate);
+                record.LastUpdatedDate = parseDateFlexible(cursor, idxLastUpdatedDate);
+                record.StartDate = parseDateFlexible(cursor, idxStartDate);
+                record.EndDate = parseDateFlexible(cursor, idxEndDate);
+                record.HoldDate = parseDateFlexible(cursor, idxHoldDate);
 
                 recordsList.add(record);
                 cursor.moveToNext();
@@ -833,21 +818,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
                 if (idxRevisions >= 0 && !cursor.isNull(idxRevisions)) record.Revisions = cursor.getString(idxRevisions);
 
                 // Parse dates
-                if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
-                    try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e) { record.Okdate = null; }
-                }
-                if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
-                    try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e) { record.LastUpdatedDate = null; }
-                }
-                if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
-                    try { record.StartDate = sdf.parse(cursor.getString(idxStartDate)); } catch (Exception e) { record.StartDate = null; }
-                }
-                if (idxEndDate >= 0 && !cursor.isNull(idxEndDate)) {
-                    try { record.EndDate = sdf.parse(cursor.getString(idxEndDate)); } catch (Exception e) { record.EndDate = null; }
-                }
-                if (idxHoldDate >= 0 && !cursor.isNull(idxHoldDate)) {
-                    try { record.HoldDate = sdf.parse(cursor.getString(idxHoldDate)); } catch (Exception e) { record.HoldDate = null; }
-                }
+                record.Okdate = parseDateFlexible(cursor, idxOkdate);
+                record.LastUpdatedDate = parseDateFlexible(cursor, idxLastUpdatedDate);
+                record.StartDate = parseDateFlexible(cursor, idxStartDate);
+                record.EndDate = parseDateFlexible(cursor, idxEndDate);
+                record.HoldDate = parseDateFlexible(cursor, idxHoldDate);
 
                 recordsList.add(record);
                 cursor.moveToNext();

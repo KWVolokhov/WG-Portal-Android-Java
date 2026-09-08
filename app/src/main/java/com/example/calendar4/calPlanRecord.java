@@ -43,6 +43,27 @@ public class calPlanRecord implements Serializable {
     public Integer DrinkValue;   // Объем питья
     public Integer Kallory;      // Каллории
 
+    // Task 45: полный массив полей "Голова".."Каллории" из activity_livetype_edit
+    // переносится на карточки всех наследников HealthEditActivity.
+    public Integer Head;        // Голова
+    public Integer Eyes;        // Глаза
+    public Integer Ears;        // Уши
+    public Integer Nose;        // Нос
+    public Integer Throat;      // Горло
+    public Integer Teeth;       // Зубы
+    public Integer Stomach;     // Желудок
+    public Integer Intestines;  // Кишечник
+    public Integer Liver;       // Печень
+    public Integer Kidneys;     // Почки
+    public Integer Heart;       // Сердце
+    public Integer Lungs;       // Лёгкие
+    public Integer Pressure;    // Давление
+    public Integer Sleep;       // Сон
+    public Integer Weight;      // Вес
+    public Integer Nervous;     // Нервная система
+    public Integer Morality;    // Мораль
+    public Integer Skin;        // Состояние кожи
+
     public calPlanRecord() {
         // Initialize with defaults
         this.AuthorID = "BUSINESS";

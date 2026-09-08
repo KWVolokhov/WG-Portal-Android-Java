@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -68,6 +69,19 @@ public class LivetypeEditActivity extends Activity {
         catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(catAdapter);
 
+        // Task 43: галочка "Шагомер" редактируется только для категории "Физ. активность",
+        // для остальных категорий она выключена и неактивная (серая).
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateStepCounterCheckboxState();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
         buildOrganFields();
 
         int livetypeId = getIntent().getIntExtra("livetypeId", -1);
@@ -117,8 +131,9 @@ public class LivetypeEditActivity extends Activity {
         currentRecord.Category = (catIdx >= 0 && catIdx < livetypeRecord.CATEGORIES.length) ? livetypeRecord.CATEGORIES[catIdx] : livetypeRecord.CATEGORIES[0];
         currentRecord.Form = livetypeRecord.formForCategory(currentRecord.Category);
 
-        // Task 42: разрешение шагомера для этого типа
-        currentRecord.StepCounter = (checkboxStepCounter != null && checkboxStepCounter.isChecked()) ? 1 : 0;
+        // Task 42/43: разрешение шагомера для этого типа (только для категории "Физ. активность")
+        currentRecord.StepCounter = (checkboxStepCounter != null && checkboxStepCounter.isEnabled()
+                && checkboxStepCounter.isChecked()) ? 1 : 0;
 
         // Иконка (имя drawable для настраиваемых кнопок) - необязательное поле
         String icon = editTextIcon.getText().toString().trim();
@@ -168,6 +183,19 @@ public class LivetypeEditActivity extends Activity {
         }
     }
 
+    /** Task 43: галочка "Шагомер" активна (и серая - нет) только для категории "Физ. активность". */
+    private void updateStepCounterCheckboxState() {
+        if (checkboxStepCounter == null) return;
+        int idx = spinnerCategory.getSelectedItemPosition();
+        boolean isSport = idx >= 0 && idx < CATEGORIES.length
+                && "Физ. активность".equals(CATEGORIES[idx]);
+        if (!isSport) {
+            checkboxStepCounter.setChecked(false);
+        }
+        checkboxStepCounter.setEnabled(isSport);
+        checkboxStepCounter.setAlpha(isSport ? 1.0f : 0.3f);
+    }
+
     private void buildOrganFields() {
         for (int i = 0; i < ORGAN_NAMES.length; i++) {
             LinearLayout row = new LinearLayout(this);
@@ -203,6 +231,9 @@ public class LivetypeEditActivity extends Activity {
             int idx = indexOf(CATEGORIES, currentRecord.Category);
             spinnerCategory.setSelection(idx >= 0 ? idx : 0);
         }
+        /* Task 43: состояние галочки "Шагомер" зависит от выбранной категории
+           (даже если запись загружена, но категория не "Физ. активность" - выключаем). */
+        updateStepCounterCheckboxState();
         if (currentRecord.Icon != null) editTextIcon.setText(currentRecord.Icon);
         if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
         if (currentRecord.DateCreated != null) {

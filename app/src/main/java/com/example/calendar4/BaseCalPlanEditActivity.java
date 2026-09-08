@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -43,6 +45,10 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     protected static final SimpleDateFormat DISPLAY_DATE =
             new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
 
+    // Task 44: дата создания/обновления/завершения показывается вместе со временем.
+    protected static final SimpleDateFormat DISPLAY_DATE_TIME =
+            new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+
     // =====================================================================
     // Form configuration (override in subclasses)
     // =====================================================================
@@ -73,7 +79,12 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     // (Шаги / Вес еды / Объем питья / Каллории). Включено только для Health-форм.
     protected boolean showHealthNumbers() { return false; }
 
-    private static final String[] HEALTH_NUMBER_NAMES = {"Шаги", "Вес еды", "Объем питья", "Каллории"};
+    // Task 45: полный массив полей "Голова".."Каллории", как на activity_livetype_edit.
+    private static final String[] HEALTH_NUMBER_NAMES = {
+            "Голова", "Глаза", "Уши", "Нос", "Горло", "Зубы",
+            "Желудок", "Кишечник", "Печень", "Почки", "Сердце", "Лёгкие",
+            "Давление", "Сон", "Вес", "Нервная система", "Мораль", "Состояние кожи",
+            "Шаги", "Вес еды", "Объем питья", "Каллории"};
 
     // ----- views -----
     protected Spinner spinnerForm, spinnerStatus, spinnerMainSystem, spinnerAnalitik, spinnerExector;
@@ -94,6 +105,19 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     // Task 41: контейнер числовых полей Health на карточке
     protected LinearLayout healthContainer;
     protected EditText[] healthNumberEdits;
+
+    // Task 44: таймер шагомера на карточке HealthSportActivity (рядом с "Дата создания").
+    protected View rowPedometer;
+    protected TextView textViewPedometerTimer;
+    private final Handler pedometerHandler = new Handler(Looper.getMainLooper());
+    private boolean pedometerTimerShown = false;
+    private long pedometerTimerLastMs = 0;
+    private final Runnable pedometerTickRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updatePedometerTimer();
+        }
+    };
 
     protected calPlanRecord record;
     protected Date activeDate;
@@ -134,6 +158,8 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         textViewLastUpdatedDate = findViewById(R.id.textViewLastUpdatedDate);
         textViewEndDate = findViewById(R.id.textViewEndDate);
         textViewHoldDate = findViewById(R.id.textViewHoldDate);
+        rowPedometer = findViewById(R.id.rowPedometer);
+        textViewPedometerTimer = findViewById(R.id.textViewPedometerTimer);
         textViewAuthorName = findViewById(R.id.textViewAuthorName);
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
@@ -189,11 +215,69 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 
         populateFields();
 
+        // Task 44: на карточке HealthSportActivity показываем таймер запущенного шагомера
+        setupPedometerTimer();
+
         btnOK.setOnClickListener(v -> saveAndFinish());
         btnCancel.setOnClickListener(v -> {
             setResult(Activity.RESULT_CANCELED);
             finish();
         });
+    }
+
+    // =====================================================================
+    // Task 44: таймер шагомера на карточке HealthSportActivity
+    // =====================================================================
+
+    private void setupPedometerTimer() {
+        if (rowPedometer == null) return;
+        pedometerTimerShown = false;
+        updatePedometerTimer();
+    }
+
+    /** Запускает/останавливает индикацию времени шагомера (чч:мм:сс) рядом с "Дата создания". */
+    private void updatePedometerTimer() {
+        if (rowPedometer == null || textViewPedometerTimer == null) return;
+
+        boolean healthSport = record != null && "HealthSport".equals(record.Form);
+        if (!healthSport) {
+            rowPedometer.setVisibility(View.GONE);
+            pedometerHandler.removeCallbacks(pedometerTickRunnable);
+            return;
+        }
+
+        Integer rid = Pedometer.getRunningRecordId();
+        boolean running = Pedometer.isRunning() && rid != null && record != null
+                && record.id != null && record.id.equals(rid);
+
+        if (running) {
+            pedometerTimerShown = true;
+            pedometerTimerLastMs = Pedometer.getElapsedMs();
+            textViewPedometerTimer.setText(formatPedometerTime(pedometerTimerLastMs));
+            rowPedometer.setVisibility(View.VISIBLE);
+            pedometerHandler.removeCallbacks(pedometerTickRunnable);
+            pedometerHandler.postDelayed(pedometerTickRunnable, 1000);
+        } else if (pedometerTimerShown) {
+            // Шагомер завершился - таймер останавливается (последнее значение замораживается).
+            textViewPedometerTimer.setText(formatPedometerTime(pedometerTimerLastMs));
+            pedometerHandler.removeCallbacks(pedometerTickRunnable);
+        } else {
+            rowPedometer.setVisibility(View.GONE);
+        }
+    }
+
+    private static String formatPedometerTime(long ms) {
+        long totalSec = Math.max(0L, ms / 1000);
+        long h = totalSec / 3600;
+        long m = (totalSec % 3600) / 60;
+        long s = totalSec % 60;
+        return String.format(Locale.getDefault(), "%02d:%02d:%02d", h, m, s);
+    }
+
+    @Override
+    protected void onDestroy() {
+        pedometerHandler.removeCallbacks(pedometerTickRunnable);
+        super.onDestroy();
     }
 
     // =====================================================================
@@ -357,8 +441,73 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 
     private void setHealthNumber(int index, Integer value) {
         if (healthNumberEdits != null && index >= 0 && index < healthNumberEdits.length
-                && healthNumberEdits[index] != null && value != null) {
-            healthNumberEdits[index].setText(String.valueOf(value));
+                && healthNumberEdits[index] != null) {
+            EditText edit = healthNumberEdits[index];
+            if (value != null) {
+                edit.setText(String.valueOf(value));
+            } else {
+                edit.setText("");
+            }
+        }
+    }
+
+    /** Task 45: записывает значение поля "Голова".."Каллории" в calPlanRecord по индексу. */
+    private void putHealthRecordValue(calPlanRecord r, int index, Integer value) {
+        if (r == null) return;
+        switch (index) {
+            case 0: r.Head = value; break;
+            case 1: r.Eyes = value; break;
+            case 2: r.Ears = value; break;
+            case 3: r.Nose = value; break;
+            case 4: r.Throat = value; break;
+            case 5: r.Teeth = value; break;
+            case 6: r.Stomach = value; break;
+            case 7: r.Intestines = value; break;
+            case 8: r.Liver = value; break;
+            case 9: r.Kidneys = value; break;
+            case 10: r.Heart = value; break;
+            case 11: r.Lungs = value; break;
+            case 12: r.Pressure = value; break;
+            case 13: r.Sleep = value; break;
+            case 14: r.Weight = value; break;
+            case 15: r.Nervous = value; break;
+            case 16: r.Morality = value; break;
+            case 17: r.Skin = value; break;
+            case 18: r.Steps = value; break;
+            case 19: r.FoodWeight = value; break;
+            case 20: r.DrinkValue = value; break;
+            case 21: r.Kallory = value; break;
+            default: break;
+        }
+    }
+
+    /** Task 45: читает значение поля "Голова".."Каллории" из calPlanRecord по индексу. */
+    private Integer getHealthRecordValue(calPlanRecord r, int index) {
+        if (r == null) return null;
+        switch (index) {
+            case 0: return r.Head;
+            case 1: return r.Eyes;
+            case 2: return r.Ears;
+            case 3: return r.Nose;
+            case 4: return r.Throat;
+            case 5: return r.Teeth;
+            case 6: return r.Stomach;
+            case 7: return r.Intestines;
+            case 8: return r.Liver;
+            case 9: return r.Kidneys;
+            case 10: return r.Heart;
+            case 11: return r.Lungs;
+            case 12: return r.Pressure;
+            case 13: return r.Sleep;
+            case 14: return r.Weight;
+            case 15: return r.Nervous;
+            case 16: return r.Morality;
+            case 17: return r.Skin;
+            case 18: return r.Steps;
+            case 19: return r.FoodWeight;
+            case 20: return r.DrinkValue;
+            case 21: return r.Kallory;
+            default: return null;
         }
     }
 
@@ -368,7 +517,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 
     private void populateFields() {
         okdateValue = (record != null && record.Okdate != null) ? record.Okdate : activeDate;
-        textViewOkdate.setText(DISPLAY_DATE.format(okdateValue));
+        textViewOkdate.setText(DISPLAY_DATE_TIME.format(okdateValue));
 
         if (showStartDate()) {
             Date start = record != null && record.StartDate != null ? record.StartDate : okdateValue;
@@ -401,16 +550,15 @@ public abstract class BaseCalPlanEditActivity extends Activity {
 
         textViewLastUpdatedBy.setText(record.LastUpdatedBy != null ? record.LastUpdatedBy : "");
         textViewLastUpdatedDate.setText(
-                record.LastUpdatedDate != null ? DISPLAY_DATE.format(record.LastUpdatedDate) : "");
-        textViewEndDate.setText(record.EndDate != null ? DISPLAY_DATE.format(record.EndDate) : "");
-        textViewHoldDate.setText(record.HoldDate != null ? DISPLAY_DATE.format(record.HoldDate) : "");
+                record.LastUpdatedDate != null ? DISPLAY_DATE_TIME.format(record.LastUpdatedDate) : "");
+        textViewEndDate.setText(record.EndDate != null ? DISPLAY_DATE_TIME.format(record.EndDate) : "");
+        textViewHoldDate.setText(record.HoldDate != null ? DISPLAY_DATE_TIME.format(record.HoldDate) : "");
 
-        // Task 41: числовые поля Health на карточке
+        // Task 41/45: числовые поля Health на карточке ("Голова".."Каллории")
         if (showHealthNumbers()) {
-            setHealthNumber(0, record.Steps);
-            setHealthNumber(1, record.FoodWeight);
-            setHealthNumber(2, record.DrinkValue);
-            setHealthNumber(3, record.Kallory);
+            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
+                setHealthNumber(i, getHealthRecordValue(record, i));
+            }
         }
     }
 
@@ -459,6 +607,25 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             record.StatusID = STATUS_IDS[si];
         }
 
+        // Task 48: для Project/Task/Request даты завершения/откладывания проставляются по состоянию.
+        if ("Project".equals(form) || "Task".equals(form) || "Request".equals(form)) {
+            if ("Выполнено".equals(record.Status) || "Отменено".equals(record.Status)) {
+                record.EndDate = new Date();      // дата завершения проекта (факт) - сегодня со временем
+                record.HoldDate = null;
+            } else if ("Отложено".equals(record.Status)) {
+                record.HoldDate = new Date();     // дата откладывания проекта - сегодня со временем
+                record.EndDate = null;
+            } else {
+                record.EndDate = null;
+                record.HoldDate = null;
+            }
+        }
+
+        // Task 48/49: последний изменивший и дата/время обновления на каждом сохранении
+        record.LastUpdatedDate = new Date();
+        record.LastUpdatedBy = ManageSQLDatabase.AuthorName;
+        record.LastUpdatedByID = ManageSQLDatabase.AuthorID;
+
         if (showMainSystem()) {
             record.MainSystem = spinnerMainSystem.getSelectedItem().toString();
         }
@@ -493,12 +660,11 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             record.KeyWords = editTextKeyWords.getText().toString().trim();
         }
 
-        // Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории)
+        // Task 41/45: числовые поля Health (Голова/Глаза/.../Каллории)
         if (showHealthNumbers()) {
-            record.Steps = healthNumberValue(0);
-            record.FoodWeight = healthNumberValue(1);
-            record.DrinkValue = healthNumberValue(2);
-            record.Kallory = healthNumberValue(3);
+            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
+                putHealthRecordValue(record, i, healthNumberValue(i));
+            }
         }
 
         Intent resultIntent = new Intent();

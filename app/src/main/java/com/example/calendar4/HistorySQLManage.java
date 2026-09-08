@@ -62,7 +62,7 @@ public class HistorySQLManage {
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
         if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
         if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
-        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmt(record.LastUpdatedDate));
+        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
         if (record.Name != null) values.put("Name", record.Name);
         if (record.BodyText != null) values.put("BodyText", record.BodyText);
         if (record.Comment != null) values.put("Comment", record.Comment);
@@ -168,7 +168,8 @@ public class HistorySQLManage {
             catch (Exception e) { try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e2) { record.Okdate = null; } }
         }
         if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
-            try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e) { record.LastUpdatedDate = null; }
+            try { record.LastUpdatedDate = fmtDateTime().parse(cursor.getString(idxLastUpdatedDate)); }
+            catch (Exception e) { try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e2) { record.LastUpdatedDate = null; } }
         }
         if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
             try { record.StartDate = sdf.parse(cursor.getString(idxStartDate)); } catch (Exception e) { record.StartDate = null; }

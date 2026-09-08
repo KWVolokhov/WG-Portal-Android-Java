@@ -411,6 +411,34 @@
                     android:textColor="#FF666666" />
             </LinearLayout>
 
+            <!-- Pedometer timer (Task 44): visible only while the pedometer runs
+                 on the card of the corresponding HealthSportActivity record. -->
+            <LinearLayout
+                android:id="@+id/rowPedometer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Шагомер:"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/textViewPedometerTimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_gravity="center_vertical"
+                    android:textColor="#FF007700"
+                    android:text="00:00:00" />
+            </LinearLayout>
+
             <!-- LastUpdatedBy (not editable) -->
             <LinearLayout
                 android:id="@+id/rowLastUpdatedBy"

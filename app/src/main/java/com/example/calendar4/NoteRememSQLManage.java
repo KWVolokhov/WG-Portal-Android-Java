@@ -57,13 +57,13 @@ public class NoteRememSQLManage {
         if (record.UNID != null) values.put("UNID", record.UNID);
         if (record.Form == null) record.Form = "Note";
         values.put("Form", record.Form);
-        if (record.Okdate != null) values.put("Okdate", fmt(record.Okdate));
+        if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
         fillAuthorFromParams(record);
         if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
         if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
         if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
         if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
-        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmt(record.LastUpdatedDate));
+        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
         if (record.Name != null) values.put("Name", record.Name);
         if (record.Status != null) values.put("Status", record.Status);
         if (record.StatusID != null) values.put("StatusID", record.StatusID);
@@ -151,10 +151,12 @@ public class NoteRememSQLManage {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
-            try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e) { record.Okdate = null; }
+            try { record.Okdate = fmtDateTime().parse(cursor.getString(idxOkdate)); }
+            catch (Exception e) { try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e2) { record.Okdate = null; } }
         }
         if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
-            try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e) { record.LastUpdatedDate = null; }
+            try { record.LastUpdatedDate = fmtDateTime().parse(cursor.getString(idxLastUpdatedDate)); }
+            catch (Exception e) { try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e2) { record.LastUpdatedDate = null; } }
         }
         if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
             try { record.StartDate = sdf.parse(cursor.getString(idxStartDate)); } catch (Exception e) { record.StartDate = null; }
@@ -164,6 +166,10 @@ public class NoteRememSQLManage {
 
     private String fmt(Date date) {
         return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date);
+    }
+
+    private SimpleDateFormat fmtDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     }
 
     public void deleteNote(Integer id) {
