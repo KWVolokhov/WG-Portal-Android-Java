@@ -182,7 +182,7 @@ public class TwoLineListItem extends LinearLayout {
     /** Shows the "every fifth" horizontal divider with the given multiple-of-5 marker. */
     private void setFiveLine(int lineNumber) {
         tvMarker.setVisibility(VISIBLE);
-        tvMarker.setText("--" + lineNumber + "--");
+        tvMarker.setText(String.valueOf(lineNumber));
         fifthLineDivider.setVisibility(VISIBLE);
     }
 
