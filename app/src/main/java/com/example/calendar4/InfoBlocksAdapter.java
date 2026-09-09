@@ -176,7 +176,7 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             lp.width = side;
             lp.height = side;
             frame.setLayoutParams(lp);
-            image.setImageBitmap(host.thumbFor(b));
+            //image.setImageBitmap(host.thumbFor(b));
         }
     }
 

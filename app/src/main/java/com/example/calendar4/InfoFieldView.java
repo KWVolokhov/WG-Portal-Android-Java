@@ -418,7 +418,7 @@ public class InfoFieldView extends LinearLayout {
     // ------------------------------------------------------------------
 
     /** 2-line preview: text lines + attachment counters, cut with "..." when longer. */
-    private void updateCollapsed() {
+    public void updateCollapsed() {
         String plain = plainPreview();
         String[] lines = plain.split("\r?\n");
         String preview;
