@@ -199,7 +199,12 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "Button2Id TEXT, " +//Label: id записи LIVETYPE для кнопки 2 (по умолчанию HealthEat/Бургер)
 			"Button3Id TEXT, " +//Label: id записи LIVETYPE для кнопки 3 (по умолчанию HealthDrink/Кофе 200мл)
 			"Button4Id TEXT, " +//Label: id записи LIVETYPE для кнопки 4 (по умолчанию HealthStress/Авария)
-            "Button5Id TEXT " +//Label: id записи LIVETYPE для кнопки 5 (по умолчанию HealthJoy/Гулянка)
+            "Button5Id TEXT, " +//Label: id записи LIVETYPE для кнопки 5 (по умолчанию HealthJoy/Гулянка)
+            "Height INTEGER, " +//Label: Рост, см (умолчание 190)
+            "Weight INTEGER, " +//Label: Вес, кг (умолчание 110)
+            "Age INTEGER, " +//Label: Возраст, лет (умолчание 50)
+            "AttachFolder TEXT, " +//Label: Папка вложений InfoFieldView (умолчание Attachments)
+            "DBName TEXT" +//Label: Название базы данных
             ")";
     
     public static final String CREATE_TABLE_HOLIDAYS = "CREATE TABLE IF NOT EXISTS HOLIDAYS (" +
@@ -224,6 +229,10 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "DateReceived DATE, " +
             "DateCreated DATE, " +
             "DateModified DATE, " +
-            "EntryID TEXT" +
+            "EntryID TEXT, " +
+            "AuthorID TEXT, " +        //Label: ID Автора
+            "AuthorName TEXT, " +      //Label: Автор
+            "LastUpdatedByID TEXT, " + //Label: ID Обновившего
+            "LastUpdatedBy TEXT" +     //Label: Обновивший
             ")";
 }

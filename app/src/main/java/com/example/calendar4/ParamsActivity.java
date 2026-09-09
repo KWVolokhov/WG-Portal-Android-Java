@@ -40,6 +40,11 @@ public class ParamsActivity extends Activity {
     private EditText editTextAddress;
     private EditText editTextName;
     private EditText editTextPassword;
+    private EditText editTextHeight;       // Task 54: Рост, см
+    private EditText editTextWeight;       // Task 54: Вес, кг
+    private EditText editTextAge;          // Task 54: Возраст, лет
+    private EditText editTextAttachFolder; // Task 100: папка вложений
+    private EditText editTextDBName;       // Task 100: название базы
     private ImageButton btnOK;
     private ImageButton btnCancel;
 
@@ -71,6 +76,11 @@ public class ParamsActivity extends Activity {
         editTextAddress = findViewById(R.id.editTextAddress);
         editTextName = findViewById(R.id.editTextName);
         editTextPassword = findViewById(R.id.editTextPassword);
+        editTextHeight = findViewById(R.id.editTextHeight);
+        editTextWeight = findViewById(R.id.editTextWeight);
+        editTextAge = findViewById(R.id.editTextAge);
+        editTextAttachFolder = findViewById(R.id.editTextAttachFolder);
+        editTextDBName = findViewById(R.id.editTextDBName);
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
 
@@ -94,6 +104,22 @@ public class ParamsActivity extends Activity {
             if (currentRecord.Address != null) editTextAddress.setText(currentRecord.Address);
             if (currentRecord.Name != null) editTextName.setText(currentRecord.Name);
             if (currentRecord.Password != null) editTextPassword.setText(currentRecord.Password);
+
+            // Task 54: Рост/Вес/Возраст (getCalParam подставляет умолчания)
+            editTextHeight.setText(String.valueOf(currentRecord.Height));
+            editTextWeight.setText(String.valueOf(currentRecord.Weight));
+            editTextAge.setText(String.valueOf(currentRecord.Age));
+
+            // Task 100: папка вложений и имя базы (getCalParam подставляет умолчания)
+            editTextAttachFolder.setText(currentRecord.AttachFolder);
+            editTextDBName.setText(currentRecord.DBName);
+        } else {
+            // Task 54/100: умолчания, когда запись параметров ещё не создана
+            editTextHeight.setText(String.valueOf(CalParamRecord.DEFAULT_HEIGHT));
+            editTextWeight.setText(String.valueOf(CalParamRecord.DEFAULT_WEIGHT));
+            editTextAge.setText(String.valueOf(CalParamRecord.DEFAULT_AGE));
+            editTextAttachFolder.setText(CalParamRecord.DEFAULT_ATTACH_FOLDER);
+            editTextDBName.setText(CalParamRecord.DEFAULT_DB_NAME);
         }
 
         // Populate "Стартовая страница" (default = Календарь when not set yet)
@@ -116,6 +142,13 @@ public class ParamsActivity extends Activity {
                 String name = editTextName.getText().toString().trim();
                 String password = editTextPassword.getText().toString().trim();
 
+                // Task 54/100: числовые параметры и параметры хранения вложений
+                int height = parseIntOrDefault(editTextHeight, CalParamRecord.DEFAULT_HEIGHT);
+                int weight = parseIntOrDefault(editTextWeight, CalParamRecord.DEFAULT_WEIGHT);
+                int age = parseIntOrDefault(editTextAge, CalParamRecord.DEFAULT_AGE);
+                String attachFolder = editTextAttachFolder.getText().toString().trim();
+                String dbName = editTextDBName.getText().toString().trim();
+
                 // Create or update CalParamRecord
                 if (currentRecord == null) {
                     currentRecord = new CalParamRecord(address, name, password);
@@ -124,6 +157,13 @@ public class ParamsActivity extends Activity {
                     currentRecord.Name = name;
                     currentRecord.Password = password;
                 }
+
+                // Task 54/100: сохранить новые параметры
+                currentRecord.Height = height;
+                currentRecord.Weight = weight;
+                currentRecord.Age = age;
+                currentRecord.AttachFolder = attachFolder.isEmpty() ? CalParamRecord.DEFAULT_ATTACH_FOLDER : attachFolder;
+                currentRecord.DBName = dbName.isEmpty() ? CalParamRecord.DEFAULT_DB_NAME : dbName;
 
                 // Save the chosen "Ведущий"
                 int vi = spinnerVedushii.getSelectedItemPosition();
@@ -261,5 +301,14 @@ public class ParamsActivity extends Activity {
         int pos = spinner.getSelectedItemPosition();
         if (pos >= 0 && pos < livetypeIds.size()) return livetypeIds.get(pos);
         return null;
+    }
+
+    /** Parses a numeric field; returns the default when the value is empty or invalid (Task 54). */
+    private int parseIntOrDefault(EditText edit, int defaultValue) {
+        try {
+            return Integer.parseInt(edit.getText().toString().trim());
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }

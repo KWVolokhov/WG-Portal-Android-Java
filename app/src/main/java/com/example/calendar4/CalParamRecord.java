@@ -22,6 +22,15 @@ public class CalParamRecord implements Serializable {
 	public static final int DEFAULT_BUTTON4_ID = 4; // Стресс
 	public static final int DEFAULT_BUTTON5_ID = 5; // Гулянка
 
+	// Task 54: параметры тела (умолчания по задаче)
+	public static final int DEFAULT_HEIGHT = 190; // Рост, см
+	public static final int DEFAULT_WEIGHT = 110; // Вес, кг
+	public static final int DEFAULT_AGE = 50;     // Возраст, лет
+
+	// Task 100: папка вложений поля InfoFieldView и имя базы данных
+	public static final String DEFAULT_ATTACH_FOLDER = "Attachments";
+	public static final String DEFAULT_DB_NAME = "WGPlanDatabase.db";
+
     public Integer id;
     public String Address;
     public String Name;
@@ -34,6 +43,11 @@ public class CalParamRecord implements Serializable {
     public Integer Button3Id; // Числовой id записи LIVETYPE для кнопки 3 (null = по умолчанию 3)
     public Integer Button4Id; // Числовой id записи LIVETYPE для кнопки 4 (null = по умолчанию 4)
     public Integer Button5Id; // Числовой id записи LIVETYPE для кнопки 5 (null = по умолчанию 5)
+    public Integer Height;      // Рост, см (null = умолчание 190)
+    public Integer Weight;      // Вес, кг (null = умолчание 110)
+    public Integer Age;         // Возраст, лет (null = умолчание 50)
+    public String AttachFolder; // Папка вложений поля InfoFieldView (null = "Attachments")
+    public String DBName;       // Название базы данных (null = "WGPlanDatabase.db")
 
     public CalParamRecord() {
     }

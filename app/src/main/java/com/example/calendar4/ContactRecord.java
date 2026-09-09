@@ -18,6 +18,10 @@ public class ContactRecord implements Serializable {
     public Date DateCreated; // Дата создания
     public Date DateModified; // Дата изменения
     public String EntryID; // Идентификатор занесения
+    public String AuthorID; // ID Автора (из "Ведущий" в CALPARAM)
+    public String AuthorName; // Автор
+    public String LastUpdatedByID; // ID Обновившего
+    public String LastUpdatedBy; // Обновивший
 
     public ContactRecord() {
     }

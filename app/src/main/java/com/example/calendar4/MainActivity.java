@@ -466,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
                 if (record != null) {
                     // First line = Name, second line = first line / first 20 chars of BodyText
                     row.setTopText(record.Name != null ? record.Name : "");
-                    row.setBottomText(shortBodyText(record.BodyText));
+                    row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
                     // Type icon: Project/Task/Request get the state-aware status icon (Task 36),
                     // other forms use their fixed form icons
                     if ("Project".equals(record.Form) || "Task".equals(record.Form) || "Request".equals(record.Form)) {

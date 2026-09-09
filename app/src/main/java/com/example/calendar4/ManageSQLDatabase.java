@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 	
 	public static String AuthorName = null;
@@ -178,6 +178,23 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             }
         }
 
+        // Version 8 (Task 53): CONTACTS - Автор/Обновивший (ID + имя)
+        if (oldVersion < 8) {
+            addColumnIfMissing(db, "CONTACTS", "AuthorID", "TEXT");
+            addColumnIfMissing(db, "CONTACTS", "AuthorName", "TEXT");
+            addColumnIfMissing(db, "CONTACTS", "LastUpdatedByID", "TEXT");
+            addColumnIfMissing(db, "CONTACTS", "LastUpdatedBy", "TEXT");
+        }
+
+        // Version 9 (Tasks 54/100): CALPARAM - Рост/Вес/Возраст + папка вложений + имя базы
+        if (oldVersion < 9) {
+            addColumnIfMissing(db, "CALPARAM", "Height", "INTEGER");
+            addColumnIfMissing(db, "CALPARAM", "Weight", "INTEGER");
+            addColumnIfMissing(db, "CALPARAM", "Age", "INTEGER");
+            addColumnIfMissing(db, "CALPARAM", "AttachFolder", "TEXT");
+            addColumnIfMissing(db, "CALPARAM", "DBName", "TEXT");
+        }
+
         // Safety net (Task 34): whatever version the old database recorded, make sure
         // that every column the application needs really exists. Old production builds
         // suffered from "no such column: Button1Id / Button4Id ... while compiling:
@@ -203,6 +220,15 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "INTEGER");
         addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "INTEGER");
         addColumnIfMissing(db, "HEALTHPLAN", "Kallory", "INTEGER");
+        addColumnIfMissing(db, "CONTACTS", "AuthorID", "TEXT");
+        addColumnIfMissing(db, "CONTACTS", "AuthorName", "TEXT");
+        addColumnIfMissing(db, "CONTACTS", "LastUpdatedByID", "TEXT");
+        addColumnIfMissing(db, "CONTACTS", "LastUpdatedBy", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "Height", "INTEGER");
+        addColumnIfMissing(db, "CALPARAM", "Weight", "INTEGER");
+        addColumnIfMissing(db, "CALPARAM", "Age", "INTEGER");
+        addColumnIfMissing(db, "CALPARAM", "AttachFolder", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "DBName", "TEXT");
         try {
             for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
                 db.execSQL(updCom);
@@ -494,7 +520,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
     // Non-empty fields of a contact delimited by ',': "Фамилия=Иванов,Имя=Пётр,...".
     // Uses the Russian captions from the edit form (activity_editcontact.xml).
-    // Special fields DateCreated / DateModified are NOT stored in History.
+    // Special fields (AuthorID/AuthorName, LastUpdatedByID/LastUpdatedBy, DateCreated / DateModified) are NOT stored in History.
     private String buildContactBodyText(ContactRecord r) {
         if (r == null) return null;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
@@ -503,7 +529,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         appendField(sb, "Имя", r.FirstName);
         appendField(sb, "Отчество", r.Patronymic);
         appendField(sb, "Телефон", r.Phone);
-        appendField(sb, "Информация", r.Info);
+        appendField(sb, "Информация", InfoFieldView.plainText(r.Info));
         appendField(sb, "Телефон 2", r.Phone2);
         appendField(sb, "Email", r.Email);
         appendField(sb, "Дата рождения", r.BirthDate == null ? null : sdf.format(r.BirthDate));
@@ -538,6 +564,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         int idxDateReceived = cursor.getColumnIndex("DateReceived");
         int idxDateCreated = cursor.getColumnIndex("DateCreated");
         int idxDateModified = cursor.getColumnIndex("DateModified");
+        int idxAuthorID = cursor.getColumnIndex("AuthorID");
+        int idxAuthorName = cursor.getColumnIndex("AuthorName");
+        int idxLastUpdatedByID = cursor.getColumnIndex("LastUpdatedByID");
+        int idxLastUpdatedBy = cursor.getColumnIndex("LastUpdatedBy");
 
         if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
         if (idxSurname >= 0 && !cursor.isNull(idxSurname)) record.Surname = cursor.getString(idxSurname);
@@ -549,6 +579,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (idxEmail >= 0 && !cursor.isNull(idxEmail)) record.Email = cursor.getString(idxEmail);
         if (idxHomeAddress >= 0 && !cursor.isNull(idxHomeAddress)) record.HomeAddress = cursor.getString(idxHomeAddress);
         if (idxEntryID >= 0 && !cursor.isNull(idxEntryID)) record.EntryID = cursor.getString(idxEntryID);
+        if (idxAuthorID >= 0 && !cursor.isNull(idxAuthorID)) record.AuthorID = cursor.getString(idxAuthorID);
+        if (idxAuthorName >= 0 && !cursor.isNull(idxAuthorName)) record.AuthorName = cursor.getString(idxAuthorName);
+        if (idxLastUpdatedByID >= 0 && !cursor.isNull(idxLastUpdatedByID)) record.LastUpdatedByID = cursor.getString(idxLastUpdatedByID);
+        if (idxLastUpdatedBy >= 0 && !cursor.isNull(idxLastUpdatedBy)) record.LastUpdatedBy = cursor.getString(idxLastUpdatedBy);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
         if (idxBirthDate >= 0 && !cursor.isNull(idxBirthDate)) {
@@ -557,12 +591,9 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (idxDateReceived >= 0 && !cursor.isNull(idxDateReceived)) {
             try { record.DateReceived = sdf.parse(cursor.getString(idxDateReceived)); } catch (Exception e) {}
         }
-        if (idxDateCreated >= 0 && !cursor.isNull(idxDateCreated)) {
-            try { record.DateCreated = sdf.parse(cursor.getString(idxDateCreated)); } catch (Exception e) {}
-        }
-        if (idxDateModified >= 0 && !cursor.isNull(idxDateModified)) {
-            try { record.DateModified = sdf.parse(cursor.getString(idxDateModified)); } catch (Exception e) {}
-        }
+        // Task 44/53: DateCreated/DateModified могут храниться со временем
+        if (idxDateCreated >= 0) record.DateCreated = parseDateFlexible(cursor, idxDateCreated);
+        if (idxDateModified >= 0) record.DateModified = parseDateFlexible(cursor, idxDateModified);
         return record;
     }
 
@@ -888,6 +919,25 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             if (idxButton5Id >= 0 && !cursor.isNull(idxButton5Id)) {
                 try { record.Button5Id = Integer.valueOf(cursor.getString(idxButton5Id)); } catch (Exception e) { record.Button5Id = null; }
             }
+
+            // Tasks 54/100: Рост/Вес/Возраст + папка вложений + имя базы
+            int idxHeight = cursor.getColumnIndex("Height");
+            int idxWeight = cursor.getColumnIndex("Weight");
+            int idxAge = cursor.getColumnIndex("Age");
+            int idxAttachFolder = cursor.getColumnIndex("AttachFolder");
+            int idxDBName = cursor.getColumnIndex("DBName");
+            if (idxHeight >= 0 && !cursor.isNull(idxHeight)) record.Height = cursor.getInt(idxHeight);
+            if (idxWeight >= 0 && !cursor.isNull(idxWeight)) record.Weight = cursor.getInt(idxWeight);
+            if (idxAge >= 0 && !cursor.isNull(idxAge)) record.Age = cursor.getInt(idxAge);
+            if (idxAttachFolder >= 0 && !cursor.isNull(idxAttachFolder)) record.AttachFolder = cursor.getString(idxAttachFolder);
+            if (idxDBName >= 0 && !cursor.isNull(idxDBName)) record.DBName = cursor.getString(idxDBName);
+
+            // Task 54/100: умолчания, когда значение ещё не задано
+            if (record.Height == null) record.Height = CalParamRecord.DEFAULT_HEIGHT;
+            if (record.Weight == null) record.Weight = CalParamRecord.DEFAULT_WEIGHT;
+            if (record.Age == null) record.Age = CalParamRecord.DEFAULT_AGE;
+            if (record.AttachFolder == null || record.AttachFolder.trim().isEmpty()) record.AttachFolder = CalParamRecord.DEFAULT_ATTACH_FOLDER;
+            if (record.DBName == null || record.DBName.trim().isEmpty()) record.DBName = CalParamRecord.DEFAULT_DB_NAME;
         }
 
         cursor.close();
@@ -913,6 +963,12 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.Button3Id != null) values.put("Button3Id", String.valueOf(record.Button3Id));
 		if (record.Button4Id != null) values.put("Button4Id", String.valueOf(record.Button4Id));
 		if (record.Button5Id != null) values.put("Button5Id", String.valueOf(record.Button5Id));
+        // Tasks 54/100: Рост/Вес/Возраст + папка вложений + имя базы
+        if (record.Height != null) values.put("Height", record.Height);
+        if (record.Weight != null) values.put("Weight", record.Weight);
+        if (record.Age != null) values.put("Age", record.Age);
+        if (record.AttachFolder != null) values.put("AttachFolder", record.AttachFolder);
+        if (record.DBName != null) values.put("DBName", record.DBName);
 
         // Try to update first (if id exists), if no rows affected then insert
         if (record.id != null) {
@@ -1022,10 +1078,26 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return needsUpdate;
     }
 
+    // Fill-in author from "Ведущий" (CALPARAM) when the record has no author (Task 53)
+    private void fillAuthorFromParams(ContactRecord record) {
+        if (record == null) return;
+        if (record.AuthorID == null || record.AuthorID.isEmpty()) {
+            record.AuthorID = AuthorID;
+            record.AuthorName = AuthorName;
+        }
+        if (record.LastUpdatedByID == null || record.LastUpdatedByID.isEmpty()) {
+            record.LastUpdatedByID = AuthorID;
+            record.LastUpdatedBy = AuthorName;
+        }
+    }
+
     // Upsert ContactRecord into CONTACTS table
     public void upsertContact(ContactRecord record) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+
+        // Task 53: Автор/Обновивший из "Ведущий" (CALPARAM), если ещё не заданы
+        fillAuthorFromParams(record);
 
         if (record.Surname != null) values.put("Surname", record.Surname);
         if (record.FirstName != null) values.put("FirstName", record.FirstName);
@@ -1036,6 +1108,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.Email != null) values.put("Email", record.Email);
         if (record.HomeAddress != null) values.put("HomeAddress", record.HomeAddress);
         if (record.EntryID != null) values.put("EntryID", record.EntryID);
+        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
+        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
+        if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
+        if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
 
         // Date fields
         if (record.BirthDate != null) {
@@ -1046,14 +1122,9 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
             values.put("DateReceived", sdf.format(record.DateReceived));
         }
-        if (record.DateCreated != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("DateCreated", sdf.format(record.DateCreated));
-        }
-        if (record.DateModified != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("DateModified", sdf.format(record.DateModified));
-        }
+        // Task 44/53: даты создания/обновления хранятся со временем
+        if (record.DateCreated != null) values.put("DateCreated", fmtDateTimeString(record.DateCreated));
+        if (record.DateModified != null) values.put("DateModified", fmtDateTimeString(record.DateModified));
 
         // Try to update first (if id exists), if no rows affected then insert
         if (record.id != null) {
@@ -1106,48 +1177,9 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                ContactRecord record = new ContactRecord();
-
-                int idxId = cursor.getColumnIndex("id");
-                int idxSurname = cursor.getColumnIndex("Surname");
-                int idxFirstName = cursor.getColumnIndex("FirstName");
-                int idxPatronymic = cursor.getColumnIndex("Patronymic");
-                int idxPhone = cursor.getColumnIndex("Phone");
-                int idxInfo = cursor.getColumnIndex("Info");
-                int idxPhone2 = cursor.getColumnIndex("Phone2");
-                int idxEmail = cursor.getColumnIndex("Email");
-                int idxHomeAddress = cursor.getColumnIndex("HomeAddress");
-                int idxEntryID = cursor.getColumnIndex("EntryID");
-                int idxBirthDate = cursor.getColumnIndex("BirthDate");
-                int idxDateReceived = cursor.getColumnIndex("DateReceived");
-                int idxDateCreated = cursor.getColumnIndex("DateCreated");
-                int idxDateModified = cursor.getColumnIndex("DateModified");
-
-                if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
-                if (idxSurname >= 0 && !cursor.isNull(idxSurname)) record.Surname = cursor.getString(idxSurname);
-                if (idxFirstName >= 0 && !cursor.isNull(idxFirstName)) record.FirstName = cursor.getString(idxFirstName);
-                if (idxPatronymic >= 0 && !cursor.isNull(idxPatronymic)) record.Patronymic = cursor.getString(idxPatronymic);
-                if (idxPhone >= 0 && !cursor.isNull(idxPhone)) record.Phone = cursor.getString(idxPhone);
-                if (idxInfo >= 0 && !cursor.isNull(idxInfo)) record.Info = cursor.getString(idxInfo);
-                if (idxPhone2 >= 0 && !cursor.isNull(idxPhone2)) record.Phone2 = cursor.getString(idxPhone2);
-                if (idxEmail >= 0 && !cursor.isNull(idxEmail)) record.Email = cursor.getString(idxEmail);
-                if (idxHomeAddress >= 0 && !cursor.isNull(idxHomeAddress)) record.HomeAddress = cursor.getString(idxHomeAddress);
-                if (idxEntryID >= 0 && !cursor.isNull(idxEntryID)) record.EntryID = cursor.getString(idxEntryID);
-
-                // Parse dates
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                if (idxBirthDate >= 0 && !cursor.isNull(idxBirthDate)) {
-                    try { record.BirthDate = sdf.parse(cursor.getString(idxBirthDate)); } catch (Exception e) {}
-                }
-                if (idxDateReceived >= 0 && !cursor.isNull(idxDateReceived)) {
-                    try { record.DateReceived = sdf.parse(cursor.getString(idxDateReceived)); } catch (Exception e) {}
-                }
-                if (idxDateCreated >= 0 && !cursor.isNull(idxDateCreated)) {
-                    try { record.DateCreated = sdf.parse(cursor.getString(idxDateCreated)); } catch (Exception e) {}
-                }
-                if (idxDateModified >= 0 && !cursor.isNull(idxDateModified)) {
-                    try { record.DateModified = sdf.parse(cursor.getString(idxDateModified)); } catch (Exception e) {}
-                }
+                // Reuse the single mapping routine (reads Author/LastUpdated too,
+                // and parses dates stored with time - Task 44/53)
+                ContactRecord record = cursorToContact(cursor);
 
                 contactsList.add(record);
                 cursor.moveToNext();

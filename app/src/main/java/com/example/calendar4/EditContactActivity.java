@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +15,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class EditContactActivity extends AppCompatActivity {
+
+    // Task 44: дата создания/обновления показывается вместе со временем.
+    private static final SimpleDateFormat DISPLAY_DATE_TIME =
+            new SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault());
 
     private EditText editTextSurname;
     private EditText editTextFirstName;
@@ -29,6 +34,12 @@ public class EditContactActivity extends AppCompatActivity {
     private ImageButton btnCancel;
     private ImageButton btnCall;
     private ImageButton btnSMS;
+
+    // Task 53: нередактируемые служебные поля карточки
+    private TextView textViewAuthor;
+    private TextView textViewDateCreated;
+    private TextView textViewLastUpdatedBy;
+    private TextView textViewDateModified;
 
     private ManageSQLDatabase owerDb;
     private ContactRecord currentRecord;
@@ -54,6 +65,10 @@ public class EditContactActivity extends AppCompatActivity {
         btnCancel = findViewById(R.id.btnCancel);
         btnCall = findViewById(R.id.btnCall);
         btnSMS = findViewById(R.id.btnSMS);
+        textViewAuthor = findViewById(R.id.textViewContactAuthor);
+        textViewDateCreated = findViewById(R.id.textViewContactDateCreated);
+        textViewLastUpdatedBy = findViewById(R.id.textViewContactLastUpdatedBy);
+        textViewDateModified = findViewById(R.id.textViewContactDateModified);
 
         // Initialize database
         //owerDb = new ManageSQLDatabase(this);
@@ -61,9 +76,8 @@ public class EditContactActivity extends AppCompatActivity {
 
         // Check if editing existing contact
         contactId = getIntent().getIntExtra("contactId", -1);
-        if (contactId != -1) {
-            loadContact(contactId);
-        }
+        if (contactId != -1) loadContact(contactId);
+        else showNewContactDefaults();
 
         // OK button click handler
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -99,6 +113,19 @@ public class EditContactActivity extends AppCompatActivity {
         });
     }
 
+    // Новый контакт: Автор = Ведущий (CALPARAM), Дата создания = сейчас (сохранятся по OK)
+    private void showNewContactDefaults() {
+        if (ManageSQLDatabase.AuthorName != null) textViewAuthor.setText(ManageSQLDatabase.AuthorName);
+        textViewDateCreated.setText(DISPLAY_DATE_TIME.format(new Date()));
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Task 100: forward the attachment picker result to InfoFieldView
+        InfoFieldView.onHostActivityResult(requestCode, resultCode, data);
+    }
+
     private void loadContact(int id) {
         // Get contact from database by ID
         ContactRecord[] contacts = owerDb.getContacts("");
@@ -128,6 +155,12 @@ public class EditContactActivity extends AppCompatActivity {
         //if (currentRecord.BirthDate != null) editTextBirthDate.setText(sdf.format(currentRecord.BirthDate));
         editTextBirthDate.setDate(currentRecord.BirthDate);
         if (currentRecord.DateReceived != null) editTextDateReceived.setText(sdf.format(currentRecord.DateReceived));
+
+        // Task 53: служебные поля (нередактируемые)
+        if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
+        if (currentRecord.DateCreated != null) textViewDateCreated.setText(DISPLAY_DATE_TIME.format(currentRecord.DateCreated));
+        if (currentRecord.LastUpdatedBy != null) textViewLastUpdatedBy.setText(currentRecord.LastUpdatedBy);
+        if (currentRecord.DateModified != null) textViewDateModified.setText(DISPLAY_DATE_TIME.format(currentRecord.DateModified));
     }
 
     private void saveContact() {
@@ -151,6 +184,9 @@ public class EditContactActivity extends AppCompatActivity {
         if (currentRecord == null) {
             currentRecord = new ContactRecord(surname, firstName, patronymic, phone);
             currentRecord.DateCreated = new Date();
+            // Task 53: Автор = Ведущий из параметров
+            currentRecord.AuthorID = ManageSQLDatabase.AuthorID;
+            currentRecord.AuthorName = ManageSQLDatabase.AuthorName;
         } else {
             currentRecord.Surname = surname;
             currentRecord.FirstName = firstName;
@@ -163,6 +199,9 @@ public class EditContactActivity extends AppCompatActivity {
         currentRecord.Email = email;
         currentRecord.HomeAddress = homeAddress;
         currentRecord.DateModified = new Date();
+        // Task 53: Обновивший = Ведущий из параметров (проставляется при создании и каждом обновлении)
+        currentRecord.LastUpdatedByID = ManageSQLDatabase.AuthorID;
+        currentRecord.LastUpdatedBy = ManageSQLDatabase.AuthorName;
 
         // Parse dates
         currentRecord.BirthDate = editTextBirthDate.getDate();

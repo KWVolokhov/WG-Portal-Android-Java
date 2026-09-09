@@ -681,6 +681,13 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         return form;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Task 100: forward the attachment picker result to InfoFieldView
+        InfoFieldView.onHostActivityResult(requestCode, resultCode, data);
+    }
+
     /**
      * Form value read from the spinner.
      * In "Проекты"-mode the spinner shows "Проекты"/"Задачи"/"Заявка на автоматизацию"

@@ -70,7 +70,7 @@ public class HistoryActivity extends Activity {
                 }
                 final calPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");
-                row.setBottomText(shortBodyText(record.BodyText));
+                row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
                 row.setTypeIcon(R.drawable.ic_type_history);
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));

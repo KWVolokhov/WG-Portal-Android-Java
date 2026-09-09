@@ -69,7 +69,7 @@ public class HealthActivity extends Activity {
                 }
                 final healthPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");
-                row.setBottomText(shortBodyText(record.BodyText));
+                row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
                 row.setTypeIcon(iconForForm(record.Form));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));

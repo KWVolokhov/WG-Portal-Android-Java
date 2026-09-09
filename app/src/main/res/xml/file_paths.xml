@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Task 100: the attachment folder lives inside the app files dir;
+         its name is stored in CALPARAM.AttachFolder -->
+    <files-path name="attachments" path="." />
+</paths>
