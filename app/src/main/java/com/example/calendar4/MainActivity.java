@@ -187,6 +187,10 @@ public class MainActivity extends AppCompatActivity {
     }
     // ===================== Startup device registration =====================
     private static final int REQUEST_PHONE_STATE = 100;
+    // Задача 109: разрешение ACTIVITY_RECOGNITION обязательно на Android 10+ (targetSdk 30+),
+    // иначе TYPE_STEP_COUNTER не отдаёт данные (на BV5300 шаги показывали 0).
+    private static final int REQUEST_ACTIVITY_RECOGNITION = 101;
+    private Integer pendingPedometerRecordId; // запись HealthSport, ждущая выдачи разрешения
 
     // Checks permission; if granted registers the device, otherwise asks the user.
     private void ensureDeviceContactOnStart() {
@@ -207,6 +211,33 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 ensureDeviceContact();
             }
+        }
+        // Задача 109: после выдачи ACTIVITY_RECOGNITION запускаем отложенный шагомер.
+        if (requestCode == REQUEST_ACTIVITY_RECOGNITION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (pendingPedometerRecordId != null) {
+                    startPedometer(pendingPedometerRecordId);
+                }
+            } else {
+                Toast.makeText(this, "Без разрешения 'Физическая активность' шагомер работать не будет", Toast.LENGTH_LONG).show();
+            }
+            pendingPedometerRecordId = null;
+        }
+    }
+
+    /** Задача 109: запускает шагомер, запросив разрешение ACTIVITY_RECOGNITION на Android 10+. */
+    private void startPedometer(Integer recordId) {
+        if (pedometer == null) {
+            pedometer = new Pedometer(this, owerDb.getWritableDatabase());
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                == PackageManager.PERMISSION_GRANTED) {
+            pedometer.start(recordId);
+        } else {
+            pendingPedometerRecordId = recordId;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACTIVITY_RECOGNITION},
+                    REQUEST_ACTIVITY_RECOGNITION);
         }
     }
 
@@ -710,10 +741,7 @@ public class MainActivity extends AppCompatActivity {
             // При запуске нового шагомера старый сеанс автоматически завершается
             // (внутри Pedometer.start -> stop), и это завершение пишется в Историю.
             if ("HealthSport".equals(record.Form) && isPedometerAllowed(typeRecord)) {
-                if (pedometer == null) {
-                    pedometer = new Pedometer(this, owerDb.getWritableDatabase());
-                }
-                pedometer.start(record.id);
+                startPedometer(record.id);
             }
         } catch (Exception err) {
             Toast.makeText(this, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();

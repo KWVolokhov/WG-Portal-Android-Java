@@ -86,7 +86,14 @@ public class Pedometer implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event == null || event.values == null || event.values.length == 0) return;
-        lastStepValue = (long) event.values[0];
+        long value = (long) event.values[0];
+        // Первое значение после старта - базовая точка датчика (TYPE_STEP_COUNTER
+        // отдаёт накопительное число шагов с момента включения устройства).
+        // Без этого при первом обновлении получались бы 0 или гигантские дельты.
+        if (lastStepValue == null) {
+            lastPersistedStepValue = value;
+        }
+        lastStepValue = value;
         lastStepTimeMs = System.currentTimeMillis();
     }
 
@@ -98,6 +105,8 @@ public class Pedometer implements SensorEventListener {
         try {
             // Безопасный сброс предыдущего запуска
             if (active) stop();
+
+            // Разрешение ACTIVITY_RECOGNITION запрашивается в MainActivity перед запуском шагомера.
 
             sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
             if (sensorManager == null) {
