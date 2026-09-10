@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Task 110: СМС Чат - диалог сообщений между Ведущим и Контактом -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Шапка: титл "СМС Чат: Фамилия Имя" + кнопка назад (как в activity_editcontact.xml) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/textViewSmsChatTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="СМС Чат"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_cancel_gray"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Назад"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Строка фильтрации сообщений -->
+    <EditText
+        android:id="@+id/editTextSmsChatFilter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Поиск сообщений (минимум 3 символа)"
+        android:inputType="text"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Список сообщений -->
+    <ListView
+        android:id="@+id/listViewSmsChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Инфо строка над полем ввода, прижата к нему -->
+    <TextView
+        android:id="@+id/textViewSmsChatVedushii"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ведущий: "
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:paddingTop="4dp" />
+
+    <!-- Поле ввода сообщения + кнопка отправить, прижаты к нижнему краю -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/editTextSmsChatInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Сообщение"
+            android:inputType="textMultiLine"
+            android:maxLines="2" />
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_add_plus"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Отправить"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+</LinearLayout>

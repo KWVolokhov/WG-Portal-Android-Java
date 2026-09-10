@@ -127,6 +127,12 @@
             android:exported="false"
              />
 
+        <!-- Task 110: СМС Чат Ведущий<->Контакт -->
+        <activity
+            android:name=".SmsChatActivity"
+            android:exported="false"
+             />
+
         <!-- Task 100: shares InfoFieldView attachment files with the standard Android viewers -->
         <provider
             android:name="androidx.core.content.FileProvider"

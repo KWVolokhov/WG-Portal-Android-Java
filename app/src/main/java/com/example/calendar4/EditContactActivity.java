@@ -104,11 +104,17 @@ public class EditContactActivity extends AppCompatActivity {
             }
         });
 
-        // SMS button - stub
+        // SMS button - Task 110: открыть СМС Чат с контактом
         btnSMS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(EditContactActivity.this, "СМС (заглушка)", Toast.LENGTH_SHORT).show();
+                if (currentRecord == null || currentRecord.id == null) {
+                    Toast.makeText(EditContactActivity.this, "Сначала сохраните контакт", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Intent intent = new Intent(EditContactActivity.this, SmsChatActivity.class);
+                intent.putExtra(SmsChatActivity.EXTRA_CONTACT_ID, currentRecord.id);
+                startActivity(intent);
             }
         });
     }
