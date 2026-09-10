@@ -187,7 +187,8 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             lp.width = side;
             lp.height = side;
             frame.setLayoutParams(lp);
-            Bitmap thumb = host.thumbFor(b);
+            Bitmap thumb = host.thumbs.get(b);
+            //Bitmap thumb = host.thumbFor(b);  // НЕ РАБОТАЕТ ТУПИЦА!!!нет метода thumbFor - забудь
             if (thumb != null) {
                 // Сам эскиз: картинка или кадр видео
                 image.setImageBitmap(thumb);
