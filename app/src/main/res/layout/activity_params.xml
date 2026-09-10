@@ -12,6 +12,15 @@
         android:orientation="horizontal"
         android:gravity="end">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Параметры"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
         <ImageButton
             android:id="@+id/btnOK"
             android:layout_width="32dp"
@@ -169,8 +178,9 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
             android:layout_weight="1"
+            android:layout_marginTop="10dp"
             android:background="#FF888888" />
 
         <TextView
@@ -184,7 +194,8 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:background="#FF888888" />
     </LinearLayout>
@@ -268,7 +279,8 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:background="#FF888888" />
 
@@ -283,7 +295,8 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:background="#FF888888" />
     </LinearLayout>
@@ -405,7 +418,8 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:background="#FF888888" />
 
@@ -420,7 +434,8 @@
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
             android:layout_weight="1"
             android:background="#FF888888" />
     </LinearLayout>
