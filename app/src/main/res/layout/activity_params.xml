@@ -32,6 +32,40 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
+    <!-- Task 11: поля обёрнуты в ScrollView, чтобы последнее поле не обрезалось по высоте -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+    <!-- Стартовая страница (Календарь / Контакты / Проекты / Параметры) - первое поле (Task 105) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Стартовая страница:"
+            android:textSize="16sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerStartPage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
     <!-- Ведущий field, based on the "Постановщик" field from activity_input_cal_plan.xml -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -53,6 +87,106 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Task 105: Рост/Вес/Возраст размещены под Ведущим -->
+    <!-- Task 54: Рост, см -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Рост, см:"
+            android:textSize="16sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/editTextHeight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Task 54: Вес, кг -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Вес, кг:"
+            android:textSize="16sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/editTextWeight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Task 54: Возраст, лет -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Возраст, лет:"
+            android:textSize="16sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/editTextAge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <!-- Task 105: разделительная линия - заголовок секции "Синхронизация с Центром" -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Синхронизация с Центром"
+            android:textSize="14sp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
     </LinearLayout>
 
     <!-- Address field -->
@@ -124,26 +258,34 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- Стартовая страница (Календарь / Контакты / Проекты / Параметры) -->
+    <!-- Task 105: разделительная линия - заголовок секции "Настройки интерфейса" -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_marginTop="12dp"
         android:layout_marginBottom="8dp">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Стартовая страница:"
-            android:textSize="16sp"
+            android:text="Настройки интерфейса"
+            android:textSize="14sp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp" />
 
-        <Spinner
-            android:id="@+id/spinnerStartPage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
     </LinearLayout>
 
     <!-- Три настраиваемые кнопки на MainActivity (Шагомер / Бургер / Кофе 200мл по умолчанию) -->
@@ -253,73 +395,34 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
-    <!-- Task 54: Рост, см -->
+    <!-- Task 105: разделительная линия - заголовок секции "Локальное хранилище" -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_marginTop="12dp"
         android:layout_marginBottom="8dp">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Рост, см:"
-            android:textSize="16sp"
+            android:text="Локальное хранилище"
+            android:textSize="14sp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp" />
 
-        <EditText
-            android:id="@+id/editTextHeight"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:layout_gravity="center_vertical" />
-    </LinearLayout>
-
-    <!-- Task 54: Вес, кг -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Вес, кг:"
-            android:textSize="16sp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="8dp" />
-
-        <EditText
-            android:id="@+id/editTextWeight"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:layout_gravity="center_vertical" />
-    </LinearLayout>
-
-    <!-- Task 54: Возраст, лет -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Возраст, лет:"
-            android:textSize="16sp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="8dp" />
-
-        <EditText
-            android:id="@+id/editTextAge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:layout_gravity="center_vertical" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:background="#FF888888" />
     </LinearLayout>
 
     <!-- Task 100: папка вложений поля InfoFieldView -->
@@ -367,5 +470,8 @@
             android:inputType="text"
             android:layout_gravity="center_vertical" />
     </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

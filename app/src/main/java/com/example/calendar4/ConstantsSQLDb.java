@@ -235,4 +235,20 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "LastUpdatedByID TEXT, " + //Label: ID Обновившего
             "LastUpdatedBy TEXT" +     //Label: Обновивший
             ")";
+
+    // Task 106: таблица СМС (одна и та же локальная БД, отдельный java-класс SmsSQLManage).
+    // Type наследуется от стандартного СМС: Incoming (входящие) / Outgoing (исходящие) / Draft (черновик).
+    public static final String CREATE_TABLE_SMSCALPLAN = "CREATE TABLE IF NOT EXISTS SMSCALPLAN (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +         //Label: Номер записи СМС
+            "UNID TEXT UNIQUE, " +                             //Label: Уникальный ID
+            "Type TEXT DEFAULT 'Incoming', " +                 //Label: Тип (Incoming/Outgoing/Draft)
+            "FromID TEXT, " +                                  //Label: ID контакта отправителя
+            "FromName TEXT, " +                                //Label: Имя контакта отправителя
+            "ToID TEXT, " +                                    //Label: ID контакта получателя
+            "ToName TEXT, " +                                  //Label: Имя контакта получателя
+            "Subject TEXT, " +                                 //Label: Тема
+            "Body TEXT, " +                                    //Label: Тело СМС
+            "Status TEXT, " +                                  //Label: Статус (New/Read) из стандартного СМС
+            "DateReceived DATE " +                             //Label: Дата получения/отправки
+            ")";
 }

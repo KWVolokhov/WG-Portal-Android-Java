@@ -32,14 +32,20 @@
         <item
             android:id="@+id/open_settings"
             android:orderInCategory="8"
-            android:title="SMS">
+            android:title="СМС">
                 <menu>
-                        <item android:id="@+id/sms_income"
+                        <item android:id="@+id/sms_all"
                             android:orderInCategory="9"
+                            android:title="Все" />
+                        <item android:id="@+id/sms_income"
+                            android:orderInCategory="10"
                             android:title="Входящие" />
                         <item android:id="@+id/sms_outcome"
-                            android:orderInCategory="10"
+                            android:orderInCategory="11"
                             android:title="Исходящие" />
+                        <item android:id="@+id/sms_trash"
+                            android:orderInCategory="12"
+                            android:title="Корзина" />
                 </menu>
         </item>
         <item

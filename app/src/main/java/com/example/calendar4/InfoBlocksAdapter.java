@@ -11,6 +11,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -131,18 +132,28 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private class MediaHolder extends RecyclerView.ViewHolder {
         final FrameLayout frame;
         final ImageView image;
+        final ImageView placeholder;
         final ImageButton delete;
+        final boolean video;
         InfoFieldView.Block bound;
 
         MediaHolder(FrameLayout frame, boolean video) {
             super(frame);
             this.frame = frame;
+            this.video = video;
             Context ctx = frame.getContext();
             image = new ImageView(ctx);
             image.setScaleType(ImageView.ScaleType.FIT_CENTER);
             image.setBackgroundResource(R.drawable.bg_underline);
             frame.addView(image, new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+            // Task 101: заглушка 48x48 dp на случай, если эскиз не удалось построить
+            placeholder = new ImageView(ctx);
+            placeholder.setBackgroundResource(R.drawable.bg_underline);
+            placeholder.setVisibility(View.GONE);
+            frame.addView(placeholder, new FrameLayout.LayoutParams(
+                    host.dpToPx(48), host.dpToPx(48), Gravity.CENTER));
 
             if (video) {
                 ImageView play = new ImageView(ctx);
@@ -176,7 +187,18 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             lp.width = side;
             lp.height = side;
             frame.setLayoutParams(lp);
-            //image.setImageBitmap(host.thumbFor(b));
+            Bitmap thumb = host.thumbFor(b);
+            if (thumb != null) {
+                // Сам эскиз: картинка или кадр видео
+                image.setImageBitmap(thumb);
+                image.setVisibility(View.VISIBLE);
+                placeholder.setVisibility(View.GONE);
+            } else {
+                // Эскиз не построился - показываем значок-заглушку 48x48 dp
+                image.setVisibility(View.GONE);
+                placeholder.setImageResource(video ? R.drawable.ic_attach_video : R.drawable.ic_attach_image);
+                placeholder.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -192,7 +214,7 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ImageView icon = new ImageView(ctx);
         icon.setImageResource(R.drawable.ic_attach_file);
         LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(
-                host.dpToPx(24), host.dpToPx(24));
+                host.dpToPx(48), host.dpToPx(48));
         ilp.rightMargin = host.dpToPx(8);
         icon.setLayoutParams(ilp);
         row.addView(icon);

@@ -83,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> livetypeLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             });
+
+    private final ActivityResultLauncher<Intent> smsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -214,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
 
             String phone = getDevicePhoneDigits();
             String model = getDeviceModel();
-            String imei = getDeviceImei();
 
             ContactRecord contact = (phone != null) ? owerDb.getContactByPhone(phone) : null;
             // If a number is unavailable, look for the device record by Surname+FirstName
@@ -222,9 +225,12 @@ public class MainActivity extends AppCompatActivity {
 
             if (contact == null) {
                 ContactRecord rec = new ContactRecord("Etot", "Phone", model, phone);
-                rec.Info = imei;
                 rec.DateCreated = new Date();
                 owerDb.upsertContact(rec);   // inserts, no duplicates (single device record)
+            } else if (phone != null && (contact.Phone == null || contact.Phone.trim().isEmpty())) {
+                // Номер стал доступен позже - дописываем его в уже созданную запись устройства
+                contact.Phone = phone;
+                owerDb.upsertContact(contact);
             }
 
             // Fetch the device record again to make sure it is present
@@ -259,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             if (tm == null) return null;
-            String line = ""; tm.getLine1Number();
+            String line = tm.getLine1Number();
             if (line == null) return null;
             StringBuilder digits = new StringBuilder();
             for (int i = 0; i < line.length() && digits.length() < 10; i++) {
@@ -277,21 +283,6 @@ public class MainActivity extends AppCompatActivity {
     private String getDeviceModel() {
         String model = Build.MODEL;
         return (model == null || model.trim().isEmpty()) ? null : model.trim();
-    }
-
-    private String getDeviceImei() {
-        try {
-            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            if (tm == null) return null;
-            // IMEI on modern Android (API 29+) requires privileged access; best effort.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                return tm.getImei();
-            }
-
-            return tm.getDeviceId();
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private void fetchRussianHolidays() {
@@ -434,8 +425,30 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ProjectsActivity.class);
             projectsLauncher.launch(intent);
         }
-        if(item.getItemId()==R.id.sms_income) JabText = "Меню СМС Входящие";
-        if(item.getItemId()==R.id.sms_outcome) JabText = "Меню СМС Исходящие";
+        if(item.getItemId()==R.id.sms_all) {
+            JabText = "Меню СМС Все";
+            Intent intent = new Intent(this, SmsActivity.class);
+            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_ALL);
+            smsLauncher.launch(intent);
+        }
+        if(item.getItemId()==R.id.sms_income) {
+            JabText = "Меню СМС Входящие";
+            Intent intent = new Intent(this, SmsActivity.class);
+            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_INCOME);
+            smsLauncher.launch(intent);
+        }
+        if(item.getItemId()==R.id.sms_outcome) {
+            JabText = "Меню СМС Исходящие";
+            Intent intent = new Intent(this, SmsActivity.class);
+            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_OUTCOME);
+            smsLauncher.launch(intent);
+        }
+        if(item.getItemId()==R.id.sms_trash) {
+            JabText = "Меню СМС Корзина";
+            Intent intent = new Intent(this, SmsActivity.class);
+            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_TRASH);
+            smsLauncher.launch(intent);
+        }
         /*AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.calendar:

@@ -157,10 +157,30 @@ public class EditContactActivity extends AppCompatActivity {
         if (currentRecord.DateReceived != null) editTextDateReceived.setText(sdf.format(currentRecord.DateReceived));
 
         // Task 53: служебные поля (нередактируемые)
+        // Task 102: имя автора/обновившего подтягиваем из справочника контактов по ID
+        String author = contactNameById(currentRecord.AuthorID);
+        if (author != null) currentRecord.AuthorName = author;
         if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
         if (currentRecord.DateCreated != null) textViewDateCreated.setText(DISPLAY_DATE_TIME.format(currentRecord.DateCreated));
+        String updater = contactNameById(currentRecord.LastUpdatedByID);
+        if (updater != null) currentRecord.LastUpdatedBy = updater;
         if (currentRecord.LastUpdatedBy != null) textViewLastUpdatedBy.setText(currentRecord.LastUpdatedBy);
         if (currentRecord.DateModified != null) textViewDateModified.setText(DISPLAY_DATE_TIME.format(currentRecord.DateModified));
+    }
+
+    /** Task 102: текущее имя контакта (Фамилия Имя) из справочника по числовому ID. */
+    private String contactNameById(String id) {
+        if (id == null || id.trim().isEmpty()) return null;
+        try {
+            ContactRecord c = owerDb.getContactById(Integer.valueOf(id.trim()));
+            if (c == null) return null;
+            StringBuilder sb = new StringBuilder();
+            if (c.Surname != null) sb.append(c.Surname).append(" ");
+            if (c.FirstName != null) sb.append(c.FirstName);
+            return sb.toString().trim().isEmpty() ? null : sb.toString().trim();
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private void saveContact() {

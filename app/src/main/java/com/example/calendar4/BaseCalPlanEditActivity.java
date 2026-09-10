@@ -537,6 +537,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             return;
         }
 
+        // Task 102: имя автора подтягиваем из справочника контактов по ID
+        String authorName = contactNameById(record.AuthorID);
+        if (authorName != null) record.AuthorName = authorName;
         textViewAuthorName.setText(record.AuthorName != null ? record.AuthorName : "");
         if (isRequestPicker() && record.RequestUNID != null) selectedRequestUNID = record.RequestUNID;
 
@@ -548,6 +551,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         if (record.InstallOrder != null) editTextInstallOrder.setText(record.InstallOrder);
         if (record.KeyWords != null) editTextKeyWords.setText(record.KeyWords);
 
+        // Task 102: имя обновившего подтягиваем из справочника контактов по ID
+        String updaterName = contactNameById(record.LastUpdatedByID);
+        if (updaterName != null) record.LastUpdatedBy = updaterName;
         textViewLastUpdatedBy.setText(record.LastUpdatedBy != null ? record.LastUpdatedBy : "");
         textViewLastUpdatedDate.setText(
                 record.LastUpdatedDate != null ? DISPLAY_DATE_TIME.format(record.LastUpdatedDate) : "");
@@ -559,6 +565,21 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
                 setHealthNumber(i, getHealthRecordValue(record, i));
             }
+        }
+    }
+
+    /** Task 102: текущее имя контакта (Фамилия Имя) из справочника по числовому ID. */
+    private String contactNameById(String id) {
+        if (id == null || id.trim().isEmpty()) return null;
+        try {
+            ContactRecord c = owerDb.getContactById(Integer.valueOf(id.trim()));
+            if (c == null) return null;
+            StringBuilder sb = new StringBuilder();
+            if (c.Surname != null) sb.append(c.Surname).append(" ");
+            if (c.FirstName != null) sb.append(c.FirstName);
+            return sb.toString().trim().isEmpty() ? null : sb.toString().trim();
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

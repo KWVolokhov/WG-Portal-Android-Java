@@ -235,6 +235,9 @@ public class LivetypeEditActivity extends Activity {
            (даже если запись загружена, но категория не "Физ. активность" - выключаем). */
         updateStepCounterCheckboxState();
         if (currentRecord.Icon != null) editTextIcon.setText(currentRecord.Icon);
+        // Task 102: имя автора подтягиваем из справочника контактов по ID
+        String author = contactNameById(currentRecord.AuthorID);
+        if (author != null) currentRecord.AuthorName = author;
         if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
         if (currentRecord.DateCreated != null) {
             textViewDateCreated.setText(
@@ -256,6 +259,21 @@ public class LivetypeEditActivity extends Activity {
         // Task 42: разрешён ли шагомер
         if (checkboxStepCounter != null && currentRecord.StepCounter != null && currentRecord.StepCounter == 1) {
             checkboxStepCounter.setChecked(true);
+        }
+    }
+
+    /** Task 102: текущее имя контакта (Фамилия Имя) из справочника по числовому ID. */
+    private String contactNameById(String id) {
+        if (id == null || id.trim().isEmpty()) return null;
+        try {
+            ContactRecord c = ManageSQLDatabase.getInstance(this).getContactById(Integer.valueOf(id.trim()));
+            if (c == null) return null;
+            StringBuilder sb = new StringBuilder();
+            if (c.Surname != null) sb.append(c.Surname).append(" ");
+            if (c.FirstName != null) sb.append(c.FirstName);
+            return sb.toString().trim().isEmpty() ? null : sb.toString().trim();
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

@@ -121,6 +121,12 @@
             android:exported="false"
              />
 
+        <!-- Task 107: экран списка СМС (СМС\Все, СМС\Входящие, СМС\Исходящие, СМС\Корзина) -->
+        <activity
+            android:name=".SmsActivity"
+            android:exported="false"
+             />
+
         <!-- Task 100: shares InfoFieldView attachment files with the standard Android viewers -->
         <provider
             android:name="androidx.core.content.FileProvider"

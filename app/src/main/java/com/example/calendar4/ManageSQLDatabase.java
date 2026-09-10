@@ -13,10 +13,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 	
 	public static String AuthorName = null;
@@ -77,6 +78,10 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
 
         // Create CONTACTS table
         db.execSQL(ConstantsSQLDb.CREATE_TABLE_CONTACTS);
+
+        // Task 106: таблица СМС (та же локальная БД) + 2 тестовые записи
+        db.execSQL(ConstantsSQLDb.CREATE_TABLE_SMSCALPLAN);
+        seedSmsDefaults(db);
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -195,6 +200,16 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             addColumnIfMissing(db, "CALPARAM", "DBName", "TEXT");
         }
 
+        // Version 10 (Task 106): таблица СМС SMSCALPLAN + 2 тестовые записи
+        if (oldVersion < 10) {
+            try {
+                db.execSQL(ConstantsSQLDb.CREATE_TABLE_SMSCALPLAN);
+                seedSmsDefaults(db);
+            } catch (Exception e) {
+                // Non-fatal
+            }
+        }
+
         // Safety net (Task 34): whatever version the old database recorded, make sure
         // that every column the application needs really exists. Old production builds
         // suffered from "no such column: Button1Id / Button4Id ... while compiling:
@@ -229,6 +244,13 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "CALPARAM", "Age", "INTEGER");
         addColumnIfMissing(db, "CALPARAM", "AttachFolder", "TEXT");
         addColumnIfMissing(db, "CALPARAM", "DBName", "TEXT");
+        // Task 106: таблица СМС создаётся и наполняется тестовыми записями на всякий случай
+        try {
+            db.execSQL(ConstantsSQLDb.CREATE_TABLE_SMSCALPLAN);
+            seedSmsDefaults(db);
+        } catch (Exception e) {
+            // Non-fatal
+        }
         try {
             for (String updCom : ConstantsSQLDb.UPDATE_LIVETYPE_ICONS) {
                 db.execSQL(updCom);
@@ -1194,5 +1216,56 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         contactsList.toArray(contacts);
 
         return contacts;
+    }
+
+    // =====================================================================
+    // Task 106: тестовые записи СМС (Входящая, Исходящая) с Ведущим из параметров
+    // =====================================================================
+
+    private void seedSmsDefaults(SQLiteDatabase db) {
+        try {
+            ContactRecord[] contacts = getContacts("");
+            ContactRecord vedushii = null;
+            String vedushiiName = AuthorName;
+            String vedushiiId = AuthorID;
+            if (vedushiiName == null) {
+                CalParamRecord param = getCalParam();
+                if (param != null) {
+                    vedushiiName = param.Vedushii;
+                    vedushiiId = param.VedushiiID;
+                }
+                if (vedushiiName == null && contacts.length > 0) {
+                    vedushii = contacts[0];
+                    vedushiiName = (vedushii.Surname != null ? vedushii.Surname + " " : "")
+                            + (vedushii.FirstName != null ? vedushii.FirstName : "");
+                    vedushiiId = vedushii.EntryID != null ? vedushii.EntryID
+                            : (vedushii.id != null ? String.valueOf(vedushii.id) : null);
+                }
+            }
+            if (vedushiiName == null || vedushiiName.trim().isEmpty()) vedushiiName = "Ведущий";
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            String now = sdf.format(new Date());
+
+            // Входящая: от Ведущего (FromID заполнен - контакт сопоставлен)
+            db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
+                    "'" + java.util.UUID.randomUUID() + "', 'Incoming', " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", '', '', " +
+                    "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
+
+            // Исходящая: к Ведущему (ToID заполнен - контакт сопоставлен)
+            db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
+                    "'" + java.util.UUID.randomUUID() + "', 'Outgoing', " +
+                    "'', '', " + sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
+                    "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
+        } catch (Exception e) {
+            // Non-fatal: СМС - вспомогательные данные
+        }
+    }
+
+    /** Оборачивает строку в одинарные кавычки для SQL (null -> ''). */
+    private String sqlStr(String value) {
+        if (value == null) return "''";
+        return "'" + value.replace("'", "''") + "'";
     }
 }
