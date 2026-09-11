@@ -18,9 +18,11 @@ import java.util.Locale;
  * Задача 29. Реальный шагомер для активностей типа HealthSport.
  *
  * - включает датчик шагов (Sensor.TYPE_STEP_COUNTER) на 2 часа;
- * - каждые 10 минут обновляет запись HEALTHPLAN (шаги пишутся в BodyText/Weight);
- * - через 2 часа шагомер выключается;
- * - если шаги не отсчитываются 20 минут - шагомер выключается досрочно.
+ * - каждые 2 минуты обновляет запись HEALTHPLAN (шаги пишутся в BodyText/Weight);
+ * - через 2 часа активного времени шагомер выключается;
+ * - если шаги не отсчитываются 20 минут активного времени - шагомер выключается досрочно;
+ * - Task 113: время со выключенным экраном (приложение "спит") не засчитывается
+ *   ни в 2-часовой лимит, ни в таймаут "20 минут без шагов".
  *
  * Все обращения к android.hardware обёрнуты в try/catch и проверки на null,
  * чтобы код оставался работоспособным и на Android 8 без датчика шагов.
@@ -30,6 +32,10 @@ public class Pedometer implements SensorEventListener {
     private static final int PEDOMETER_DURATION_MIN = 120;                 // 2 часа
     private static final long UPDATE_INTERVAL_MS = 2 * 60 * 1000L;        // каждые 2 минуты
     private static final long STOP_TIMEOUT_MS = 20 * 60 * 1000L;           // 20 минут без шагов
+    // Task 113: если между периодическими обновлениями прошло заметно больше интервала,
+    // приложение "спало" (экран выключен/телефон уснул) и это время не должно
+    // засчитываться ни в 2-часовой лимит, ни в таймаут "20 минут без шагов".
+    private static final long SUSPEND_THRESHOLD_MS = UPDATE_INTERVAL_MS * 4;
 
     private final Context context;
     private final SQLiteDatabase db;
@@ -47,6 +53,9 @@ public class Pedometer implements SensorEventListener {
     private long lastPersistedStepValue; // последнее значение датчика, уже учтённое в Steps
     private boolean active;         // включён ли шагомер
     private int lastRecordedSteps;  // сколько шагов записано в запись (для Истории)
+    private long lastTickMs;            // момент последнего тика периодического обновления
+    private long suspendedMs;           // сколько времени приложение "спало" (экран выключен)
+    private long suspendedSinceStepMs;  // время "сна", накопленное после последнего шага
 
     // Task 47: базовые (из справочника) поля "Голова".."Каллории", на которые
     // умножается количество шагов при обновлении записи HealthSport.
@@ -95,6 +104,7 @@ public class Pedometer implements SensorEventListener {
         }
         lastStepValue = value;
         lastStepTimeMs = System.currentTimeMillis();
+        suspendedSinceStepMs = 0; // после шага отсчёт таймаута начинается заново
     }
 
     @Override
@@ -126,6 +136,9 @@ public class Pedometer implements SensorEventListener {
             this.recordId = recordId;
             startTimeMs = System.currentTimeMillis();
             lastStepTimeMs = startTimeMs;
+            lastTickMs = startTimeMs;
+            suspendedMs = 0;
+            suspendedSinceStepMs = 0;
             lastStepValue = null;
             lastPersistedStepValue = 0;
             lastRecordedSteps = 0;
@@ -137,13 +150,8 @@ public class Pedometer implements SensorEventListener {
             // Запись в Историю о включении шагомера
             addHistoryRecord("Шагомер включен", 0, startTimeMs);
 
-            // Через 2 часа шагомер выключается
-            finishRunnable = () -> {
-                if (active) stop();
-            };
-            handler.postDelayed(finishRunnable, PEDOMETER_DURATION_MIN * 60L * 1000L);
-
-            // Периодическое обновление записи SQL каждые 10 минут
+            // Task 113: 2-часовой лимит проверяется периодическим таймером только по
+            // активному времени (время со спящим экраном не засчитывается)
             scheduleUpdate();
 
             toast("Шагомер запущен на 2 часа");
@@ -204,7 +212,7 @@ public class Pedometer implements SensorEventListener {
         }
     }
 
-    /** Планирует периодическое обновление (10 минут) + проверку 20 минут без шагов. */
+    /** Планирует периодическое обновление (2 минуты) + проверку 20 минут без шагов. */
     private void scheduleUpdate() {
         if (!active) return;
         if (timerRunnable != null) return; // один периодический цикл
@@ -215,16 +223,20 @@ public class Pedometer implements SensorEventListener {
                 timerRunnable = null;
                 if (!active) return;
 
+                // Task 113: время "сна" приложения (экран выключен) не считается
+                updateSuspendedIfNeeded();
+
                 updateRecord();
 
-                // 2 часа прошли - выключаем
-                long elapsedMs = System.currentTimeMillis() - startTimeMs;
-                if (elapsedMs >= PEDOMETER_DURATION_MIN * 60L * 1000L) {
+                // 2 часа активного времени - выключаем
+                long activeElapsedMs = (System.currentTimeMillis() - startTimeMs) - suspendedMs;
+                if (activeElapsedMs >= PEDOMETER_DURATION_MIN * 60L * 1000L) {
                     stop();
                     return;
                 }
-                // 20 минут без шагов - выключаем
-                if (System.currentTimeMillis() - lastStepTimeMs >= STOP_TIMEOUT_MS) {
+                // 20 минут активного времени без шагов - выключаем
+                long awakeSinceStepMs = (System.currentTimeMillis() - lastStepTimeMs) - suspendedSinceStepMs;
+                if (awakeSinceStepMs >= STOP_TIMEOUT_MS) {
                     stop();
                     return;
                 }
@@ -232,6 +244,18 @@ public class Pedometer implements SensorEventListener {
             }
         };
         handler.postDelayed(timerRunnable, UPDATE_INTERVAL_MS);
+    }
+
+    /** Task 113: учитывает "сон" приложения (экран выключен) в таймаутах шагомера. */
+    private void updateSuspendedIfNeeded() {
+        long now = System.currentTimeMillis();
+        long gap = now - lastTickMs;
+        lastTickMs = now;
+        if (gap <= SUSPEND_THRESHOLD_MS) return;
+        long extra = gap - UPDATE_INTERVAL_MS;
+        if (extra < 0) extra = 0;
+        suspendedMs += extra;
+        suspendedSinceStepMs += extra;
     }
 
     /** Обновляет запись HEALTHPLAN текущим количеством шагов (раз в 10 минут и при выключении).

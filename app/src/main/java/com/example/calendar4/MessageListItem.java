@@ -96,7 +96,7 @@ public class MessageListItem extends LinearLayout {
     // Public API
     // ---------------------------------------------------------------------
 
-    /** Верхняя строка: "Фамилия Имя  dd.MM.yyyy HH:mm". */
+    /** Верхняя строка: "Фамилия Имя  dd.MM.yyyy HH:mm:ss". */
     public void setTopText(String text) {
         tvTop.setText(text == null ? "" : text);
     }
@@ -104,6 +104,11 @@ public class MessageListItem extends LinearLayout {
     /** Текст сообщения (показывается максимум в 2 строки). */
     public void setMessageText(String text) {
         tvMessage.setText(text == null ? "" : text);
+    }
+
+    /** Task 117: цвет текста сообщения (входящее/исходящее - разные цвета). */
+    public void setMessageTextColor(int color) {
+        tvMessage.setTextColor(color);
     }
 
     /** Иконка типа СМС (входящее/исходящее). */

@@ -36,7 +36,7 @@ public class TwoLineListItem extends LinearLayout {
     private ImageView ivIcon;
 
     // Color of the horizontal "every fifth" line and its number
-    private static final int FIFTH_LINE_COLOR = Color.rgb(30, 96, 200);
+    private static final int FIFTH_LINE_COLOR = Color.rgb(26, 204, 173);
 
     public TwoLineListItem(Context context) {
         this(context, null);
@@ -79,13 +79,18 @@ public class TwoLineListItem extends LinearLayout {
 
         tvTop = new TextView(context);
         //tvTop.setTextColor(0xFF555555); // slightly brighter
+		int mainFontColor = tvTop.getCurrentTextColor();
+		ColorUtils.colorToHSL(mainFontColor, hsl);//Запихаем основной цвет в массив
         tvTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         tvTop.setSingleLine(true);
         tvTop.setEllipsize(TextUtils.TruncateAt.END);
 
         tvBottom = new TextView(context);
         //tvBottom.setTextColor(0xFF2B2B2B); // slightly darker
-        tvBottom.setTextColor(Color.BLUE);
+		float[] hsl = new float[3];
+		hsl[2] = hsl[2] * 0.7f;
+		int minorFontColor = ColorUtils.HSLToColor(hsl);
+        tvBottom.setTextColor(minorFontColor);
         tvBottom.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15); // size -1
         tvBottom.setSingleLine(true);
         tvBottom.setEllipsize(TextUtils.TruncateAt.END);

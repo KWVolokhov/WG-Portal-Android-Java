@@ -25,7 +25,7 @@ import java.util.Locale;
  * two-line rows with per-row Edit/Delete buttons. The search field filters by Name
  * when 3 or more characters are typed. "Add" opens a new Project card.
  */
-public class ProjectsActivity extends Activity {
+public class ProjectsActivity extends BaseScreenActivity {
 
     // Intent extra marking the "Проекты\Рабочие" work mode (vs "Проекты\Все")
     public static final String EXTRA_WORK_MODE = "extra_work_mode";
@@ -136,11 +136,11 @@ public class ProjectsActivity extends Activity {
         }
     }
 
-    /** Sets the header text and window title: "Проекты\Все" or "Проекты\Рабочие". */
+    /** Task 118: титл в шапке карточки: "Проекты\Все" или "Проекты\Рабочие".
+     * ActionBar-титл остаётся единым на всех экранах - "Календарный План" (как на MainActivity). */
     private void updateTitle() {
         String title = workMode ? "Проекты\\Рабочие" : "Проекты\\Все";
         if (textViewTitle != null) textViewTitle.setText(title);
-        setTitle(title);
     }
 
     private void openProject(calPlanRecord project) {

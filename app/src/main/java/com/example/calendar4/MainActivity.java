@@ -652,25 +652,52 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    /** Task 114: кнопка Добавить - сначала диалог выбора типа, затем нужная карточка. */
     public void taskAdd(View view) {
         try {
-            // Initialize database if needed
             if (owerDb == null) {
                 owerDb = new ManageSQLDatabase(this);
             }
-            
-            // Launch InputCalPlanActivity modally
-            Intent intent = new Intent(this, InputCalPlanActivity.class);
-            intent.putExtra("activeDate", russianCalendar.activeDate);  //WG12.08.26
-            // Task 39: выбор форм тот же, что и при добавлении из проектов
-            // (Проекты / Задачи / Заявка на автоматизацию)
-            intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
-            inputCalPlanLauncher.launch(intent);
-
+            new AlertDialog.Builder(this)
+                    .setTitle("Добавить")
+                    .setItems(new String[]{"Проект", "Задача", "Заявка", "Заметка", "Напоминание"},
+                            (d, which) -> openNewRecordDialog(which))
+                    .setNegativeButton("Cancel", null)
+                    .show();
         } catch(Exception err) {
-            String selected = String.format("Error: "+err.getMessage());
-            Toast.makeText(this, selected, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /** Task 114: создаёт карточку выбранного типа (Проект/Задача/Заявка/Заметка/Напоминание). */
+    private void openNewRecordDialog(int which) {
+        Intent intent;
+        switch (which) {
+            case 0: // Проект
+                intent = new Intent(MainActivity.this, InputCalPlanActivity.class);
+                intent.putExtra("activeDate", russianCalendar.activeDate);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
+                break;
+            case 1: // Задача
+                intent = new Intent(MainActivity.this, TaskActivity.class);
+                intent.putExtra("activeDate", russianCalendar.activeDate);
+                break;
+            case 2: // Заявка
+                intent = new Intent(MainActivity.this, InputCalPlanActivity.class);
+                intent.putExtra("activeDate", russianCalendar.activeDate);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PRESELECT_FORM, "Request");
+                break;
+            case 3: // Заметка
+                intent = new Intent(MainActivity.this, NoteActivity.class);
+                intent.putExtra("activeDate", russianCalendar.activeDate);
+                break;
+            default: // Напоминание
+                intent = new Intent(MainActivity.this, RememberActivity.class);
+                intent.putExtra("activeDate", russianCalendar.activeDate);
+                break;
+        }
+        inputCalPlanLauncher.launch(intent);
     }
 
     public void onQuickButtonClick(View view) {

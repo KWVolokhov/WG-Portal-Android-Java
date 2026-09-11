@@ -133,6 +133,12 @@
             android:exported="false"
              />
 
+        <!-- Task 111: просмотр записи СМС (только чтение) -->
+        <activity
+            android:name=".SmsViewActivity"
+            android:exported="false"
+             />
+
         <!-- Task 100: shares InfoFieldView attachment files with the standard Android viewers -->
         <provider
             android:name="androidx.core.content.FileProvider"

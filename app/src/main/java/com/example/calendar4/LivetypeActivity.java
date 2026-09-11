@@ -2,7 +2,6 @@ package com.example.calendar4;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
  * The search field filters by Name or Category when 3+ characters are typed.
  * "Add" opens a new LIVETYPE card.
  */
-public class LivetypeActivity extends AppCompatActivity {
+public class LivetypeActivity extends BaseScreenActivity {
 
     private ListView listViewLivetype;
     private EditText editTextFilter;

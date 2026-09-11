@@ -9,16 +9,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class EditContactActivity extends AppCompatActivity {
+public class EditContactActivity extends BaseScreenActivity {
 
-    // Task 44: дата создания/обновления показывается вместе со временем.
+    // Task 44/115: дата создания/обновления показывается вместе со временем (с секундами).
     private static final SimpleDateFormat DISPLAY_DATE_TIME =
-            new SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault());
+            new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", java.util.Locale.getDefault());
 
     private EditText editTextSurname;
     private EditText editTextFirstName;

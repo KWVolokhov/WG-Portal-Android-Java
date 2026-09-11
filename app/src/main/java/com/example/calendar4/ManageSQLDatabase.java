@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -394,8 +395,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (record.BodyText != null) values.put("BodyText", record.BodyText);
         if (record.Comment != null) values.put("Comment", record.Comment);
         if (record.StartDate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            values.put("StartDate", sdf.format(record.StartDate));
+            // Task 115: Дата старта проекта/Задачи/Заявки хранится в SQLite с 0ч 0м 0с.
+            values.put("StartDate", fmtDateTimeString(startOfDay(record.StartDate)));
         }
         if (record.EndDate != null) {
             values.put("EndDate", fmtDateTimeString(record.EndDate));
@@ -638,6 +639,18 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(date);
     }
 
+    /** Task 115: обнуляет время даты (0ч 0м 0с 0мс) для хранения Даты старта. */
+    private static Date startOfDay(Date d) {
+        if (d == null) return null;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
     // Get calPlan records by date from CALPLAN table
     public calPlanRecord[] getCalPlan(Date date) {
         ArrayList<calPlanRecord> recordsList = new ArrayList<>();
@@ -651,7 +664,8 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         // Query records where the given date is within the validity range
         Cursor cursor = db.query("CALPLAN",
                 null,
-                "StartDate<=? AND (EndDate IS NULL OR EndDate>=?)",
+                // Task 115: StartDate может храниться с 00:00:00 - сравниваем только дату (первые 10 символов)
+                "substr(StartDate,1,10)<=? AND (EndDate IS NULL OR substr(EndDate,1,10)>=?)",
                 new String[]{dateStr, dateStr},
                 null, null, null);
 
@@ -1247,16 +1261,20 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String now = sdf.format(new Date());
 
-            // Входящая: от Ведущего (FromID заполнен - контакт сопоставлен)
+            // Task 112: удалить старые дубли тестовых записей (раньше вставлялись с новым UNID на каждом старте)
+            db.execSQL("DELETE FROM SMSCALPLAN WHERE Subject='Тестовая запись' AND Body='Hello world!'");
+
+            // Task 112: UNID фиксированные - INSERT OR IGNORE не создаёт дубли при повторном входе.
+            // Входящая: Ведущий - получатель (ToID заполнен -> видна в СМС\Входящие и СМС\Все)
             db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
-                    "'" + java.util.UUID.randomUUID() + "', 'Incoming', " +
-                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", '', '', " +
+                    "'sms-test-incoming', 'Incoming', '', '', " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
                     "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
 
-            // Исходящая: к Ведущему (ToID заполнен - контакт сопоставлен)
+            // Исходящая: Ведущий - отправитель (FromID заполнен -> видна в СМС\Исходящие и СМС\Все)
             db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
-                    "'" + java.util.UUID.randomUUID() + "', 'Outgoing', " +
-                    "'', '', " + sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
+                    "'sms-test-outgoing', 'Outgoing', " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", '', '', " +
                     "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
         } catch (Exception e) {
             // Non-fatal: СМС - вспомогательные данные

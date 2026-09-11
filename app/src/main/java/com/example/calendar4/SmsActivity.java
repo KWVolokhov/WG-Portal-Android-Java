@@ -1,6 +1,5 @@
 package com.example.calendar4;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -23,7 +22,7 @@ import java.util.Locale;
  * вверху титл и кнопка только назад, под титлом строка фильтра, под фильтром список.
  * Создание СМС пока не делаем.
  */
-public class SmsActivity extends Activity {
+public class SmsActivity extends BaseScreenActivity {
 
     // Папки и extra-ключ (Task 106/107)
     public static final String EXTRA_SMS_FOLDER = "sms_folder";
@@ -43,8 +42,9 @@ public class SmsActivity extends Activity {
     private ArrayList<smsRecord> allSms;
     private String folder;
 
+    // Task 115: дата СМС показывается со секундами
     private static final SimpleDateFormat DISPLAY_DATE =
-            new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+            new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +87,11 @@ public class SmsActivity extends Activity {
             }
         };
         listViewSms.setAdapter(adapter);
-        listViewSms.setOnItemClickListener(null);
+        // Task 111: тап по строке открывает просмотр конкретного СМС (Activity только для чтения)
+        listViewSms.setOnItemClickListener((parent, view, position, id) -> {
+            smsRecord sms = adapter.getItem(position);
+            if (sms != null) openSmsView(sms);
+        });
 
         editTextFilter.addTextChangedListener(new TextWatcher() {
             @Override
@@ -162,5 +166,13 @@ public class SmsActivity extends Activity {
         if (records != null) {
             for (smsRecord r : records) allSms.add(r);
         }
+    }
+
+    /** Task 111: открыть просмотр конкретного СМС (Activity только для чтения). */
+    private void openSmsView(smsRecord sms) {
+        if (sms == null) return;
+        Intent intent = new Intent(SmsActivity.this, SmsViewActivity.class);
+        intent.putExtra(SmsViewActivity.EXTRA_SMS_RECORD, sms);
+        startActivity(intent);
     }
 }

@@ -1,7 +1,8 @@
 package com.example.calendar4;
 
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,7 +25,7 @@ import java.util.Locale;
  * Открывается по кнопке СМС на карточке контакта (activity_editcontact.xml).
  * Если у Ведущего или Контакта не заполнен телефон (10 цифр) - Toast и выход.
  */
-public class SmsChatActivity extends Activity {
+public class SmsChatActivity extends BaseScreenActivity {
 
     public static final String EXTRA_CONTACT_ID = "contactId";
 
@@ -45,8 +46,13 @@ public class SmsChatActivity extends Activity {
     private String vedushiiId;        // id Ведущего (как в SMSCALPLAN.FromID/ToID)
     private String contactId;         // id контакта
 
+    // Task 115: дата сообщения показывается со секундами
     private static final SimpleDateFormat DISPLAY_DATE =
-            new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+            new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
+
+    // Task 117: цвет текста сообщения в чате - входящие/исходящие разными цветами
+    private static final int COLOR_INCOMING = Color.rgb(0, 102, 204);
+    private static final int COLOR_OUTGOING = Color.rgb(0, 128, 0);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +123,8 @@ public class SmsChatActivity extends Activity {
                 row.setTypeIcon(typeIcon(sms));
                 row.setTopText(topText(sms));
                 row.setMessageText(sms.Body != null ? sms.Body : "");
+                // Task 117: входящие и исходящие сообщения разным цветом
+                row.setMessageTextColor(smsRecord.TYPE_OUTGOING.equals(sms.Type) ? COLOR_OUTGOING : COLOR_INCOMING);
                 row.setOnViewClickListener(v -> viewSms(sms));
                 row.setOnDeleteClickListener(v -> confirmDelete(sms));
                 return row;
@@ -124,6 +132,8 @@ public class SmsChatActivity extends Activity {
         };
         listViewSmsChat.setAdapter(adapter);
         listViewSmsChat.setOnItemClickListener(null);
+        // Task 116: при открытии чата показываем последние сообщения (внизу списка)
+        scrollChatToBottom();
 
         editTextFilter.addTextChangedListener(new TextWatcher() {
             @Override
@@ -134,6 +144,7 @@ public class SmsChatActivity extends Activity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 loadChat(s.toString().trim());
                 adapter.notifyDataSetChanged();
+                scrollChatToBottom();
             }
 
             @Override
@@ -152,14 +163,23 @@ public class SmsChatActivity extends Activity {
     // ---------------------------------------------------------------------
 
     /** Загружает сообщения диалога Ведущий<->Контакт; filter (3+ симв.) ищет в тексте. */
+    // Task 116: сообщения показываются снизу вверх - новые снизу, старые уходят вверх.
     private void loadChat(String filter) {
         chatSms.clear();
         smsRecord[] records = smsDb.getSms(null, "");
         if (records != null) {
-            for (smsRecord r : records) {
+            // getSms возвращает записи по id DESC (новые первыми) - добавляем в обратном
+            // порядке, чтобы в списке сверху были старые сообщения, снизу - новые
+            for (int i = records.length - 1; i >= 0; i--) {
+                smsRecord r = records[i];
                 if (isChatRecord(r) && matchesFilter(r, filter)) chatSms.add(r);
             }
         }
+    }
+
+    /** Task 116: после обновления списка показывает новые сообщения (внизу списка). */
+    private void scrollChatToBottom() {
+        if (adapter != null && adapter.getCount() > 0) listViewSmsChat.setSelection(adapter.getCount() - 1);
     }
 
     /** Запись принадлежит диалогу Ведущий<->Контакт (в любом направлении). */
@@ -202,6 +222,7 @@ public class SmsChatActivity extends Activity {
         editTextInput.setText("");
         loadChat(editTextFilter.getText().toString().trim());
         adapter.notifyDataSetChanged();
+        scrollChatToBottom();
     }
 
     private void confirmDelete(final smsRecord sms) {
@@ -212,6 +233,7 @@ public class SmsChatActivity extends Activity {
                     smsDb.deleteSms(sms.id);
                     loadChat(editTextFilter.getText().toString().trim());
                     adapter.notifyDataSetChanged();
+                    scrollChatToBottom();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -221,20 +243,12 @@ public class SmsChatActivity extends Activity {
     // Helpers
     // ---------------------------------------------------------------------
 
-    /** Просмотр СМС по кнопке "Посмотреть" - как просмотр на экранах из меню СМС. */
+    /** Task 111: просмотр СМС - полный экран только для чтения (вместо модального диалога). */
     private void viewSms(smsRecord sms) {
         if (sms == null) return;
-        StringBuilder sb = new StringBuilder();
-        sb.append("От: ").append(sms.FromName != null ? sms.FromName : "").append("\n");
-        sb.append("Кому: ").append(sms.ToName != null ? sms.ToName : "").append("\n");
-        if (sms.DateReceived != null) sb.append("Дата: ").append(DISPLAY_DATE.format(sms.DateReceived)).append("\n");
-        if (sms.Subject != null && !sms.Subject.isEmpty()) sb.append("Тема: ").append(sms.Subject).append("\n");
-        sb.append("\n").append(sms.Body != null ? sms.Body : "");
-        new AlertDialog.Builder(this)
-                .setTitle("СМС")
-                .setMessage(sb.toString())
-                .setPositiveButton("Ок", null)
-                .show();
+        Intent intent = new Intent(SmsChatActivity.this, SmsViewActivity.class);
+        intent.putExtra(SmsViewActivity.EXTRA_SMS_RECORD, sms);
+        startActivity(intent);
     }
 
     /** Иконка типа СМС (входящее/исходящее). */
@@ -245,7 +259,7 @@ public class SmsChatActivity extends Activity {
         return R.drawable.ic_sms;
     }
 
-    /** Верхняя строка списка: "Фамилия Имя  dd.MM.yyyy HH:mm". */
+    /** Верхняя строка списка: "Фамилия Имя  dd.MM.yyyy HH:mm:ss". */
     private String topText(smsRecord sms) {
         StringBuilder sb = new StringBuilder();
         boolean outgoing = smsRecord.TYPE_OUTGOING.equals(sms.Type);

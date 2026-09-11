@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class ParamsActivity extends Activity {
+public class ParamsActivity extends BaseScreenActivity {
 
     // "Стартовая страница" picker: display labels -> stored values (CALPARAM.StartPage)
     private static final String[] START_PAGE_LABELS = {

@@ -24,7 +24,7 @@ import java.util.Locale;
  * like the contacts list (rows with edit/delete), but without the "Новый" button.
  * Header: "&lt;дата&gt; История" (left) + Back ImageButton like Cancel (right-most).
  */
-public class HistoryActivity extends Activity {
+public class HistoryActivity extends BaseScreenActivity {
 
     private ListView listViewHistory;
     private TextView headerTitle;

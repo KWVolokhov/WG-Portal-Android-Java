@@ -25,7 +25,7 @@ import java.util.Locale;
  * plus a search field that filters by name when 3+ characters are typed.
  * Header: "&lt;дата&gt; Health" (left) + "Add" + Back ImageButton (right-most).
  */
-public class HealthActivity extends Activity {
+public class HealthActivity extends BaseScreenActivity {
 
     private ListView listViewHealth;
     private EditText editTextFilter;

@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -25,7 +26,7 @@ import java.util.Locale;
  * Base editable card for all CALPLAN forms (Project, Note, Remember, Task, History,
  * HealthEat, HealthDrink, HealthSport). Subclasses configure which fields/labels to show.
  */
-public abstract class BaseCalPlanEditActivity extends Activity {
+public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
 
     protected static final String[] FORM_VALUES = {"Project", "Note", "Remember", "Task",
             "History", "HealthEat", "HealthDrink", "HealthSport", "HealthStress", "HealthJoy"};
@@ -33,6 +34,8 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     // Task 35: when the card is opened from the "Проекты" screen (Add / edit), the Form
     // picker offers only Проекты/Задачи/Заявка на автоматизацию (Project/Task/Request).
     public static final String EXTRA_PROJECTS_FORM_MODE = "extra_projects_form_mode";
+    // Task 114: предвыбранная Form для НОВОЙ записи (например "Request" из диалога Добавить).
+    public static final String EXTRA_PRESELECT_FORM = "extra_preselect_form";
     protected static final String[] PROJECT_FORM_LABELS = {"Проекты", "Задачи", "Заявка на автоматизацию"};
     protected static final String[] PROJECT_FORM_VALUES = {"Project", "Task", "Request"};
     protected static final String[] STATUS_LABELS = {"Черновик", "В работе", "Тестирование",
@@ -45,9 +48,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     protected static final SimpleDateFormat DISPLAY_DATE =
             new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
 
-    // Task 44: дата создания/обновления/завершения показывается вместе со временем.
+    // Task 44/115: дата создания/обновления/завершения показывается вместе со временем (с секундами).
     protected static final SimpleDateFormat DISPLAY_DATE_TIME =
-            new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault());
+            new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
 
     // =====================================================================
     // Form configuration (override in subclasses)
@@ -128,6 +131,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
     /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проекты/Задачи/Заявка). */
     private boolean projectsFormMode = false;
 
+    // Task 114: предвыбранная Form для новой записи (для InputCalPlanActivity из диалога Добавить)
+    private String preselectFormValue;
+
     protected final ArrayList<String> contactLabels = new ArrayList<>();
     protected final ArrayList<String> contactIds = new ArrayList<>();
 
@@ -192,6 +198,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         if (intent.hasExtra("calPlanRecord")) {
             record = (calPlanRecord) intent.getSerializableExtra("calPlanRecord");
         }
+        preselectFormValue = intent.getStringExtra(EXTRA_PRESELECT_FORM);
 
 		owerDb = ManageSQLDatabase.getInstance(this);
         loadContacts();
@@ -204,9 +211,9 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         setupHealthNumbers();
 
         if (projectsFormMode) {
-            setupSpinner(spinnerForm, PROJECT_FORM_LABELS, formLabelFor(record != null ? record.Form : getFormType()));
+            setupSpinner(spinnerForm, PROJECT_FORM_LABELS, formLabelFor(initialFormValue()));
         } else {
-            setupSpinner(spinnerForm, FORM_VALUES, record != null ? record.Form : getFormType());
+            setupSpinner(spinnerForm, FORM_VALUES, initialFormValue());
         }
         setupSpinner(spinnerStatus, STATUS_LABELS, record != null ? statusLabel(record) : null);
         setupSpinner(spinnerMainSystem, MAIN_SYSTEMS, record != null ? record.MainSystem : null);
@@ -528,7 +535,7 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             // New record: set the Author to "Ведущий" from CALPARAM (all form types)
             CalParamRecord param = owerDb.getCalParam();
             record = new calPlanRecord();
-            record.Form = getFormType();
+            record.Form = preselectFormValue != null ? preselectFormValue : getFormType();
             if (param != null) {
                 record.AuthorName = param.Vedushii;
                 record.AuthorID = param.VedushiiID;
@@ -583,6 +590,18 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         }
     }
 
+    /** Task 115: обнуляет время даты (0ч 0м 0с 0мс) - Дата старта хранится без времени. */
+    private static Date dateAtMidnight(Date d) {
+        if (d == null) return null;
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
     private void saveAndFinish() {
         String form = selectedFormValue();
         String name = editTextName.getText().toString().trim();
@@ -617,10 +636,11 @@ public abstract class BaseCalPlanEditActivity extends Activity {
             record.RequestUNID = selectedRequestUNID;
         }
 
-        // If the StartDate row is hidden (History/Health) the date equals the creation date
-        record.StartDate = showStartDate()
+        // If the StartDate row is hidden (History/Health) the date equals the creation date.
+        // Task 115: Дата старта проекта/Задачи/Заявки хранится с 0ч 0м 0с (показывается только дата).
+        record.StartDate = dateAtMidnight(showStartDate()
                 ? dateFieldStartDate.getDate()
-                : (record.Okdate != null ? record.Okdate : okdateValue);
+                : (record.Okdate != null ? record.Okdate : okdateValue));
 
         if (showStatus()) {
             int si = spinnerStatus.getSelectedItemPosition();
@@ -700,6 +720,12 @@ public abstract class BaseCalPlanEditActivity extends Activity {
         if ("Task".equals(form)) return PROJECT_FORM_LABELS[1];
         if ("Request".equals(form)) return PROJECT_FORM_LABELS[2];
         return form;
+    }
+
+    /** Task 114: Form для новой записи - предвыбранная из диалога либо тип класса. */
+    private String initialFormValue() {
+        if (record != null && record.Form != null) return record.Form;
+        return preselectFormValue != null ? preselectFormValue : getFormType();
     }
 
     @Override

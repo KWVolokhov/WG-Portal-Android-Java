@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class LivetypeEditActivity extends Activity {
+public class LivetypeEditActivity extends BaseScreenActivity {
 
     private static final String[] CATEGORIES = {"Пища", "Гидратация", "Физ. активность", "Стресс", "Гедонизм"};
 
@@ -94,7 +94,7 @@ public class LivetypeEditActivity extends Activity {
                 textViewAuthor.setText(ManageSQLDatabase.AuthorName);
             }
             textViewDateCreated.setText(
-                    new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(new Date()));
+                    new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date()));
         }
 
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -241,7 +241,7 @@ public class LivetypeEditActivity extends Activity {
         if (currentRecord.AuthorName != null) textViewAuthor.setText(currentRecord.AuthorName);
         if (currentRecord.DateCreated != null) {
             textViewDateCreated.setText(
-                    new SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(currentRecord.DateCreated));
+                    new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(currentRecord.DateCreated));
         }
 
         Integer[] vals = {currentRecord.Head, currentRecord.Eyes, currentRecord.Ears,

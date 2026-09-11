@@ -1,6 +1,5 @@
 package com.example.calendar4;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,7 +15,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class ContactsActivity extends Activity {
+public class ContactsActivity extends BaseScreenActivity {
 
     private ListView listViewContacts;
     private EditText editTextFilter;
