@@ -13,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.graphics.ColorUtils;
+
 /**
  * Reusable two-line list row control.
  *
@@ -80,7 +82,6 @@ public class TwoLineListItem extends LinearLayout {
         tvTop = new TextView(context);
         //tvTop.setTextColor(0xFF555555); // slightly brighter
 		int mainFontColor = tvTop.getCurrentTextColor();
-		ColorUtils.colorToHSL(mainFontColor, hsl);//Запихаем основной цвет в массив
         tvTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         tvTop.setSingleLine(true);
         tvTop.setEllipsize(TextUtils.TruncateAt.END);
@@ -88,7 +89,8 @@ public class TwoLineListItem extends LinearLayout {
         tvBottom = new TextView(context);
         //tvBottom.setTextColor(0xFF2B2B2B); // slightly darker
 		float[] hsl = new float[3];
-		hsl[2] = hsl[2] * 0.7f;
+        ColorUtils.colorToHSL(mainFontColor, hsl);//Запихаем основной цвет в массив
+		hsl[2] = hsl[2] * 0.5f;
 		int minorFontColor = ColorUtils.HSLToColor(hsl);
         tvBottom.setTextColor(minorFontColor);
         tvBottom.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15); // size -1
@@ -213,6 +215,12 @@ public class TwoLineListItem extends LinearLayout {
 
     public void setOnEditClickListener(View.OnClickListener l) {
         btnEdit.setOnClickListener(l);
+    }
+    public void setOnEditNewIcon(String desc, int iconNew,int numSecondRows) {
+        btnEdit.setImageResource(iconNew);
+        btnEdit.setContentDescription(desc);
+        tvBottom.setSingleLine(false);
+        tvBottom.setMaxLines(numSecondRows);
     }
 
     public void setOnDeleteClickListener(View.OnClickListener l) {

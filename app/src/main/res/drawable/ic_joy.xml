@@ -17,5 +17,5 @@
         android:strokeColor="#B84300"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
-        android:pathData="M7,14 Q10,17 13,14 Q16,17 19,14" />
+        android:pathData="M7,14 Q13,17 19,14" />
 </vector>

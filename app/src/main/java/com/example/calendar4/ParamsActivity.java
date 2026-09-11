@@ -2,6 +2,7 @@ package com.example.calendar4;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -18,7 +19,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class ParamsActivity extends BaseScreenActivity {
-
     // "Стартовая страница" picker: display labels -> stored values (CALPARAM.StartPage)
     private static final String[] START_PAGE_LABELS = {
             "Календарь", "Контакты", "Проекты", "Параметры"

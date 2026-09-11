@@ -9,12 +9,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end">
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Параметры"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -181,11 +181,13 @@
             android:layout_height="3dp"
             android:layout_weight="1"
             android:layout_marginTop="10dp"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#1ACCAD"
             android:text="Синхронизация с Центром"
             android:textSize="14sp"
             android:layout_gravity="center_vertical"
@@ -196,7 +198,9 @@
             android:layout_width="0dp"
             android:layout_height="3dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
     </LinearLayout>
 
@@ -282,11 +286,13 @@
             android:layout_height="3dp"
             android:layout_marginTop="10dp"
             android:layout_weight="1"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#1ACCAD"
             android:text="Настройки интерфейса"
             android:textSize="14sp"
             android:layout_gravity="center_vertical"
@@ -297,7 +303,9 @@
             android:layout_width="0dp"
             android:layout_height="3dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
     </LinearLayout>
 
@@ -421,11 +429,13 @@
             android:layout_height="3dp"
             android:layout_marginTop="10dp"
             android:layout_weight="1"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="#1ACCAD"
             android:text="Локальное хранилище"
             android:textSize="14sp"
             android:layout_gravity="center_vertical"
@@ -436,7 +446,9 @@
             android:layout_width="0dp"
             android:layout_height="3dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
+            android:foreground="#1ACCAD"
             android:background="#FF888888" />
     </LinearLayout>
 

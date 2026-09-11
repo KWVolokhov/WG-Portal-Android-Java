@@ -1,5 +1,6 @@
 package com.example.calendar4;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -80,9 +81,9 @@ public class SmsActivity extends BaseScreenActivity {
                 row.setTopText(topText(sms));
                 row.setBottomText(bottomText(sms));
                 row.setPosition(position);
-                // Создание/редактирование СМС пока не делаем - кнопки без действий
-                row.setOnEditClickListener(null);
-                row.setOnDeleteClickListener(null);
+                row.setOnEditNewIcon("Просмотр", R.drawable.ic_view,2);
+                row.setOnEditClickListener(v -> viewSms(sms));
+                row.setOnDeleteClickListener(v -> confirmDelete(sms));
                 return row;
             }
         };
@@ -125,6 +126,24 @@ public class SmsActivity extends BaseScreenActivity {
             super.onBackPressed();
         }
     }
+    private void viewSms(smsRecord sms) {
+        if (sms == null) return;
+        Intent intent = new Intent(SmsActivity.this, SmsViewActivity.class);
+        intent.putExtra(SmsViewActivity.EXTRA_SMS_RECORD, sms);
+        startActivity(intent);
+    }
+    private void confirmDelete(final smsRecord sms) {
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить")
+                .setMessage("Удалить сообщение?")
+                .setPositiveButton("Ок", (d, w) -> {
+                    smsDb.deleteSms(sms.id);
+                    loadSms(editTextFilter.getText().toString().trim());
+                    adapter.notifyDataSetChanged();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 
     private int titleIndex(String f) {
         if (FOLDER_INCOME.equals(f)) return 1;
@@ -142,21 +161,26 @@ public class SmsActivity extends BaseScreenActivity {
         return R.drawable.ic_sms;
     }
 
-    private String topText(smsRecord sms) {
-        if (sms == null) return "";
-        return (sms.Subject != null && !sms.Subject.isEmpty()) ? sms.Subject : sms.Body;
-    }
-
     private String bottomText(smsRecord sms) {
         if (sms == null) return "";
         StringBuilder sb = new StringBuilder();
-        if (sms.FromName != null && !sms.FromName.isEmpty()) sb.append("От: ").append(sms.FromName);
+        if (sms.DateReceived != null) {
+            sb.append(DISPLAY_DATE.format(sms.DateReceived));
+            sb.append("\n");
+        }
+        sb.append((sms.Subject != null && !sms.Subject.isEmpty()) ? sms.Subject : sms.Body);
+        return sb.toString();
+    }
+
+    private String topText(smsRecord sms) {
+        if (sms == null) return "";
+        StringBuilder sb = new StringBuilder();
+        if (sms.FromName != null && !sms.FromName.isEmpty()) sb.append("<").append(sms.FromName);
         if (sms.ToName != null && !sms.ToName.isEmpty()) {
             if (sb.length() > 0) sb.append("  ");
-            sb.append("Кому: ").append(sms.ToName);
+            sb.append(">").append(sms.ToName);
         }
-        if (sb.length() > 0) sb.append("  ");
-        if (sms.DateReceived != null) sb.append(DISPLAY_DATE.format(sms.DateReceived));
+
         return sb.toString();
     }
 

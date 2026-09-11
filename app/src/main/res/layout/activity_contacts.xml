@@ -10,13 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
         android:layout_gravity="center_vertical"
         android:layout_marginBottom="8dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Контакты"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -30,7 +30,7 @@
             android:src="@drawable/ic_add_plus"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Добавить контакт"
-            android:layout_gravity="center_vertical"
+            android:layout_gravity="start"
             android:layout_marginEnd="8dp" />
 
         <ImageButton

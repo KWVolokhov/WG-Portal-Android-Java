@@ -12,17 +12,17 @@
         android:pathData="M4,6 L20,6 L20,20 L4,20 Z" />
     <!-- Top binder bar -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#AAFFAA"
         android:pathData="M4,6 L20,6 L20,4.5 L4,4.5 Z" />
     <!-- Binder rings -->
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#FFFFFF"
+        android:strokeColor="#00FFFF"
         android:strokeWidth="1.4"
         android:pathData="M9,2.4 a1.6,1.6 0 1,0 0,3.2a1.6,1.6 0 1,0 0,-3.2" />
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#FFFFFF"
+        android:strokeColor="#00FFFF"
         android:strokeWidth="1.4"
         android:pathData="M15,2.4 a1.6,1.6 0 1,0 0,3.2a1.6,1.6 0 1,0 0,-3.2" />
     <!-- date text dashes -->
