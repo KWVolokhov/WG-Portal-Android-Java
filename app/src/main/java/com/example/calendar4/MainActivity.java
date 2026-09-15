@@ -495,16 +495,16 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     private void initMainListView(){ //Заполнение листа
-        // Rows use TwoLineListItem: [text lines] [type icon 48dp] [Edit/Delete buttons]
+        // Rows use MessageListItem: [text lines] [type icon 48dp] [Edit/Delete buttons]
         ArrayList<calPlanRecord> items = new ArrayList<>();
         mainListAdapter = new ArrayAdapter<calPlanRecord>(this, 0, items) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(MainActivity.this);
+                    row = new MessageListItem(MainActivity.this);
                 }
                 final calPlanRecord record = getItem(position);
                 if (record != null) {

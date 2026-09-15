@@ -61,11 +61,11 @@ public class HealthActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<healthPlanRecord>(this, 0, records) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(HealthActivity.this);
+                    row = new MessageListItem(HealthActivity.this);
                 }
                 final healthPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");

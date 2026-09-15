@@ -5,12 +5,32 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Buttons OK (left) and Cancel (right-most) on top right -->
+    <!-- Buttons: Переделать, Список задач, OK, Cancel - справа сверху -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="end">
+
+        <ImageButton
+            android:id="@+id/btnRework"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_type_project"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Переделать"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnTasks"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_type_task"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Список задач"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
 
         <ImageButton
             android:id="@+id/btnOK"

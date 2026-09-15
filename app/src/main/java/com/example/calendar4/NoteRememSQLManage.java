@@ -173,5 +173,7 @@ public class NoteRememSQLManage {
     }
 
     public void deleteNote(Integer id) {
+        if (id == null) return;
+        db.delete(TABLE_NOTEPLAN, "id=?", new String[]{String.valueOf(id)});
     }
 }

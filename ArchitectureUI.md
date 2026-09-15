@@ -26,10 +26,11 @@
 
 ### Константы `BaseCalPlanEditActivity`
 - `FORM_VALUES = {Project, Note, Remember, Task, History, HealthEat, HealthDrink, HealthSport, HealthStress, HealthJoy}`.
-- `PROJECT_FORM_VALUES = {Project, Task, Request}` (+ extra `EXTRA_PROJECTS_FORM_MODE`, `EXTRA_PRESELECT_FORM`).
+- `PROJECT_FORM_VALUES = {Project, Task, Request}` (+ extra `EXTRA_PROJECTS_FORM_MODE`, `EXTRA_PRESELECT_FORM`); подписи `PROJECT_FORM_LABELS = {Проекты, Задачи, Заявку на проект}`.
 - `STATUS_LABELS/IDS`: Черновик/Draft, В работе/Inwork, Тестирование/Intest, Выполнено/Done, Отменено/Canceled, Отложено/Hold.
 - `MAIN_SYSTEMS`: Lotus(HCL), VBA, Java, JavaScriptServer, JavaScript, SQL, Busines, ArtDesign, Combo.
 - Формат дат: `dd.MM.yyyy`, с временем: `dd.MM.yyyy HH:mm:ss`.
+- Числовые поля карточек Health (Голова..Каллории) и органов Livetype: ввод целых чисел со знаком (Task 128).
 
 ## 2. Реестр экранов
 
@@ -40,11 +41,11 @@
 | 3 | `ContactsActivity` | `activity_contacts.xml` | «Контакты» | Список + фильтр по набору букв | CONTACTS / `ManageSQLDatabase` |
 | 4 | `EditContactActivity` | `activity_editcontact.xml` | Карточка контакта | Редактирование | CONTACTS / `ManageSQLDatabase` |
 | 5 | `ProjectsActivity` | `activity_projects.xml` | «Проекты\Все» / «Проекты\Рабочие» (extra `EXTRA_WORK_MODE`) | Список + поиск от 3 символов | CALPLAN / `ManageSQLDatabase` |
-| 6 | `InputCalPlanActivity` | `activity_input_cal_plan.xml` | Карточка Проекта/Заявки | Редактирование | CALPLAN / `ManageSQLDatabase` |
-| 7 | `TaskActivity` | `activity_input_cal_plan.xml` | Карточка Задачи | Редактирование | CALPLAN / `ManageSQLDatabase` |
+| 6 | `InputCalPlanActivity` | `activity_input_cal_plan.xml` | Карточка Проекта/Заявки (кнопка «Переделать» `btnRework`: Заявка→Проект/Задача, Проект→Задача/Заявка) | Редактирование | CALPLAN / `ManageSQLDatabase` |
+| 7 | `TaskActivity` | `activity_input_cal_plan.xml` | Карточка Задачи (кнопка «Переделать» `btnRework`: Задача→Проект/Заявку) | Редактирование | CALPLAN / `ManageSQLDatabase` |
 | 8 | `NoteActivity` | `activity_input_cal_plan.xml` | Карточка Заметки | Редактирование | NOTEPLAN / `NoteRememSQLManage` |
 | 9 | `RememberActivity` | `activity_input_cal_plan.xml` | Карточка Напоминания | Редактирование | NOTEPLAN / `NoteRememSQLManage` |
-| 10 | `HistoryActivity` | `activity_history.xml` | «<дата> История» | Список | HISTORY / `HistorySQLManage` |
+| 10 | `HistoryActivity` | `activity_history.xml` | «<дата> История»; 3 строки в списке: название / дата создания со временем / текст, сверху самая поздняя (Task 129) | Список | HISTORY / `HistorySQLManage` |
 | 11 | `HistoryEditActivity` | `activity_input_cal_plan.xml` | Карточка Истории | Редактирование | HISTORY / `HistorySQLManage` |
 | 12 | `HealthActivity` | `activity_health.xml` | «<дата> Health» + кнопка Add | Список | HEALTHPLAN / `HealthSQLManage` |
 | 13 | `HealthEditActivity` | `activity_input_cal_plan.xml` | Карточка Health | Редактирование | HEALTHPLAN / `HealthSQLManage` |
@@ -55,8 +56,9 @@
 | 18 | `LivetypeEditActivity` | `activity_livetype_edit.xml` | Карточка Типа жизнедеятельности | Редактирование | LIVETYPE / `LivetypeSQLManage` |
 | 19 | `SmsActivity` | `activity_sms.xml` | «СМС\Все / Входящие / Исходящие / Корзина» (extra `EXTRA_SMS_FOLDER`) | Список сообщений | SMSCALPLAN / `SmsSQLManage` |
 | 20 | `SmsChatActivity` | `activity_smschat.xml` | «СМС-чат Ведущий<->Контакт» (extra `contactId`) | Чат | SMSCALPLAN / `SmsSQLManage` |
-| 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
+| 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» (тип — вычисляемый `DisplayType` по позиции Ведущего, Task 130) | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
 | 22 | `CrashActivity` | `activity_crash.xml` | Отчёт о сбое | Диагностика | — |
+| 23 | `ProjectTasksActivity` | `activity_project_tasks.xml` | «Для проекта:/Для заявки:» (extras `sourceForm`/`sourceUnid`/`sourceName`) | Список задач проекта / проектов+задач заявки, добавление, фильтр | CALPLAN / `ManageSQLDatabase` |
 
 Все экраны зарегистрированы в `app/src/main/AndroidManifest.xml` (LAUNCHER — только `MainActivity`).
 
@@ -132,11 +134,10 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `RussianCalendarView` | `ConstraintLayout` | Нестандартный российский календарь (GridView + `CalendarAdapter`, праздники через `RussianHolidaysFetcher` в таблицу HOLIDAYS) | `MainActivity` (id `calendarView1`), layout `russian_calendar_view.xml`, callback `setOnDateSelectedListener` |
 | `DateFieldView` | `LinearLayout` | Поле выбора даты с маской `__.__.____` | Карточки редактирования |
 | `PhoneFieldView` | `LinearLayout` | Поле телефона, до 10 цифр, маска-заполнитель `•` | `EditContactActivity` |
-| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков) | Карточки редактирования |
-| `MessageListItem` | `LinearLayout` | Элемент списка сообщений: автор + дата/время сверху, до 2 строк текста | СМС-экраны |
-| `TwoLineListItem` | `LinearLayout` | Двухстрочный элемент списка с разделителем вида `--5--` | Списки |
+| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков); строка под текст есть сразу при создании карточки, пустые текстовые блоки над/под текстом удаляются (Task 127) | Карточки редактирования |
+| `MessageListItem` | `LinearLayout` | Универсальный элемент списка: иконка + 1..N строк текста + кнопки (Редактировать/Удалить, или Просмотр), разделитель `--5--` | Все списки (бывший TwoLineListItem, Task 125) |
 | `FlyOutContainer` | `LinearLayout` | Выдвижной контейнер (fly-out) | Резерв |
-| `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний | Списки |
+| `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний; статус рисуется полным словом (Draft/Work/Test/Ok/Hold/Cancel), шрифт автоуменьшается под ширину иконки (Task 132) | Списки |
 | `InfoBlocksAdapter` | `RecyclerView.Adapter` | Сетка вложений (1/4 ширины строки), тап открывает стандартный просмотрщик | `InfoFieldView` |
 
 ## 6. Данные, передаваемые между экранами
@@ -145,7 +146,8 @@ CrashActivity (extends android.app.Activity, singleTask)
 - `ProjectsActivity`: extra `EXTRA_WORK_MODE` (boolean, режим «Рабочие»), `EXTRA_PRESELECT_FORM` (Form новой записи).
 - `SmsActivity`: extra `EXTRA_SMS_FOLDER` (FOLDER_ALL/FOLDER_INCOME/FOLDER_OUTCOME/FOLDER_TRASH); Корзина = записи без FromID и ToID.
 - `SmsChatActivity`: extra `EXTRA_CONTACT_ID` (`"contactId"`); требует телефон 10 цифр у Ведущего или Контакта, иначе Toast и выход.
-- `SmsViewActivity`: extra `EXTRA_SMS_RECORD` (`"smsRecord"`).
+- `SmsViewActivity`: extra `EXTRA_SMS_RECORD` (`"smsRecord"`); тип записи — вычисляемое поле `smsRecord.DisplayType` (`effectiveType(vedushiiId)`): From и To разные и один из них Ведущий → по позиции Ведущего (от Ведущего — Outgoing, до Ведущего — Incoming), иначе сохранённый `Type` (Task 130).
+- Кнопка «Переделать» (`btnRework`, иконка `ic_type_project`) на карточках Проекта/Задачи/Заявки (`BaseCalPlanEditActivity`): диалог выбора новой Form (Заявка: Проект/Задача; Проект: Задача/Заявка; Задача: Проект/Заявка) → `record.Form` меняется, запись переоткрывается в `InputCalPlanActivity`/`TaskActivity` (extra `calPlanRecord`, `activeDate`, `EXTRA_PROJECTS_FORM_MODE`) (Task 131).
 
 ## 7. Разрешения, влияющие на UI
 

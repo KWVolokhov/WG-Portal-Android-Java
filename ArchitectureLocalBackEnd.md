@@ -39,8 +39,8 @@
 
 | Класс | Таблица | Основные методы |
 |---|---|---|
-| `ManageSQLDatabase` | CALPLAN, CALPARAM, CONTACTS, CLASSIFICATOR, HOLIDAYS, LIVETYPE (создание/миграции) | `upsertCalPlan`, выборки по дате, `getCalParam`, singleton `getInstance` |
-| `HistorySQLManage` | HISTORY | upsert / delete / getById / выборка по дате (record = calPlanRecord) |
+| `ManageSQLDatabase` | CALPLAN, CALPARAM, CONTACTS, CLASSIFICATOR, HOLIDAYS, LIVETYPE (создание/миграции) | `upsertCalPlan`, выборки по дате, `getTasksByProject`, `getProjectsByRequestName`, `getCalParam`, singleton `getInstance` |
+| `HistorySQLManage` | HISTORY | upsert / delete / getById / выборка по дате (record = calPlanRecord, сортировка `Okdate DESC, id DESC` — сверху самая поздняя) |
 | `NoteRememSQLManage` | NOTEPLAN | `upsertNote`, `deleteNote`, `getNoteById`, `getNotesByDate` |
 | `HealthSQLManage` | HEALTHPLAN | upsert / delete / getById / выборка по дате (record = healthPlanRecord) |
 | `LivetypeSQLManage` | LIVETYPE | upsert / delete / getById / getByUNID / выборка `Name COLLATE NOCASE` |
@@ -59,7 +59,7 @@
 | `CalParamRecord` | CALPARAM | параметры приложения |
 | `ContactRecord` | CONTACTS | Surname, FirstName, Patronymic, Phone, Phone2, Email, BirthDate, HomeAddress... |
 | `holidayRecord` | HOLIDAYS | CountryCode, HolidayDate, HolidayName |
-| `smsRecord` | SMSCALPLAN | Type, FromID/FromName, ToID/ToName, Subject, Body, Status, DateReceived |
+| `smsRecord` | SMSCALPLAN | Type, FromID/FromName, ToID/ToName, Subject, Body, Status, DateReceived; `DisplayType` — вычисляемое дисплейное поле типа (Incoming/Outgoing по позиции Ведущего), в SQL не хранится |
 
 ## 5. Сервисы и вспомогательные классы
 

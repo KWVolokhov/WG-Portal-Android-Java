@@ -120,7 +120,7 @@ public class HistorySQLManage {
             args.add("%" + filter.trim().toLowerCase(Locale.getDefault()) + "%");
         }
         Cursor cursor = db.query(TABLE_HISTORY, null, selection.toString(),
-                args.toArray(new String[0]), null, null, "StartDate");
+                args.toArray(new String[0]), null, null, "Okdate DESC, id DESC");
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {

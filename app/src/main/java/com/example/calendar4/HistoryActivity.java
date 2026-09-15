@@ -62,14 +62,16 @@ public class HistoryActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<calPlanRecord>(this, 0, records) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(HistoryActivity.this);
+                    row = new MessageListItem(HistoryActivity.this);
                 }
                 final calPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");
+                // Task 129: вторая строка - дата создания со временем, третья - расшифровка
+                row.setMiddleText(historyDate(record));
                 row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
                 row.setTypeIcon(R.drawable.ic_type_history);
                 row.setOnEditClickListener(v -> openEdit(record));
@@ -155,5 +157,13 @@ public class HistoryActivity extends BaseScreenActivity {
         if (newline >= 0) text = text.substring(0, newline).trim();
         if (text.length() > 20) text = text.substring(0, 20);
         return text;
+    }
+
+    /** Task 129: дата создания записи истории со временем (для 2-й строки списка). */
+    private String historyDate(calPlanRecord record) {
+        if (record == null) return "";
+        java.util.Date d = record.Okdate != null ? record.Okdate : record.StartDate;
+        if (d == null) return "";
+        return new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(d);
     }
 }

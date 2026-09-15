@@ -36,7 +36,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     public static final String EXTRA_PROJECTS_FORM_MODE = "extra_projects_form_mode";
     // Task 114: предвыбранная Form для НОВОЙ записи (например "Request" из диалога Добавить).
     public static final String EXTRA_PRESELECT_FORM = "extra_preselect_form";
-    protected static final String[] PROJECT_FORM_LABELS = {"Проекты", "Задачи", "Заявка на автоматизацию"};
+    protected static final String[] PROJECT_FORM_LABELS = {"Проекты", "Задачи", "Заявку на проект"};
     protected static final String[] PROJECT_FORM_VALUES = {"Project", "Task", "Request"};
     protected static final String[] STATUS_LABELS = {"Черновик", "В работе", "Тестирование",
             "Выполнено", "Отменено", "Отложено"};
@@ -59,7 +59,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     protected String getFormType() { return "Project"; }
     protected String getStartDateLabel() { return "Дата старта проекта:"; }
     protected String getBodyTextLabel() { return "Описание задачи:"; }
-    protected String getRequestNameLabel() { return "Заявка на автоматизацию:"; }
+    protected String getRequestNameLabel() { return "Заявку на проект:"; }
     protected String getAuthorLabel() { return "Автор проекта:"; }
     protected String getEndDateLabel() { return "Дата завершения проекта (факт):"; }
     protected String getHoldDateLabel() { return "Дата откладывания проекта:"; }
@@ -97,7 +97,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     protected InfoFieldView infoBodyText;
     protected TextView textViewOkdate, textViewLastUpdatedBy, textViewLastUpdatedDate,
             textViewEndDate, textViewHoldDate, textViewAuthorName;
-    protected ImageButton btnOK, btnCancel, btnPickRequest;
+    protected ImageButton btnOK, btnCancel, btnPickRequest, btnTasks, btnRework;
 
     protected View rowStatus, rowMainSystem, rowPriority, rowStartDate, rowRequestName,
             rowAnalitik, rowExector, rowInstallOrder, rowKeyWords, rowLastUpdatedBy,
@@ -127,6 +127,9 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     protected Date okdateValue;
     protected ManageSQLDatabase owerDb;
     protected String selectedRequestUNID;
+    // Task 124: предвыбранные проект (для задачи) / заявка (для проекта)
+    private String preselectProjectUNID;
+    private String preselectRequestName;
 
     /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проекты/Задачи/Заявка). */
     private boolean projectsFormMode = false;
@@ -170,6 +173,8 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
         btnPickRequest = findViewById(R.id.btnPickRequest);
+        btnTasks = findViewById(R.id.btnTasks);
+        btnRework = findViewById(R.id.btnRework);
         healthContainer = findViewById(R.id.healthContainer);
 
         rowStatus = findViewById(R.id.rowStatus);
@@ -199,6 +204,8 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
             record = (calPlanRecord) intent.getSerializableExtra("calPlanRecord");
         }
         preselectFormValue = intent.getStringExtra(EXTRA_PRESELECT_FORM);
+        preselectProjectUNID = intent.getStringExtra("preselectProjectUNID");
+        preselectRequestName = intent.getStringExtra("preselectRequestName");
 
 		owerDb = ManageSQLDatabase.getInstance(this);
         loadContacts();
@@ -224,6 +231,11 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
 
         // Task 44: на карточке HealthSportActivity показываем таймер запущенного шагомера
         setupPedometerTimer();
+
+        setupTasksButton();
+
+        // Task 131: кнопка "Переделать" (смена Form) на карточках Проекта/Задачи/Заявки
+        setupReworkButton();
 
         btnOK.setOnClickListener(v -> saveAndFinish());
         btnCancel.setOnClickListener(v -> {
@@ -393,6 +405,74 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         }
     }
 
+    /** Task 124: кнопка "Список задач" видна только на карточке Проекта/Заявки. */
+    private void setupTasksButton() {
+        if (btnTasks == null) return;
+        String form = initialFormValue();
+        boolean projectLike = "Project".equals(form) || "Request".equals(form);
+        setRowVisible(btnTasks, projectLike);
+        if (projectLike) btnTasks.setOnClickListener(v -> openTasksList(form));
+    }
+
+    /** Task 124: открывает список задач проекта (или проектов/задач заявки). */
+    private void openTasksList(String form) {
+        String name = editTextName.getText().toString().trim();
+        String unid = record != null ? record.UNID : null;
+        Intent intent = new Intent(BaseCalPlanEditActivity.this, ProjectTasksActivity.class);
+        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_FORM, form);
+        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_UNID, unid);
+        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_NAME, name);
+        startActivity(intent);
+    }
+
+    // =====================================================================
+    // Task 131: кнопка "Переделать" (смена Form с переоткрытием карточки)
+    // =====================================================================
+
+    /** Кнопка "Переделать" видна только на карточках Проекта/Задачи/Заявки. */
+    private void setupReworkButton() {
+        if (btnRework == null) return;
+        setRowVisible(btnRework, projectLikeForm(initialFormValue()));
+        btnRework.setOnClickListener(v -> openReworkPicker());
+    }
+
+    /** Task 131: допустимые переделки - Заявка: Проект/Задача, Проект: Задача/Заявка, Задача: Проект/Заявка. */
+    private void openReworkPicker() {
+        String form = selectedFormValue();
+        final String[] values;
+        String[] labels;
+        if ("Request".equals(form)) {
+            values = new String[]{"Project", "Task"};
+            labels = new String[]{PROJECT_FORM_LABELS[0], PROJECT_FORM_LABELS[1]};
+        } else if ("Project".equals(form)) {
+            values = new String[]{"Task", "Request"};
+            labels = new String[]{PROJECT_FORM_LABELS[1], PROJECT_FORM_LABELS[2]};
+        } else if ("Task".equals(form)) {
+            values = new String[]{"Project", "Request"};
+            labels = new String[]{PROJECT_FORM_LABELS[0], PROJECT_FORM_LABELS[2]};
+        } else {
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Переделать в:")
+                .setItems(labels, (d, which) -> reworkTo(values[which]))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /** Task 131: меняет Form записи и переоткрывает соответствующую карточку (Проект/Задача/Заявка). */
+    private void reworkTo(String newForm) {
+        if (!fillRecordFromUi()) return;
+        record.Form = newForm;
+        Class<?> cls = "Task".equals(newForm) ? TaskActivity.class : InputCalPlanActivity.class;
+        Intent intent = new Intent(BaseCalPlanEditActivity.this, cls);
+        intent.putExtra("activeDate", activeDate);
+        intent.putExtra("calPlanRecord", record);
+        intent.putExtra(EXTRA_PROJECTS_FORM_MODE, true);
+        startActivity(intent);
+        finish();
+    }
+
     // =====================================================================
     // Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории)
     // =====================================================================
@@ -420,7 +500,9 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
                 row.addView(label);
 
                 EditText edit = new EditText(this);
-                edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+                // Task 128: числовые поля допускают и отрицательные значения
+                edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                        | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
                 edit.setSingleLine(true);
                 LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
                         0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -532,7 +614,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         }
 
         if (record == null) {
-            // New record: set the Author to "Ведущий" from CALPARAM (all form types)
+            // New record: Author = "Ведущий" из CALPARAM (все типы форм)
             CalParamRecord param = owerDb.getCalParam();
             record = new calPlanRecord();
             record.Form = preselectFormValue != null ? preselectFormValue : getFormType();
@@ -540,7 +622,20 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
                 record.AuthorName = param.Vedushii;
                 record.AuthorID = param.VedushiiID;
             }
+            // Task 122: в проектах/задачах/заявках Постановщик по умолчанию = Ведущий
+            if (projectLikeForm(record.Form)) {
+                record.AnalitikName = param != null ? param.Vedushii : null;
+                record.AnalitikID = param != null ? param.VedushiiID : null;
+                setupContactSpinner(spinnerAnalitik, record.AnalitikName);
+            }
             textViewAuthorName.setText(record.AuthorName != null ? record.AuthorName : "");
+            // Task 124: предвыбранные проект (для задачи) / заявка (для проекта)
+            if (preselectRequestName != null) {
+                editTextRequestName.setText(preselectRequestName);
+                if (isRequestPicker() && preselectProjectUNID != null) selectedRequestUNID = preselectProjectUNID;
+            }
+            // Task 127: строка инфо-поля под текст есть сразу, даже если записи в SQL ещё нет
+            infoBodyText.setText("");
             return;
         }
 
@@ -553,7 +648,8 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         if (record.Name != null) editTextName.setText(record.Name);
         if (record.Priority != null) editTextPriority.setText(String.valueOf(record.Priority));
         if (record.RequestName != null) editTextRequestName.setText(record.RequestName);
-        if (record.BodyText != null) infoBodyText.setText(record.BodyText);
+        // Task 127: setText вызывается всегда - пустые блоки убираются, строка под текст добавляется
+        infoBodyText.setText(record.BodyText);
         if (record.Comment != null) editTextComment.setText(record.Comment);
         if (record.InstallOrder != null) editTextInstallOrder.setText(record.InstallOrder);
         if (record.KeyWords != null) editTextKeyWords.setText(record.KeyWords);
@@ -602,13 +698,14 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         return cal.getTime();
     }
 
-    private void saveAndFinish() {
+    /** Заполняет record значениями с экрана; false - валидация не прошла (тост показан). */
+    private boolean fillRecordFromUi() {
         String form = selectedFormValue();
         String name = editTextName.getText().toString().trim();
 
         if (name.isEmpty()) {
             Toast.makeText(this, "Введите название", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
         if (record == null) {
@@ -627,7 +724,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
                 record.Priority = Integer.parseInt(prio);
             } catch (NumberFormatException e) {
                 Toast.makeText(this, "Приоритет должен быть числом", Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
         }
 
@@ -636,8 +733,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
             record.RequestUNID = selectedRequestUNID;
         }
 
-        // If the StartDate row is hidden (History/Health) the date equals the creation date.
-        // Task 115: Дата старта проекта/Задачи/Заявки хранится с 0ч 0м 0с (показывается только дата).
+        // Task 115: Дата старта хранится с 0ч 0м 0с; когда строка скрыта (History/Health) - дата создания.
         record.StartDate = dateAtMidnight(showStartDate()
                 ? dateFieldStartDate.getDate()
                 : (record.Okdate != null ? record.Okdate : okdateValue));
@@ -649,7 +745,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         }
 
         // Task 48: для Project/Task/Request даты завершения/откладывания проставляются по состоянию.
-        if ("Project".equals(form) || "Task".equals(form) || "Request".equals(form)) {
+        if (projectLikeForm(form)) {
             if ("Выполнено".equals(record.Status) || "Отменено".equals(record.Status)) {
                 record.EndDate = new Date();      // дата завершения проекта (факт) - сегодня со временем
                 record.HoldDate = null;
@@ -667,9 +763,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         record.LastUpdatedBy = ManageSQLDatabase.AuthorName;
         record.LastUpdatedByID = ManageSQLDatabase.AuthorID;
 
-        if (showMainSystem()) {
-            record.MainSystem = spinnerMainSystem.getSelectedItem().toString();
-        }
+        if (showMainSystem()) record.MainSystem = spinnerMainSystem.getSelectedItem().toString();
 
         if (showAnalitikExector()) {
             int ai = spinnerAnalitik.getSelectedItemPosition();
@@ -694,20 +788,19 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         record.BodyText = infoBodyText.getText();
         record.Comment = editTextComment.getText().toString().trim();
 
-        if (showInstallOrder()) {
-            record.InstallOrder = editTextInstallOrder.getText().toString().trim();
-        }
-        if (showKeyWords()) {
-            record.KeyWords = editTextKeyWords.getText().toString().trim();
-        }
+        if (showInstallOrder()) record.InstallOrder = editTextInstallOrder.getText().toString().trim();
+        if (showKeyWords()) record.KeyWords = editTextKeyWords.getText().toString().trim();
 
-        // Task 41/45: числовые поля Health (Голова/Глаза/.../Каллории)
         if (showHealthNumbers()) {
             for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
                 putHealthRecordValue(record, i, healthNumberValue(i));
             }
         }
+        return true;
+    }
 
+    private void saveAndFinish() {
+        if (!fillRecordFromUi()) return;
         Intent resultIntent = new Intent();
         resultIntent.putExtra("calPlanRecord", record);
         setResult(Activity.RESULT_OK, resultIntent);
@@ -720,6 +813,11 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         if ("Task".equals(form)) return PROJECT_FORM_LABELS[1];
         if ("Request".equals(form)) return PROJECT_FORM_LABELS[2];
         return form;
+    }
+
+    /** Task 122: Form проекта/задачи/заявки - для них показывается Постановщик. */
+    private boolean projectLikeForm(String form) {
+        return "Project".equals(form) || "Task".equals(form) || "Request".equals(form);
     }
 
     /** Task 114: Form для новой записи - предвыбранная из диалога либо тип класса. */

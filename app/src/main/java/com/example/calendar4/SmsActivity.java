@@ -42,6 +42,8 @@ public class SmsActivity extends BaseScreenActivity {
     private ArrayAdapter<smsRecord> adapter;
     private ArrayList<smsRecord> allSms;
     private String folder;
+    // Task 130: id Ведущего из параметров для вычисления типа сообщения
+    private String vedushiiId;
 
     // Task 115: дата СМС показывается со секундами
     private static final SimpleDateFormat DISPLAY_DATE =
@@ -63,6 +65,7 @@ public class SmsActivity extends BaseScreenActivity {
         if (title != null) title.setText(FOLDER_TITLES[titleIndex(folder)]);
 
         smsDb = new SmsSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
+        vedushiiId = vedushiiIdFromParams();
 
         allSms = new ArrayList<>();
         loadSms("");
@@ -70,13 +73,15 @@ public class SmsActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<smsRecord>(this, 0, allSms) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(SmsActivity.this);
+                    row = new MessageListItem(SmsActivity.this);
                 }
                 final smsRecord sms = allSms.get(position);
+                // Task 130: вычисляемое дисплейное поле типа (исходящее/входящее по позиции Ведущего)
+                sms.DisplayType = sms.effectiveType(vedushiiId);
                 row.setTypeIcon(typeIcon(sms));
                 row.setTopText(topText(sms));
                 row.setBottomText(bottomText(sms));
@@ -152,13 +157,24 @@ public class SmsActivity extends BaseScreenActivity {
         return 0;
     }
 
-    /** Task 106: три иконки по типу СМС (In / Out / Draft). */
+    /** Task 106/130: три иконки по типу СМС (In / Out / Draft), тип берётся из DisplayType. */
     private int typeIcon(smsRecord sms) {
-        if (sms == null || sms.Type == null) return R.drawable.ic_sms;
-        if (smsRecord.TYPE_INCOMING.equals(sms.Type)) return R.drawable.ic_sms_in;
-        if (smsRecord.TYPE_OUTGOING.equals(sms.Type)) return R.drawable.ic_sms_out;
-        if (smsRecord.TYPE_DRAFT.equals(sms.Type)) return R.drawable.ic_sms_draft;
+        String t = sms != null ? (sms.DisplayType != null ? sms.DisplayType : sms.Type) : null;
+        if (t == null) return R.drawable.ic_sms;
+        if (smsRecord.TYPE_INCOMING.equals(t)) return R.drawable.ic_sms_in;
+        if (smsRecord.TYPE_OUTGOING.equals(t)) return R.drawable.ic_sms_out;
+        if (smsRecord.TYPE_DRAFT.equals(t)) return R.drawable.ic_sms_draft;
         return R.drawable.ic_sms;
+    }
+
+    /** Task 130: id Ведущего из параметров (CALPARAM.VedushiiID). */
+    private String vedushiiIdFromParams() {
+        String id = ManageSQLDatabase.AuthorID;
+        if (id == null || id.trim().isEmpty() || "BUSINESS".equals(id.trim())) {
+            CalParamRecord param = ManageSQLDatabase.getInstance(this).getCalParam();
+            if (param != null) id = param.VedushiiID;
+        }
+        return id;
     }
 
     private String bottomText(smsRecord sms) {

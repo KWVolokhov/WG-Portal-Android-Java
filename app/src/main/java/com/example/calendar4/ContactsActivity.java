@@ -51,11 +51,11 @@ public class ContactsActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<ContactRecord>(this, 0, allContacts) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(ContactsActivity.this);
+                    row = new MessageListItem(ContactsActivity.this);
                 }
                 final ContactRecord contact = allContacts.get(position);
                 row.setTopText(fullName(contact));

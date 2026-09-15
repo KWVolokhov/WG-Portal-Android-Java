@@ -25,6 +25,9 @@ public class smsRecord implements Serializable {
     public String Status;     // Статус (New/Read) - необязательное из стандартного СМС
     public java.util.Date DateReceived; // Дата получения/отправки
 
+    // Task 130: вычисляемый тип для отображения (исходящее/входящее), не хранится в SQL
+    public String DisplayType;
+
     public smsRecord() {
     }
 
@@ -37,5 +40,18 @@ public class smsRecord implements Serializable {
         this.ToID = toId;
         this.Subject = subject;
         this.Body = body;
+    }
+
+    /** Task 130: тип для отображения. Если From и To разные и один из них Ведущий -
+     * исходящий, когда от Ведущего; входящий, когда до Ведущего; иначе сохранённый Type. */
+    public String effectiveType(String vedushiiId) {
+        String f = FromID != null ? FromID.trim() : "";
+        String t = ToID != null ? ToID.trim() : "";
+        String v = vedushiiId != null ? vedushiiId.trim() : "";
+        if (!f.isEmpty() && !t.isEmpty() && !f.equals(t) && !v.isEmpty()) {
+            if (v.equals(f)) return TYPE_OUTGOING;
+            if (v.equals(t)) return TYPE_INCOMING;
+        }
+        return Type != null ? Type : "";
     }
 }

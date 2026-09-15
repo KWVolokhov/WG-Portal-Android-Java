@@ -70,11 +70,11 @@ public class LivetypeActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<livetypeRecord>(this, 0, allRecords) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(LivetypeActivity.this);
+                    row = new MessageListItem(LivetypeActivity.this);
                 }
                 final livetypeRecord record = allRecords.get(position);
                 row.setTopText(record.Name != null ? record.Name : "");

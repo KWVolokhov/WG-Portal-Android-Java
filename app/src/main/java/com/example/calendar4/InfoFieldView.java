@@ -46,9 +46,6 @@ import java.util.Map;
  */
 public class InfoFieldView extends LinearLayout {
 
-    /** Expanded (editing) height in dp. */
-    private static final int EXPANDED_HEIGHT_DP = 200;
-
     // Attachment picker request codes (forwarded by host activities, see onHostActivityResult)
     private static final int REQ_PICK_IMAGE = 4101;
     private static final int REQ_PICK_VIDEO = 4102;
@@ -106,18 +103,18 @@ public class InfoFieldView extends LinearLayout {
         addView(tvCollapsed, new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
-        // ----- expanded: fixed-height pane with RecyclerView + tool buttons -----
+        // ----- expanded: панель с RecyclerView + кнопки (высота по содержимому) -----
         expandedPane = new LinearLayout(context);
         expandedPane.setOrientation(VERTICAL);
         expandedPane.setVisibility(GONE);
         expandedPane.setLayoutParams(new LinearLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, dpToPx(EXPANDED_HEIGHT_DP)));
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         addView(expandedPane);
 
         recycler = new RecyclerView(context);
         recycler.setVerticalScrollBarEnabled(true);
         recycler.setLayoutParams(new LinearLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, 0, 1f));
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         expandedPane.addView(recycler);
 
         adapter = new InfoBlocksAdapter(this);
@@ -258,6 +255,9 @@ public class InfoFieldView extends LinearLayout {
         if (imm != null) imm.hideSoftInputFromWindow(getWindowToken(), 0);
         expandedPane.setVisibility(GONE);
         tvCollapsed.setVisibility(VISIBLE);
+        dropEmptyTextBlocks();
+        ensureTextLine();
+        adapter.notifyDataSetChanged();
         updateCollapsed();
     }
 
@@ -276,8 +276,28 @@ public class InfoFieldView extends LinearLayout {
         blocks.clear();
         thumbs.clear();
         parseValue(stored);
+        dropEmptyTextBlocks();
+        ensureTextLine();
         updateCollapsed();
         adapter.notifyDataSetChanged();
+    }
+
+    /** Task 127: пустые текстовые блоки (над и под заполненным текстом) не показываются. */
+    private void dropEmptyTextBlocks() {
+        for (int i = blocks.size() - 1; i >= 0; i--) {
+            Block b = blocks.get(i);
+            if (b.type.equals("text") && plainOfBlock(b).trim().isEmpty()) blocks.remove(i);
+        }
+    }
+
+    /** Task 127: строка под текст есть сразу, даже если записи в SQL ещё нет. */
+    private void ensureTextLine() {
+        for (Block b : blocks) if (b.type.equals("text")) return;
+        Block b = new Block();
+        b.type = "text";
+        b.text = "";
+        b.isHtml = false;
+        blocks.add(b);
     }
 
     public void setHint(CharSequence hint) {
@@ -417,16 +437,21 @@ public class InfoFieldView extends LinearLayout {
     // Collapsed preview
     // ------------------------------------------------------------------
 
-    /** 2-line preview: text lines + attachment counters, cut with "..." when longer. */
+    /** Task 123: preview - первая строка текста + счётчики вложений (без лишних строк). */
     public void updateCollapsed() {
-        String plain = plainPreview();
-        String[] lines = plain.split("\r?\n");
-        String preview;
-        if (lines.length >= 2) preview = lines[0] + "\n" + lines[1] + "...";
-        else preview = plain;
+        String preview = firstPreviewLine(plainPreview());
         String counters = attachmentCounters();
         if (!counters.isEmpty()) preview = preview + counters;
         tvCollapsed.setText(preview);
+    }
+
+    /** Task 123: первая непустая строка (убирает 2-е строки, добавляемые в поле над чертой). */
+    private static String firstPreviewLine(String plain) {
+        if (plain == null) return "";
+        String t = plain.trim();
+        int nl = t.indexOf('\n');
+        if (nl >= 0) t = t.substring(0, nl).trim();
+        return t;
     }
 
     private String plainPreview() {

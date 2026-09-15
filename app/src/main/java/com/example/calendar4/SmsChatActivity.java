@@ -125,7 +125,9 @@ public class SmsChatActivity extends BaseScreenActivity {
                 row.setMessageText(sms.Body != null ? sms.Body : "");
                 // Task 117: входящие и исходящие сообщения разным цветом
                 row.setMessageTextColor(smsRecord.TYPE_OUTGOING.equals(sms.Type) ? COLOR_OUTGOING : COLOR_INCOMING);
-                row.setOnViewClickListener(v -> viewSms(sms));
+                // Task 125: кнопка "Посмотреть" и текст сообщения до 2 строк (единый MessageListItem)
+                row.setOnEditNewIcon("Посмотреть", R.drawable.ic_view, 2);
+                row.setOnEditClickListener(v -> viewSms(sms));
                 row.setOnDeleteClickListener(v -> confirmDelete(sms));
                 return row;
             }
@@ -263,7 +265,10 @@ public class SmsChatActivity extends BaseScreenActivity {
     private String topText(smsRecord sms) {
         StringBuilder sb = new StringBuilder();
         boolean outgoing = smsRecord.TYPE_OUTGOING.equals(sms.Type);
-        sb.append(outgoing ? fullName(vedushii) : fullName(contact));
+        // Task 119: автор = сохранённый From записи, чтобы перевыбор ведущего не менял автора старых сообщений
+        String stored = trim(sms.FromName);
+        sb.append(!stored.isEmpty() ? stored
+                : (outgoing ? fullName(vedushii) : fullName(contact)));
         if (sms.DateReceived != null) sb.append("  ").append(DISPLAY_DATE.format(sms.DateReceived));
         return sb.toString();
     }

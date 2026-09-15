@@ -54,6 +54,14 @@ public class SmsViewActivity extends BaseScreenActivity {
             return;
         }
 
+        // Task 130: тип для отображения - по позиции Ведущего (From/To), иначе сохранённый
+        String vedushiiId = ManageSQLDatabase.AuthorID;
+        if (vedushiiId == null || vedushiiId.trim().isEmpty() || "BUSINESS".equals(vedushiiId.trim())) {
+            CalParamRecord param = ManageSQLDatabase.getInstance(this).getCalParam();
+            if (param != null) vedushiiId = param.VedushiiID;
+        }
+        sms.DisplayType = sms.effectiveType(vedushiiId);
+
         if (textViewTitle != null) textViewTitle.setText(buildTitle(sms));
         textViewFrom.setText(sms.FromName != null ? sms.FromName : "");
         textViewTo.setText(sms.ToName != null ? sms.ToName : "");
@@ -79,9 +87,10 @@ public class SmsViewActivity extends BaseScreenActivity {
         }
     }
 
-    /** "СМС от <Контакт>" для входящих, "СМС для <Контакт>" для исходящих. */
+    /** "СМС от <Контакт>" для входящих, "СМС для <Контакт>" для исходящих (Task 130: по DisplayType). */
     private String buildTitle(smsRecord sms) {
-        boolean incoming = smsRecord.TYPE_INCOMING.equals(sms.Type);
+        String type = sms.DisplayType != null ? sms.DisplayType : sms.Type;
+        boolean incoming = smsRecord.TYPE_INCOMING.equals(type);
         String contact = incoming ? sms.FromName : sms.ToName;
         if (contact == null || contact.trim().isEmpty()) return "СМС";
         return incoming ? "СМС от " + contact.trim() : "СМС для " + contact.trim();

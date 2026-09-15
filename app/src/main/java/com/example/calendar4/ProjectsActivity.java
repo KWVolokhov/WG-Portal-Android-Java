@@ -83,11 +83,11 @@ public class ProjectsActivity extends BaseScreenActivity {
         adapter = new ArrayAdapter<calPlanRecord>(this, 0, allProjects) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                TwoLineListItem row;
-                if (convertView instanceof TwoLineListItem) {
-                    row = (TwoLineListItem) convertView;
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
                 } else {
-                    row = new TwoLineListItem(ProjectsActivity.this);
+                    row = new MessageListItem(ProjectsActivity.this);
                 }
                 final calPlanRecord record = allProjects.get(position);
                 row.setTopText(record.Name != null ? record.Name : "");
@@ -104,15 +104,16 @@ public class ProjectsActivity extends BaseScreenActivity {
         listViewProjects.setAdapter(adapter);
         listViewProjects.setOnItemClickListener(null);
 
-        // Add button - open a brand-new Project card
+        // Add button - диалог выбора типа новой записи (как на первом экране), затем нужная карточка
         btnNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ProjectsActivity.this, InputCalPlanActivity.class);
-                intent.putExtra("activeDate", new Date());
-                // Task 35: Form picker offers only Проекты/Задачи/Заявка на автоматизацию
-                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
-                startActivityForResult(intent, 1);
+                new AlertDialog.Builder(ProjectsActivity.this)
+                        .setTitle("Добавить")
+                        .setItems(new String[]{"Проект", "Задача", "Заявка"},
+                                (d, which) -> openNewDialog(which))
+                        .setNegativeButton("Cancel", null)
+                        .show();
             }
         });
 
@@ -123,6 +124,28 @@ public class ProjectsActivity extends BaseScreenActivity {
                 finish();
             }
         });
+    }
+
+    /** Task 126: открывает карточку выбранного типа (Проект/Задача/Заявка) из диалога Добавить. */
+    private void openNewDialog(int which) {
+        Intent intent;
+        switch (which) {
+            case 0: // Проект
+                intent = new Intent(ProjectsActivity.this, InputCalPlanActivity.class);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PRESELECT_FORM, "Project");
+                break;
+            case 1: // Задача
+                intent = new Intent(ProjectsActivity.this, TaskActivity.class);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PRESELECT_FORM, "Task");
+                break;
+            default: // Заявка
+                intent = new Intent(ProjectsActivity.this, InputCalPlanActivity.class);
+                intent.putExtra(BaseCalPlanEditActivity.EXTRA_PRESELECT_FORM, "Request");
+                break;
+        }
+        intent.putExtra("activeDate", new Date());
+        intent.putExtra(BaseCalPlanEditActivity.EXTRA_PROJECTS_FORM_MODE, true);
+        startActivityForResult(intent, 1);
     }
 
     @Override

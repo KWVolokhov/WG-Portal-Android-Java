@@ -755,7 +755,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return queryCalPlan("Form=?", new String[]{form});
     }
 
-    // Get CALPLAN records of Form='Project' AND Form='Task' (the "Проекты\Все" screen),
+    // Get CALPLAN records of Form='Project', Form='Task' AND Form='Request' (the "Проекты\Все" screen),
     // sorted by StartDate (earliest first); records without a date go last.
     // When the filter is 3+ characters it also filters by Name (LOWER LIKE).
     public calPlanRecord[] getProjectsTasks(String filter) {
@@ -770,7 +770,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
      *                 when false all projects and tasks are returned.
      */
     public calPlanRecord[] getProjectsTasks(String filter, boolean workOnly) {
-        String baseWhere = "(Form='Project' OR Form='Task')";
+        String baseWhere = "(Form='Project' OR Form='Task' OR Form='Request')";
         if (workOnly) {
             baseWhere += " AND (StatusID IN ('Inwork','Intest') OR Status IN ('В работе','Тестирование'))";
         }
@@ -797,6 +797,18 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             return da.compareTo(db);
         });
         return list.toArray(new calPlanRecord[0]);
+    }
+
+    // Task 124: список задач, привязанных к проекту (Задача.RequestUNID = UNID проекта)
+    public calPlanRecord[] getTasksByProject(String projectUNID) {
+        if (projectUNID == null || projectUNID.isEmpty()) return new calPlanRecord[0];
+        return queryCalPlan("Form='Task' AND RequestUNID=?", new String[]{projectUNID});
+    }
+
+    // Task 124: проекты, привязанные к заявке (Проект.RequestName = название заявки)
+    public calPlanRecord[] getProjectsByRequestName(String requestName) {
+        if (requestName == null || requestName.trim().isEmpty()) return new calPlanRecord[0];
+        return queryCalPlan("Form='Project' AND RequestName=?", new String[]{requestName.trim()});
     }
 
     // Get CALPLAN records of Form='History' for a concrete date
@@ -1261,20 +1273,22 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String now = sdf.format(new Date());
 
-            // Task 112: удалить старые дубли тестовых записей (раньше вставлялись с новым UNID на каждом старте)
-            db.execSQL("DELETE FROM SMSCALPLAN WHERE Subject='Тестовая запись' AND Body='Hello world!'");
+            // Task 112/121: удалить старые тестовые записи (чтобы обновить обе стороны From/To)
+            db.execSQL("DELETE FROM SMSCALPLAN WHERE UNID IN ('sms-test-incoming','sms-test-outgoing') OR (Subject='Тестовая запись' AND Body='Hello world!')");
 
             // Task 112: UNID фиксированные - INSERT OR IGNORE не создаёт дубли при повторном входе.
-            // Входящая: Ведущий - получатель (ToID заполнен -> видна в СМС\Входящие и СМС\Все)
+            // Task 121: Входящая - указаны оба адресата From и To (одинаковые = Ведущий)
             db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
-                    "'sms-test-incoming', 'Incoming', '', '', " +
+                    "'sms-test-incoming', 'Incoming', " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
                     sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
                     "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
 
-            // Исходящая: Ведущий - отправитель (FromID заполнен -> видна в СМС\Исходящие и СМС\Все)
+            // Task 121: Исходящая - указаны оба адресата From и To (одинаковые = Ведущий)
             db.execSQL("INSERT OR IGNORE INTO SMSCALPLAN (UNID, Type, FromID, FromName, ToID, ToName, Subject, Body, Status, DateReceived) VALUES (" +
                     "'sms-test-outgoing', 'Outgoing', " +
-                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", '', '', " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
+                    sqlStr(vedushiiId) + ", " + sqlStr(vedushiiName.trim()) + ", " +
                     "'Тестовая запись', 'Hello world!', 'New', '" + now + "')");
         } catch (Exception e) {
             // Non-fatal: СМС - вспомогательные данные

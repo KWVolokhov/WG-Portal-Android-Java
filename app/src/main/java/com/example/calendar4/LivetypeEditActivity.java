@@ -211,7 +211,9 @@ public class LivetypeEditActivity extends BaseScreenActivity {
             row.addView(label);
 
             EditText edit = new EditText(this);
-            edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+            // Task 128: числовые поля допускают и отрицательные значения
+            edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
+                    | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
             edit.setSingleLine(true);
             LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
