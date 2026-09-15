@@ -11,6 +11,7 @@
 - Все экраны — `Activity` (Fragment в проекте НЕ используются).
 - Экраны наследуются от `BaseScreenActivity` (кроме `CrashActivity`).
 - Единое меню на всех экранах: `BaseScreenActivity` надувает `res/menu/main_menu.xml`.
+- Перехват падений: `WGPortalApp` (Application, манифест `android:name`) ставит `HardcoreCrashHandler` — `CrashActivity` показывается при любой необработанной ошибке на любом Activity и в любом потоке (Task 134).
 - Layout-ы экранов: `app/src/main/res/layout/activity_*.xml`.
 - Стиль заголовка: сверху заголовок, центрован влево; в той же строке ImageButton-кнопки, центрованы вправо.
 - Минимальная совместимость: Android 8 (API 26).
@@ -107,7 +108,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 
 | Пункт меню (id) | Название | Переход / поведение |
 |---|---|---|
-| `calendar` | Календарь | НЕ реализовано — Toast |
+| `calendar` | Календарь | `MainActivity` — вызов/возврат к первому экрану (`FLAG_ACTIVITY_CLEAR_TOP` + `FLAG_ACTIVITY_SINGLE_TOP`) (Task 135) |
 | `contacts` | Контакты | `ContactsActivity` |
 | `calculator` | Калькулятор | НЕ реализовано — Toast |
 | `livetype` | Типы жизнедеятельности | `LivetypeActivity` |
@@ -124,7 +125,8 @@ CrashActivity (extends android.app.Activity, singleTask)
 - `ContactsActivity` -> `EditContactActivity` (редактирование контакта).
 - `ProjectsActivity` — по Form записи: `Task` -> `TaskActivity`, иначе -> `InputCalPlanActivity`.
 - `SmsActivity` -> `SmsChatActivity` (extra `contactId`) / `SmsViewActivity` (extra `smsRecord`).
-- `CrashActivity` запускается из `HardcoreCrashHandler` (перехват UncaughtException в `MainActivity.onCreate`).
+- `CrashActivity` запускается из `HardcoreCrashHandler` (перехват UncaughtException всех потоков). Обработчик ставится в `WGPortalApp.onCreate` (Application, Task 134) — `CrashActivity` показывается при любой необработанной ошибке на любом Activity, включая падения до `onCreate` экранов и рестарт процесса в другое Activity.
+- Пункт меню `calendar` (в любом экране через `BaseScreenActivity`) — переход/возврат к первому `MainActivity` (Task 135).
 - Вложения `InfoFieldView` открываются через `FileProvider` (authority `${applicationId}.fileprovider`, пути `res/xml/file_paths.xml`).
 
 ## 5. Нестандартные контролы (custom views)
@@ -134,11 +136,11 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `RussianCalendarView` | `ConstraintLayout` | Нестандартный российский календарь (GridView + `CalendarAdapter`, праздники через `RussianHolidaysFetcher` в таблицу HOLIDAYS) | `MainActivity` (id `calendarView1`), layout `russian_calendar_view.xml`, callback `setOnDateSelectedListener` |
 | `DateFieldView` | `LinearLayout` | Поле выбора даты с маской `__.__.____` | Карточки редактирования |
 | `PhoneFieldView` | `LinearLayout` | Поле телефона, до 10 цифр, маска-заполнитель `•` | `EditContactActivity` |
-| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков); строка под текст есть сразу при создании карточки, пустые текстовые блоки над/под текстом удаляются (Task 127) | Карточки редактирования |
+| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями и таблицами (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков); строка под текст есть сразу при создании карточки, пустые текстовые блоки над/под текстом удаляются (Task 127). Кнопки: текст/картинка/видео/файл/**таблица**/**Ж-жирный**/**цвет текста** (Task 136). Таблица: диалог выбора строк×колонок (NumberPicker 1..10, умолчание 2×2), блок JSON `"tbl"` (`r`,`c`,`cells` — HTML каждой ячейки), EditText в каждой ячейке с рамкой `bg_table_cell`, у таблицы кнопка удаления. Жирный (`ic_bold_t`) и цвет (`ic_text_color`, вертикальный ряд из 7 цветов) применяются к выделению, а без выделения — ко всему тексту последнего фокусного EditText (строки текста или ячейки таблицы), спаны `StyleSpan(BOLD)`/`ForegroundColorSpan` → `<b>`/`<font color>` | Карточки редактирования |
 | `MessageListItem` | `LinearLayout` | Универсальный элемент списка: иконка + 1..N строк текста + кнопки (Редактировать/Удалить, или Просмотр), разделитель `--5--` | Все списки (бывший TwoLineListItem, Task 125) |
 | `FlyOutContainer` | `LinearLayout` | Выдвижной контейнер (fly-out) | Резерв |
 | `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний; статус рисуется полным словом (Draft/Work/Test/Ok/Hold/Cancel), шрифт автоуменьшается под ширину иконки (Task 132) | Списки |
-| `InfoBlocksAdapter` | `RecyclerView.Adapter` | Сетка вложений (1/4 ширины строки), тап открывает стандартный просмотрщик | `InfoFieldView` |
+| `InfoBlocksAdapter` | `RecyclerView.Adapter` | Сетка вложений (1/4 ширины строки) и таблицы (viewType 4, `TableHolder`: сетка rows×cols EditText-ячеек), тап по вложению открывает стандартный просмотрщик; `focusedOrLastEditor()` — EditText где стоял курсор, `writeBack()` — явная запись HTML после смены спанов (Task 136) | `InfoFieldView` |
 
 ## 6. Данные, передаваемые между экранами
 

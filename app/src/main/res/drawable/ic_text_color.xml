@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Task 136: text color button of InfoFieldView (colored square) -->
+    <path
+        android:fillColor="#FFE53935"
+        android:pathData="M4,4 L11,4 L11,11 L4,11 Z" />
+    <path
+        android:fillColor="#FF43A047"
+        android:pathData="M13,4 L20,4 L20,11 L13,11 Z" />
+    <path
+        android:fillColor="#FF1E88E5"
+        android:pathData="M4,13 L11,13 L11,20 L4,20 Z" />
+    <path
+        android:fillColor="#FFFB8C00"
+        android:pathData="M13,13 L20,13 L20,20 L13,20 Z" />
+</vector>

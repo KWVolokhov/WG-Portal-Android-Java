@@ -67,8 +67,9 @@
 |---|---|
 | `Pedometer` | Реальный шагомер, разрешение ACTIVITY_RECOGNITION (Android 10+); запись Steps в HEALTHPLAN |
 | `RussianHolidaysFetcher` | Загрузка праздников года по HTTP (`HttpURLConnection`) в таблицу HOLIDAYS; единственный сетевой код проекта |
+| `WGPortalApp` | Application (`android:name` в манифесте); ставит `HardcoreCrashHandler` в `onCreate` до любых экранов (Task 134) |
 | `AttachmentStore` | Хранение файлов вложений `InfoFieldView` (папка CALPARAM.AttachFolder) |
-| `HardcoreCrashHandler` | Перехват UncaughtException всех потоков; сохранение стека и запуск `CrashActivity` |
+| `HardcoreCrashHandler` | Перехват UncaughtException всех потоков (ставится в `WGPortalApp.onCreate`, Task 134); сохранение стека и запуск `CrashActivity` при ошибке на любом Activity |
 | `ConstantsSQLDb` | Все DDL/INSERT/UPDATE-строки схемы (единственное место изменения схемы) |
 
 ## 6. Правила ведения файла (для ИИ)

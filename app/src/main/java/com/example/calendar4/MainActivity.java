@@ -80,8 +80,7 @@ public class MainActivity extends BaseScreenActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Включаем наш жесткий перехватчик для всех потоков приложения
-        Thread.setDefaultUncaughtExceptionHandler(new HardcoreCrashHandler(this));
+        // Task 134: HardcoreCrashHandler ставится в WGPortalApp.onCreate - CrashActivity при падении любого Activity
     
         setContentView(R.layout.activity_main);
 

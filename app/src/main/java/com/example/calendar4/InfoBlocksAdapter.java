@@ -24,16 +24,21 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Task 100: RecyclerView adapter of InfoFieldView.
  * Item types: 0 = editable text block, 1 = image thumbnail, 2 = video thumbnail
- * (frame + play icon, no autoplay), 3 = file row. Images/videos are sized to
- * 1/4 of the row width; a tap on an item opens the standard Android viewer.
+ * (frame + play icon, no autoplay), 3 = file row, 4 = table with an editable cell
+ * in every cell (Task 136). Images/videos are sized to 1/4 of the row width;
+ * a tap on an item opens the standard Android viewer.
  */
 class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final InfoFieldView host;
+
+    /** Task 136: последний EditText (строка текста или ячейка таблицы), где стоял курсор. */
+    EditText lastEditor;
 
     InfoBlocksAdapter(InfoFieldView host) {
         this.host = host;
@@ -48,6 +53,7 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if ("img".equals(t)) return 1;
         if ("vid".equals(t)) return 2;
         if ("file".equals(t)) return 3;
+        if ("tbl".equals(t)) return 4;
         return 0;
     }
 
@@ -57,6 +63,7 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Context ctx = parent.getContext();
         if (viewType == 0) return new TextHolder(makeTextEdit(ctx));
         if (viewType == 3) return makeFileHolder(ctx);
+        if (viewType == 4) return new TableHolder(makeTableContainer(ctx));
         return new MediaHolder(makeMediaFrame(ctx), viewType == 2);
     }
 
@@ -66,6 +73,41 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (h instanceof TextHolder) ((TextHolder) h).bind(b);
         else if (h instanceof MediaHolder) ((MediaHolder) h).bind(b, host.recyclerWidth());
         else if (h instanceof FileHolder) ((FileHolder) h).bind(b);
+        else if (h instanceof TableHolder) ((TableHolder) h).bind(b);
+    }
+
+    /** Task 136: EditText в фокусе сейчас, иначе последний фокусный (пока видимый); null если нет. */
+    EditText focusedOrLastEditor() {
+        EditText focused = null, last = null;
+        for (int i = 0; i < host.recycler.getChildCount(); i++) {
+            RecyclerView.ViewHolder vh = host.recycler.getChildViewHolder(host.recycler.getChildAt(i));
+            if (vh instanceof TextHolder) {
+                TextHolder th = (TextHolder) vh;
+                if (th.et.hasFocus()) focused = th.et;
+                if (th.et == lastEditor) last = th.et;
+            } else if (vh instanceof TableHolder) {
+                for (EditText et : ((TableHolder) vh).cells) {
+                    if (et.hasFocus()) focused = et;
+                    if (et == lastEditor) last = et;
+                }
+            }
+        }
+        return focused != null ? focused : last;
+    }
+
+    /** Task 136: пишет текущий HTML редактора (строки текста или ячейки) обратно в блок. */
+    void writeBack(EditText et) {
+        for (int i = 0; i < host.recycler.getChildCount(); i++) {
+            RecyclerView.ViewHolder vh = host.recycler.getChildViewHolder(host.recycler.getChildAt(i));
+            if (vh instanceof TextHolder) {
+                TextHolder th = (TextHolder) vh;
+                if (th.et == et) { th.writeBack(); return; }
+            } else if (vh instanceof TableHolder) {
+                TableHolder th = (TableHolder) vh;
+                int idx = th.cells.indexOf(et);
+                if (idx >= 0) { th.writeCell(idx); return; }
+            }
+        }
     }
 
     /** Removes a block (delete buttons of the media/file items). */
@@ -103,11 +145,16 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
                 @Override public void onTextChanged(CharSequence s, int st, int c, int a) {}
                 @Override public void afterTextChanged(Editable s) {
-                    if (binding || bound == null) return;
-                    bound.isHtml = true;
-                    bound.text = Html.toHtml(s);
+                    if (!binding) writeBack();
                 }
             });
+        }
+
+        /** Task 136: явная запись HTML (смена спанов TextWatcher не вызывает). */
+        void writeBack() {
+            if (bound == null) return;
+            bound.isHtml = true;
+            bound.text = Html.toHtml(et.getText());
         }
 
         void bind(InfoFieldView.Block b) {
@@ -116,6 +163,96 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             et.setText(b.isHtml ? Html.fromHtml(b.text == null ? "" : b.text)
                     : (b.text == null ? "" : b.text));
             binding = false;
+        }
+    }
+
+    /** Task 136: контейнер таблицы - вертикальная сетка строк с кнопкой удаления. */
+    private LinearLayout makeTableContainer(Context ctx) {
+        LinearLayout container = new LinearLayout(ctx);
+        container.setOrientation(LinearLayout.VERTICAL);
+        RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.bottomMargin = host.dpToPx(8);
+        container.setLayoutParams(lp);
+        return container;
+    }
+
+    private EditText makeCellEditor(Context ctx) {
+        EditText et = new EditText(ctx);
+        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        et.setSingleLine(false);
+        et.setMinLines(1);
+        et.setGravity(Gravity.START | Gravity.TOP);
+        et.setBackgroundResource(R.drawable.bg_table_cell);
+        return et;
+    }
+
+    /** Task 136: таблица - сетка rows x cols, EditText в каждой ячейке, жирный/цвет работают в ячейках. */
+    private class TableHolder extends RecyclerView.ViewHolder {
+        final LinearLayout grid;
+        final ImageButton delete;
+        final ArrayList<EditText> cells = new ArrayList<>();
+        InfoFieldView.Block bound;
+
+        TableHolder(LinearLayout container) {
+            super(container);
+            Context ctx = container.getContext();
+            LinearLayout header = new LinearLayout(ctx);
+            header.setOrientation(LinearLayout.HORIZONTAL);
+            header.setGravity(Gravity.END);
+            delete = new ImageButton(ctx);
+            delete.setImageResource(R.drawable.ic_delete);
+            delete.setBackgroundColor(Color.TRANSPARENT);
+            delete.setContentDescription("Удалить таблицу");
+            delete.setLayoutParams(new LinearLayout.LayoutParams(host.dpToPx(24), host.dpToPx(24)));
+            header.addView(delete);
+            container.addView(header);
+
+            grid = new LinearLayout(ctx);
+            grid.setOrientation(LinearLayout.VERTICAL);
+            container.addView(grid, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            delete.setOnClickListener(v -> {
+                int pos = host.blocks.indexOf(bound);
+                if (pos >= 0) removeAt(pos);
+            });
+        }
+
+        void bind(InfoFieldView.Block b) {
+            bound = b;
+            grid.removeAllViews();
+            cells.clear();
+            for (int r = 0; r < b.rows; r++) {
+                LinearLayout row = new LinearLayout(grid.getContext());
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                for (int c = 0; c < b.cols; c++) {
+                    final int idx = r * b.cols + c;
+                    EditText et = makeCellEditor(grid.getContext());
+                    et.setText(cellHtml(b, idx));
+                    et.addTextChangedListener(new TextWatcher() {
+                        @Override public void beforeTextChanged(CharSequence s, int st, int cnt, int aft) {}
+                        @Override public void onTextChanged(CharSequence s, int st, int cnt, int aft) {}
+                        @Override public void afterTextChanged(Editable s) { writeCell(idx); }
+                    });
+                    et.setOnFocusChangeListener(v -> lastEditor = et);
+                    row.addView(et, new LinearLayout.LayoutParams(
+                            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                    cells.add(et);
+                }
+                grid.addView(row);
+            }
+        }
+
+        private CharSequence cellHtml(InfoFieldView.Block b, int idx) {
+            String html = (b.cells != null && idx < b.cells.size()) ? b.cells.get(idx) : "";
+            return html == null ? "" : Html.fromHtml(html);
+        }
+
+        /** Task 136: записывает текущий HTML ячейки в блок (смена спанов TextWatcher не вызывает). */
+        void writeCell(int idx) {
+            if (bound == null || bound.cells == null || idx >= bound.cells.size()) return;
+            bound.cells.set(idx, Html.toHtml(cells.get(idx).getText()));
         }
     }
 

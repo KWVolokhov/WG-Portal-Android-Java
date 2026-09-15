@@ -1,17 +1,26 @@
 package com.example.calendar4;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
+import android.text.Editable;
 import android.text.Html;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -51,16 +61,24 @@ public class InfoFieldView extends LinearLayout {
     private static final int REQ_PICK_VIDEO = 4102;
     private static final int REQ_PICK_FILE = 4103;
 
+    /** Task 136: vertical row of 7 text colors in the color picker dialog. */
+    private static final int[] TEXT_COLORS = {
+            0xFF000000, 0xFFE53935, 0xFFFB8C00, 0xFF43A047,
+            0xFF1E88E5, 0xFF8E24AA, 0xFF757575
+    };
+
     /** The view that currently waits for a picker result (one picker at a time). */
     private static InfoFieldView activePickerView;
 
     /** One content block of the field (package-private for InfoBlocksAdapter). */
     static class Block {
-        String type;   // "text" | "img" | "vid" | "file"
+        String type;   // "text" | "img" | "vid" | "file" | "tbl"
         String text;   // "text": plain text, or HTML when isHtml = true
         boolean isHtml;
         String file;   // attachment file name inside the attachments folder
         String name;   // display caption for "file" blocks
+        int rows, cols;          // "tbl": table size (Task 136)
+        ArrayList<String> cells; // "tbl": HTML per cell, size = rows * cols (Task 136)
     }
 
     final ArrayList<Block> blocks = new ArrayList<>();
@@ -69,7 +87,7 @@ public class InfoFieldView extends LinearLayout {
 
     private TextView tvCollapsed;
     private LinearLayout expandedPane;
-    private RecyclerView recycler;
+    RecyclerView recycler;
     private InfoBlocksAdapter adapter;
 
     public InfoFieldView(Context context) {
@@ -125,10 +143,14 @@ public class InfoFieldView extends LinearLayout {
             if ((r - l) != (orr - ol)) adapter.notifyDataSetChanged();
         });
 
-        expandedPane.addView(buildButtonsRow(context));
+        HorizontalScrollView buttonsScroller = new HorizontalScrollView(context);
+        buttonsScroller.setHorizontalScrollBarEnabled(false);
+        buttonsScroller.addView(buildButtonsRow(context));
+        expandedPane.addView(buttonsScroller, new LinearLayout.LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     }
 
-    /** Tool buttons row: collapse (left) + add text / picture / video / file (right). */
+    /** Tool buttons row: collapse (left) + text / picture / video / file / table / bold / color (right). */
     private LinearLayout buildButtonsRow(Context context) {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(HORIZONTAL);
@@ -150,14 +172,20 @@ public class InfoFieldView extends LinearLayout {
         spacer.setLayoutParams(new LinearLayout.LayoutParams(0, 0, 1f));
         row.addView(spacer);
 
-        row.addView(makeToolButton(context, R.drawable.ic_add_plus, "Добавить текст", 0));
-        row.addView(makeToolButton(context, R.drawable.ic_attach_image, "Добавить картинку", REQ_PICK_IMAGE));
-        row.addView(makeToolButton(context, R.drawable.ic_attach_video, "Добавить видео", REQ_PICK_VIDEO));
-        row.addView(makeToolButton(context, R.drawable.ic_attach_file, "Добавить файл", REQ_PICK_FILE));
+        row.addView(makeToolButton(context, R.drawable.ic_add_plus, "Добавить текст", () -> addTextBlock()));
+        row.addView(makeToolButton(context, R.drawable.ic_attach_image, "Добавить картинку",
+                () -> startPick(REQ_PICK_IMAGE, "Добавить картинку")));
+        row.addView(makeToolButton(context, R.drawable.ic_attach_video, "Добавить видео",
+                () -> startPick(REQ_PICK_VIDEO, "Добавить видео")));
+        row.addView(makeToolButton(context, R.drawable.ic_attach_file, "Добавить файл",
+                () -> startPick(REQ_PICK_FILE, "Добавить файл")));
+        row.addView(makeToolButton(context, R.drawable.ic_add_table, "Добавить таблицу", this::showTableSizeDialog));
+        row.addView(makeToolButton(context, R.drawable.ic_bold_t, "Жирный текст", this::toggleBoldOnEditor));
+        row.addView(makeToolButton(context, R.drawable.ic_text_color, "Цвет текста", this::showColorPickerDialog));
         return row;
     }
 
-    private ImageButton makeToolButton(Context context, int iconRes, String desc, final int reqCode) {
+    private ImageButton makeToolButton(Context context, int iconRes, String desc, final Runnable action) {
         ImageButton b = new ImageButton(context);
         b.setImageResource(iconRes);
         b.setBackgroundColor(Color.TRANSPARENT);
@@ -165,10 +193,7 @@ public class InfoFieldView extends LinearLayout {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dpToPx(32), dpToPx(32));
         lp.leftMargin = dpToPx(8);
         b.setLayoutParams(lp);
-        b.setOnClickListener(v -> {
-            if (reqCode == 0) addTextBlock();
-            else startPick(reqCode, desc);
-        });
+        b.setOnClickListener(v -> action.run());
         return b;
     }
 
@@ -181,6 +206,166 @@ public class InfoFieldView extends LinearLayout {
         blocks.add(b);
         adapter.notifyItemInserted(blocks.size() - 1);
         recycler.post(() -> recycler.smoothScrollToPosition(blocks.size() - 1));
+    }
+
+    // ------------------------------------------------------------------
+    // Task 136: таблицы, жирный текст, цвет текста
+    // ------------------------------------------------------------------
+
+    /** Task 136: диалог выбора количества строк и колонок, затем вставка таблицы. */
+    private void showTableSizeDialog() {
+        Context ctx = getContext();
+        LinearLayout box = new LinearLayout(ctx);
+        box.setOrientation(VERTICAL);
+        box.setPadding(dpToPx(20), dpToPx(8), dpToPx(20), 0);
+
+        TextView rowsLabel = new TextView(ctx);
+        rowsLabel.setText("Строки");
+        rowsLabel.setTextAppearance(ctx, android.R.style.TextAppearance_Small);
+        box.addView(rowsLabel);
+        final NumberPicker rowsPicker = new NumberPicker(ctx);
+        rowsPicker.setMinValue(1);
+        rowsPicker.setMaxValue(10);
+        rowsPicker.setValue(2);
+        rowsPicker.setWrapSelectorWheel(false);
+        box.addView(rowsPicker);
+
+        TextView colsLabel = new TextView(ctx);
+        colsLabel.setText("Колонки");
+        colsLabel.setTextAppearance(ctx, android.R.style.TextAppearance_Small);
+        box.addView(colsLabel);
+        final NumberPicker colsPicker = new NumberPicker(ctx);
+        colsPicker.setMinValue(1);
+        colsPicker.setMaxValue(10);
+        colsPicker.setValue(2);
+        colsPicker.setWrapSelectorWheel(false);
+        box.addView(colsPicker);
+
+        new AlertDialog.Builder(ctx)
+                .setTitle("Размер таблицы")
+                .setView(box)
+                .setPositiveButton("Вставить",
+                        (d, w) -> addTableBlock(rowsPicker.getValue(), colsPicker.getValue()))
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    /** Task 136: appends a table block with rows*cols editable cells. */
+    private void addTableBlock(int rows, int cols) {
+        Block b = new Block();
+        b.type = "tbl";
+        b.rows = rows;
+        b.cols = cols;
+        b.cells = new ArrayList<>();
+        for (int i = 0; i < rows * cols; i++) b.cells.add("");
+        blocks.add(b);
+        expand();
+        adapter.notifyItemInserted(blocks.size() - 1);
+        recycler.post(() -> recycler.smoothScrollToPosition(blocks.size() - 1));
+        updateCollapsed();
+    }
+
+    /** Task 136: жирный/нежирный - выделение, а без выделения весь текст последнего EditText. */
+    private void toggleBoldOnEditor() {
+        EditText et = adapter.focusedOrLastEditor();
+        if (et == null) {
+            Toast.makeText(getContext(), "Поставьте курсор в текст", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int[] range = targetRange(et);
+        if (range[0] >= range[1]) {
+            Toast.makeText(getContext(), "Нет текста для форматирования", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Editable s = et.getText();
+        if (rangeFullyBold(s, range[0], range[1])) removeStyleSpans(s, range[0], range[1], Typeface.BOLD);
+        else s.setSpan(new StyleSpan(Typeface.BOLD), range[0], range[1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        adapter.writeBack(et);
+    }
+
+    /** Task 136: vertical row of 7 colors; the pick recolors the last focused EditText. */
+    private void showColorPickerDialog() {
+        final EditText editor = adapter.focusedOrLastEditor();
+        if (editor == null) {
+            Toast.makeText(getContext(), "Поставьте курсор в текст", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LinearLayout column = new LinearLayout(getContext());
+        column.setOrientation(VERTICAL);
+        int pad = dpToPx(24);
+        column.setPadding(pad, pad, pad, pad);
+        final AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle("Цвет текста")
+                .setView(column)
+                .create();
+        for (final int color : TEXT_COLORS) {
+            View swatch = new View(getContext());
+            swatch.setBackgroundColor(color);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dpToPx(140), dpToPx(32));
+            lp.bottomMargin = dpToPx(8);
+            swatch.setLayoutParams(lp);
+            swatch.setOnClickListener(v -> {
+                applyColorToEditor(editor, color);
+                dialog.dismiss();
+            });
+            column.addView(swatch);
+        }
+        dialog.show();
+    }
+
+    /** Task 136: recolors the selection (or the whole text), replacing existing color spans. */
+    private void applyColorToEditor(EditText et, int color) {
+        int[] range = targetRange(et);
+        if (range[0] >= range[1]) return;
+        Editable s = et.getText();
+        for (ForegroundColorSpan span : s.getSpans(range[0], range[1], ForegroundColorSpan.class)) {
+            int a = s.getSpanStart(span), b = s.getSpanEnd(span);
+            int flags = s.getSpanFlags(span);
+            int old = span.getForegroundColor();
+            s.removeSpan(span);
+            if (a < range[0]) s.setSpan(new ForegroundColorSpan(old), a, range[0], flags);
+            if (range[1] < b) s.setSpan(new ForegroundColorSpan(old), range[1], b, flags);
+        }
+        s.setSpan(new ForegroundColorSpan(color), range[0], range[1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        adapter.writeBack(et);
+    }
+
+    /** Selection bounds of an editor; without a selection - the whole text. */
+    private static int[] targetRange(EditText et) {
+        int a = et.getSelectionStart(), b = et.getSelectionEnd();
+        int start = Math.min(a, b), end = Math.max(a, b);
+        if (start < 0 || end < 0 || start == end) { start = 0; end = et.length(); }
+        return new int[]{start, end};
+    }
+
+    /** True when every character in [start, end) carries a BOLD StyleSpan. */
+    private static boolean rangeFullyBold(Editable s, int start, int end) {
+        ArrayList<int[]> parts = new ArrayList<>();
+        for (StyleSpan span : s.getSpans(start, end, StyleSpan.class)) {
+            if ((span.getStyle() & Typeface.BOLD) == 0) continue;
+            int a = Math.max(start, s.getSpanStart(span)), b = Math.min(end, s.getSpanEnd(span));
+            if (a < b) parts.add(new int[]{a, b});
+        }
+        if (parts.isEmpty()) return false;
+        Collections.sort(parts, (p, q) -> p[0] - q[0]);
+        int covered = start;
+        for (int[] p : parts) {
+            if (p[0] > covered) return false;
+            if (p[1] > covered) covered = p[1];
+        }
+        return covered >= end;
+    }
+
+    /** Removes (with splitting) all StyleSpans of the given style crossing [start, end). */
+    private static void removeStyleSpans(Editable s, int start, int end, int style) {
+        for (StyleSpan span : s.getSpans(start, end, StyleSpan.class)) {
+            if ((span.getStyle() & style) == 0) continue;
+            int a = s.getSpanStart(span), b = s.getSpanEnd(span);
+            int flags = s.getSpanFlags(span);
+            s.removeSpan(span);
+            if (a < start) s.setSpan(new StyleSpan(style), a, start, flags);
+            if (end < b) s.setSpan(new StyleSpan(style), end, b, flags);
+        }
     }
 
     /** Starts the system content picker through the host activity. */
@@ -336,6 +521,13 @@ public class InfoFieldView extends LinearLayout {
                         if (b.type.equals("text")) {
                             b.text = o.optString("s", "");
                             b.isHtml = true;
+                        } else if (b.type.equals("tbl")) {
+                            b.rows = Math.max(1, o.optInt("r", 2));
+                            b.cols = Math.max(1, o.optInt("c", 2));
+                            b.cells = new ArrayList<>();
+                            JSONArray cs = o.optJSONArray("cells");
+                            int need = b.rows * b.cols;
+                            for (int j = 0; j < need; j++) b.cells.add(cs != null && j < cs.length() ? cs.optString(j, "") : "");
                         } else {
                             b.file = o.optString("f", "");
                             b.name = o.optString("n", null);
@@ -376,7 +568,13 @@ public class InfoFieldView extends LinearLayout {
                 JSONObject o = new JSONObject();
                 o.put("t", b.type);
                 if (b.type.equals("text")) o.put("s", b.text == null ? "" : b.text);
-                else {
+                else if (b.type.equals("tbl")) {
+                    o.put("r", b.rows);
+                    o.put("c", b.cols);
+                    JSONArray cs = new JSONArray();
+                    for (String cell : b.cells) cs.put(cell == null ? "" : cell);
+                    o.put("cells", cs);
+                } else {
                     o.put("f", b.file == null ? "" : b.file);
                     if (b.name != null && !b.name.isEmpty()) o.put("n", b.name);
                 }
@@ -420,9 +618,20 @@ public class InfoFieldView extends LinearLayout {
                 if (arr != null) {
                     for (int i = 0; i < arr.length(); i++) {
                         JSONObject o = arr.optJSONObject(i);
-                        if (o == null || !"text".equals(o.optString("t"))) continue;
-                        if (sb.length() > 0) sb.append("\n");
-                        sb.append(Html.fromHtml(o.optString("s", "")).toString());
+                        if (o == null) continue;
+                        if ("text".equals(o.optString("t"))) {
+                            if (sb.length() > 0) sb.append("\n");
+                            sb.append(Html.fromHtml(o.optString("s", "")).toString());
+                        } else if ("tbl".equals(o.optString("t"))) {
+                            JSONArray cs = o.optJSONArray("cells");
+                            if (cs == null) continue;
+                            ArrayList<String> cells = new ArrayList<>();
+                            for (int j = 0; j < cs.length(); j++) cells.add(cs.optString(j, ""));
+                            String t = tablePlain(cells);
+                            if (t.isEmpty()) continue;
+                            if (sb.length() > 0) sb.append("\n");
+                            sb.append(t);
+                        }
                     }
                 }
                 return sb.toString();
@@ -457,13 +666,31 @@ public class InfoFieldView extends LinearLayout {
     private String plainPreview() {
         StringBuilder sb = new StringBuilder();
         for (Block b : blocks) {
-            if (!b.type.equals("text")) continue;
-            String t = plainOfBlock(b);
-            if (t.trim().isEmpty()) continue;
-            if (sb.length() > 0) sb.append("\n");
-            sb.append(t);
+            if (b.type.equals("text")) {
+                String t = plainOfBlock(b);
+                if (t.trim().isEmpty()) continue;
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(t);
+            } else if (b.type.equals("tbl") && b.cells != null) {
+                String t = tablePlain(b.cells);
+                if (t.isEmpty()) continue;
+                if (sb.length() > 0) sb.append("\n");
+                sb.append(t);
+            }
         }
         return sb.toString();
+    }
+
+    /** Task 136: plain projection of table cells (joined with " | "). */
+    private static String tablePlain(ArrayList<String> cells) {
+        StringBuilder tb = new StringBuilder();
+        for (String cell : cells) {
+            String t = cell == null ? "" : htmlToPlain(cell).trim();
+            if (t.isEmpty()) continue;
+            if (tb.length() > 0) tb.append(" | ");
+            tb.append(t);
+        }
+        return tb.toString();
     }
 
     private String attachmentCounters() {

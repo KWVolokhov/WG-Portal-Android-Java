@@ -24,7 +24,13 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.contacts) startActivity(new Intent(this, ContactsActivity.class));
+        if (id == R.id.calendar) {
+            // Task 135: Календарь = вызов/возврат к первому MainActivity
+            Intent cal = new Intent(this, MainActivity.class);
+            cal.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(cal);
+        }
+        else if (id == R.id.contacts) startActivity(new Intent(this, ContactsActivity.class));
         else if (id == R.id.livetype) startActivity(new Intent(this, LivetypeActivity.class));
         else if (id == R.id.projects_all) startActivity(new Intent(this, ProjectsActivity.class));
         else if (id == R.id.projects_work) startActivity(new Intent(this, ProjectsActivity.class)
@@ -38,7 +44,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         else if (id == R.id.sms_trash) startActivity(new Intent(this, SmsActivity.class)
                 .putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_TRASH));
         else if (id == R.id.parametrs) startActivity(new Intent(this, ParamsActivity.class));
-        // Календарь и Калькулятор пока не реализованы (как на MainActivity) - только Жаба
+        // Калькулятор пока не реализован - только Жаба
         else Toast.makeText(this, "Меню " + item.getTitle(), Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
     }
