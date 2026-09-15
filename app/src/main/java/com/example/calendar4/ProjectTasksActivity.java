@@ -61,7 +61,6 @@ public class ProjectTasksActivity extends BaseScreenActivity {
                 }
                 reload();
             });
-
     // Сортировка по дате старта (без даты - в конец)
     private static final Comparator<calPlanRecord> BY_START_DATE = new Comparator<calPlanRecord>() {
         @Override
@@ -109,8 +108,11 @@ public class ProjectTasksActivity extends BaseScreenActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 reload();
             }
-
-            adapter = new ArrayAdapter<calPlanRecord>(this, 0, allRecords) {
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        adapter = new ArrayAdapter<calPlanRecord>(this, 0, allRecords) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 MessageListItem row;

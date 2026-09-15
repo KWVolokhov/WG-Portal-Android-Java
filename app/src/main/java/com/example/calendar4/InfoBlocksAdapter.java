@@ -235,9 +235,8 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         @Override public void onTextChanged(CharSequence s, int st, int cnt, int aft) {}
                         @Override public void afterTextChanged(Editable s) { writeCell(idx); }
                     });
-                    et.setOnFocusChangeListener(v -> lastEditor = et);
-                    row.addView(et, new LinearLayout.LayoutParams(
-                            0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                    et.setOnFocusChangeListener((v, hasFocus) -> lastEditor = et);
+                    row.addView(et, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
                     cells.add(et);
                 }
                 grid.addView(row);
