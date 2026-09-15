@@ -9,7 +9,7 @@
 - Пакет: `com.example.calendar4` (код в `app/src/main/java/com/example/calendar4/`).
 - Тема приложения: `@style/Theme.AppCompat` (см. `app/src/main/AndroidManifest.xml`).
 - Все экраны — `Activity` (Fragment в проекте НЕ используются).
-- Экраны наследуются от `BaseScreenActivity` (кроме `MainActivity` и `CrashActivity`).
+- Экраны наследуются от `BaseScreenActivity` (кроме `CrashActivity`).
 - Единое меню на всех экранах: `BaseScreenActivity` надувает `res/menu/main_menu.xml`.
 - Layout-ы экранов: `app/src/main/res/layout/activity_*.xml`.
 - Стиль заголовка: сверху заголовок, центрован влево; в той же строке ImageButton-кнопки, центрованы вправо.
@@ -21,7 +21,7 @@
 |---|---|---|
 | `BaseScreenActivity` | `AppCompatActivity` | Единый ActionBar с титлом и меню `main_menu.xml`; обработка пунктов меню (`onOptionsItemSelected`). Все обычные экраны наследуются отсюда. |
 | `BaseCalPlanEditActivity` | `BaseScreenActivity` | Абстрактная карточка редактирования записей CALPLAN/HISTORY/NOTEPLAN/HEALTHPLAN. Подклассы переопределяют `getFormType()` и набор показываемых полей (`showStatus()`, `showMainSystem()`, `showPriority()`, `showStartDate()`, `getStartDateLabel()` и т.п.). |
-| `MainActivity` | `AppCompatActivity` | Главный экран (LAUNCHER), свой обработчик меню (не наследует BaseScreenActivity). |
+| `MainActivity` | `BaseScreenActivity` | Главный экран (LAUNCHER); меню `main_menu.xml` наследуется из `BaseScreenActivity` (Task 133). |
 | `CrashActivity` | `android.app.Activity` | Экран отображения перехваченного краша (запускается `HardcoreCrashHandler`). |
 
 ### Константы `BaseCalPlanEditActivity`
@@ -76,6 +76,7 @@
 ```
 AppCompatActivity
 +-- BaseScreenActivity                      (меню main_menu.xml для всех наследников)
+|   +-- MainActivity                        (LAUNCHER, меню из BaseScreenActivity, Task 133)
 |   +-- BaseCalPlanEditActivity             (карточка записи, layout activity_input_cal_plan.xml)
 |   |   +-- InputCalPlanActivity            (Form=Project/Request)
 |   |   +-- TaskActivity                    (Form=Task)
@@ -97,7 +98,6 @@ AppCompatActivity
 |   +-- SmsActivity
 |   +-- SmsChatActivity
 |   +-- SmsViewActivity
-+-- MainActivity                            (LAUNCHER, свой обработчик меню)
 CrashActivity (extends android.app.Activity, singleTask)
 ```
 

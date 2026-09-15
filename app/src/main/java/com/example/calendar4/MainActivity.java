@@ -1,7 +1,6 @@
 package com.example.calendar4;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -12,16 +11,13 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.view.Menu;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,7 +34,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseScreenActivity {
     ListView mainListView;
     private ManageSQLDatabase owerDb=null;
     //CalendarView mainCalendar;
@@ -68,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    // Task 133: контакты/проекты/параметры запускаются лаунчерами (стартовая страница),
+    // остальные пункты меню открывает BaseScreenActivity через startActivity.
     private final ActivityResultLauncher<Intent> contactsLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             });
@@ -77,14 +75,6 @@ public class MainActivity extends AppCompatActivity {
             });
 
     private final ActivityResultLauncher<Intent> projectsLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            });
-
-    private final ActivityResultLauncher<Intent> livetypeLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            });
-
-    private final ActivityResultLauncher<Intent> smsLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             });
     @Override
@@ -418,82 +408,8 @@ public class MainActivity extends AppCompatActivity {
             pedometer.stop();
         }
     }
-    public boolean onCreateOptionsMenu(Menu menu1) {
-        getMenuInflater().inflate(R.menu.main_menu, menu1);
-        return true;
-    }
-    public boolean onOptionsItemSelected(MenuItem item) {
-        String JabText=null;
-        if(item.getItemId()==R.id.calendar) JabText = "Меню Календарь";
-        if(item.getItemId()==R.id.contacts) {
-            JabText = "Меню Контакты";
-            // Launch ContactsActivity modally
-            Intent intent = new Intent(this, ContactsActivity.class);
-            contactsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.calculator) JabText = "Меню Калькулятор";
-        if(item.getItemId()==R.id.livetype) {
-            JabText = "Меню Типы жизнедеятельности";
-            // Launch the "Типы жизнедеятельности" reference screen
-            Intent intent = new Intent(this, LivetypeActivity.class);
-            livetypeLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.parametrs) {
-            JabText = "Меню Параметры";
-            // Launch ParamsActivity modally
-            Intent intent = new Intent(this, ParamsActivity.class);
-            paramsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.projects_work) {
-            JabText = "Меню Проекты Рабочие";
-            // Task 35: same ProjectsActivity, filtered to "В работе"/"Тестирование"
-            Intent intent = new Intent(this, ProjectsActivity.class);
-            intent.putExtra(ProjectsActivity.EXTRA_WORK_MODE, true);
-            projectsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.projects_all) {
-            // Launch the "Проекты \ Все" screen
-            Intent intent = new Intent(this, ProjectsActivity.class);
-            projectsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.sms_all) {
-            JabText = "Меню СМС Все";
-            Intent intent = new Intent(this, SmsActivity.class);
-            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_ALL);
-            smsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.sms_income) {
-            JabText = "Меню СМС Входящие";
-            Intent intent = new Intent(this, SmsActivity.class);
-            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_INCOME);
-            smsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.sms_outcome) {
-            JabText = "Меню СМС Исходящие";
-            Intent intent = new Intent(this, SmsActivity.class);
-            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_OUTCOME);
-            smsLauncher.launch(intent);
-        }
-        if(item.getItemId()==R.id.sms_trash) {
-            JabText = "Меню СМС Корзина";
-            Intent intent = new Intent(this, SmsActivity.class);
-            intent.putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_TRASH);
-            smsLauncher.launch(intent);
-        }
-        /*AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        switch (item.getItemId()) {
-            case R.id.calendar:
-                Toast.makeText(mainCalendar.getContext(), "menu calendar", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.projects:
-                Toast.makeText(mainCalendar.getContext(), "menu calendar", Toast.LENGTH_SHORT).show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }*/
-        if(JabText!=null) Toast.makeText(russianCalendar.getContext(), JabText, Toast.LENGTH_SHORT).show();
-        return super.onOptionsItemSelected(item);
-    }
+    // Task 133: меню (onCreateOptionsMenu/onOptionsItemSelected) наследуется из BaseScreenActivity
+
     private void initMainListView(){ //Заполнение листа
         // Rows use MessageListItem: [text lines] [type icon 48dp] [Edit/Delete buttons]
         ArrayList<calPlanRecord> items = new ArrayList<>();
