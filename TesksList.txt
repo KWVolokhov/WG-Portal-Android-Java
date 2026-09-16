@@ -395,7 +395,8 @@ calPlanRecord все еще оставить для обслуживания д�
 ===============^Engineer Check & Fix AI done============
 ===============^Engineer Check & Fix AI fail============
 
-140) Кодировка ArchitectureUI.md (UTF-8) не такая же как у ArchitectureLocalBackEnd.md и ArchitectureServerSynkhro.md сделать в однойлучше исправить ArchitectureUI.md
+140) Кодировка ArchitectureUI.md (UTF-8) не такая же как у ArchitectureLocalBackEnd.md и ArchitectureServerSynkhro.md сделать в одной, лучше исправить ArchitectureUI.md или у меня просто глючит просмотрщик
+похоже что-то с переводами строк и поэтому неправильно определяется кодировка
 
 151) ни MainActivity, ни список health за день не содержит итоговой статистики, хотя бы по воде, еде в объеме и сами воздействия идут как только положительные, нужны отрицательные
 
