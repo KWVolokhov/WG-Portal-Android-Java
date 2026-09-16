@@ -8,6 +8,7 @@
 
 - Единственная локальная БД: SQLite, файл `WGPlanDatabase.db`.
 - Класс доступа: `ManageSQLDatabase extends SQLiteOpenHelper`, singleton (`getInstance(Context)`), `DATABASE_VERSION = 10`.
+- Task 139: `ManageSQLDatabase` — фасад (схема/миграции + делегаты); CRUD каждой таблицы — в своём `*SQLManage` (`CalPlanSQLManage`, `CalParamSQLManage`, `ContactsSQLManage`, `HolidaysSQLManage`, а также прежние `HistorySQLManage`, `NoteRememSQLManage`, `HealthSQLManage`, `LivetypeSQLManage`, `SmsSQLManage`); экраны вызывают методы `ManageSQLDatabase` без изменений.
 - Все DDL-строки собраны в `ConstantsSQLDb` (`CREATE_TABLE_*`, `INSERT_*`, `UPDATE_*`).
 - Паттерн доступа: на таблицу — свой менеджер (`*SQLManage`) и свой record-класс (POJO, Serializable).
 - Автор записи: статические `ManageSQLDatabase.AuthorName / AuthorID` (из CALPARAM: Vedushii/VedushiiID).
@@ -39,7 +40,11 @@
 
 | Класс | Таблица | Основные методы |
 |---|---|---|
-| `ManageSQLDatabase` | CALPLAN, CALPARAM, CONTACTS, CLASSIFICATOR, HOLIDAYS, LIVETYPE (создание/миграции) | `upsertCalPlan`, выборки по дате, `getTasksByProject`, `getProjectsByRequestName`, `getCalParam`, singleton `getInstance` |
+| `ManageSQLDatabase` | Схема/миграции всех таблиц (DDL — только в `ConstantsSQLDb`) + фасад к пер-табличным менеджерам (Task 139) | singleton `getInstance`, `onCreate`/`onUpgrade` (+ safety-net колонок, Task 34), `upsertCalPlan` (маршрутизация по Form), `deleteCalPlanRecord`, `getDayRecords`, `getCalPlanHistory`, `execSelectArrMap`; прежние методы CALPLAN/CALPARAM/CONTACTS/HOLIDAYS сохранены как делегаты |
+| `CalPlanSQLManage` | CALPLAN (Project/Task/Request) | `upsert`, `delete`, `getByDate` (диапазон StartDate..EndDate, Task 38), `getByForm`, `getProjectsTasks` (Все/Рабочие), `getTasksByProject`, `getProjectsByRequestName` |
+| `CalParamSQLManage` | CALPARAM | `get` (умолчания Height/Weight/Age/AttachFolder/DBName, Tasks 54/100), `upsert` |
+| `ContactsSQLManage` | CONTACTS | `getContactById`/`getContactByPhone`/`getContactBySurnameFirstName`, `upsertContact` (+ запись в HISTORY «Добавление/Изменение»), `deleteContact` (снимок в HISTORY), `getContacts` |
+| `HolidaysSQLManage` | HOLIDAYS | `getHolidays`, `upsertHolidays`, `needsHolidayUpdate` |
 | `HistorySQLManage` | HISTORY | upsert / delete / getById / выборка по дате (record = calPlanRecord, сортировка `Okdate DESC, id DESC` — сверху самая поздняя) |
 | `NoteRememSQLManage` | NOTEPLAN | `upsertNote`, `deleteNote`, `getNoteById`, `getNotesByDate` |
 | `HealthSQLManage` | HEALTHPLAN | upsert / delete / getById / выборка по дате (record = healthPlanRecord) |
@@ -70,6 +75,7 @@
 | `WGPortalApp` | Application (`android:name` в манифесте); ставит `HardcoreCrashHandler` в `onCreate` до любых экранов (Task 134) |
 | `AttachmentStore` | Хранение файлов вложений `InfoFieldView` (папка CALPARAM.AttachFolder) |
 | `HardcoreCrashHandler` | Перехват UncaughtException всех потоков (ставится в `WGPortalApp.onCreate`, Task 134); сохранение стека и запуск `CrashActivity` при ошибке на любом Activity |
+| `SmsDefaultsSeeder` | Сидирование 2 тестовых СМС в SMSCALPLAN при создании/миграции БД (Task 106/112/121; Task 139 — вынесен из ManageSQLDatabase) |
 | `ConstantsSQLDb` | Все DDL/INSERT/UPDATE-строки схемы (единственное место изменения схемы) |
 
 ## 6. Правила ведения файла (для ИИ)

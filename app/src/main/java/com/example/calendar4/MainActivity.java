@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +18,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 
 import android.os.Build;
 
@@ -36,13 +33,13 @@ import androidx.core.content.ContextCompat;
 
 public class MainActivity extends BaseScreenActivity {
     ListView mainListView;
-    private ManageSQLDatabase owerDb=null;
+    ManageSQLDatabase owerDb=null;
     //CalendarView mainCalendar;
     RussianCalendarView russianCalendar;
     calPlanRecord[] activRecordS=null;
     Integer rowNum=0;
     private ArrayAdapter<calPlanRecord> mainListAdapter;
-    private RussianHolidaysFetcher holidaysFetcher;
+    RussianHolidaysFetcher holidaysFetcher;
 
     // ===== Real pedometer (Task 29): управление вынесено в отдельный класс Pedometer =====
     private Pedometer pedometer;
@@ -122,7 +119,7 @@ public class MainActivity extends BaseScreenActivity {
         refreshListView();
 
         // Fetch holidays for current year
-        fetchRussianHolidays();
+        RussianHolidaysLoader.fetch(this);
 
         // Open the configured start page (except Календарь/MainActivity)
         openStartPageIfNeeded();
@@ -169,7 +166,7 @@ public class MainActivity extends BaseScreenActivity {
         super.onResume();
         // Task 37: icons of the 5 quick buttons may have changed in Параметры /
         // Типы жизнедеятельности since MainActivity was paused.
-        refreshQuickButtonIcons();
+        MainQuickButtons.refreshIcons(this);
         if (owerDb != null && russianCalendar != null) {
             refreshListView();
         }
@@ -215,7 +212,7 @@ public class MainActivity extends BaseScreenActivity {
     }
 
     /** Задача 109: запускает шагомер, запросив разрешение ACTIVITY_RECOGNITION на Android 10+. */
-    private void startPedometer(Integer recordId) {
+    void startPedometer(Integer recordId) {
         if (pedometer == null) {
             pedometer = new Pedometer(this, owerDb.getWritableDatabase());
         }
@@ -305,96 +302,6 @@ public class MainActivity extends BaseScreenActivity {
         return (model == null || model.trim().isEmpty()) ? null : model.trim();
     }
 
-    private void fetchRussianHolidays() {
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-        int currentMonth = cal.get(Calendar.MONTH) + 1; // 1-based month
-        int currentDay = cal.get(Calendar.DAY_OF_MONTH);
-        
-        // Check if holidays need to be updated (on 1st day of month or if no data)
-        boolean isFirstDayOfMonth = (currentDay == 1);
-        boolean needsUpdate = owerDb.needsHolidayUpdate("RUS", currentYear, currentMonth);
-        
-        if (needsUpdate || isFirstDayOfMonth) {
-            // Fetch holidays from internet
-            holidaysFetcher = new RussianHolidaysFetcher(this);
-            
-            // Modern approach for API 30+ (Android 11+)
-            holidaysFetcher.fetchHolidaysForYear(currentYear, new RussianHolidaysFetcher.HolidaysFetchListener() {
-                @Override
-                public void onHolidaysFetched(java.util.HashSet<String> holidays) {
-                    // Convert HashSet to holidayRecord array and save to database
-                    holidayRecord[] holidayRecords = new holidayRecord[holidays.size()];
-                    int index = 0;
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                    
-                    for (String holidayStr : holidays) {
-                        // Parse holiday string (format: "yyyy-MM-dd" or similar)
-                        try {
-                            // Assuming format is "yyyy-MM-dd HolidayName" or just date
-                            String[] parts = holidayStr.split(" ", 2);
-                            if (parts.length >= 1) {
-                                Date holidayDate = sdf.parse(parts[0]);
-                                String holidayName = parts.length > 1 ? parts[1] : "Праздник";
-                                holidayRecords[index++] = new holidayRecord("RUS", holidayDate, holidayName);
-                            }
-                        } catch (Exception e) {
-                            // Skip invalid entries
-                        }
-                    }
-                    
-                    // Save to database
-                    if (index > 0) {
-                        holidayRecord[] validRecords = new holidayRecord[index];
-                        System.arraycopy(holidayRecords, 0, validRecords, 0, index);
-                        owerDb.upsertHolidays("RUS", currentYear, validRecords);
-                    }
-                    
-                    // Load holidays from database and set to calendar
-                    loadHolidaysFromDatabase();
-                }
-
-                @Override
-                public void onError(String error) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(MainActivity.this, "Ошибка загрузки праздников: " + error, Toast.LENGTH_SHORT).show();
-                    });
-                    // Try to load from database anyway
-                    //WG 11.08.26 loadHolidaysFromDatabase();   //Нарушение свежей безопасности Андроида
-                }
-            });
-        } else {
-            // Load holidays from database
-            loadHolidaysFromDatabase();
-        }
-    }
-    
-    private void loadHolidaysFromDatabase() {
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-        
-        // Get holidays from database
-        holidayRecord[] holidays = owerDb.getHolidays("RUS", currentYear);
-        
-        // Convert to HashSet<String> for RussianCalendarView
-        java.util.HashSet<String> holidayStrings = new java.util.HashSet<>();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        
-        for (holidayRecord holiday : holidays) {
-            if (holiday.HolidayDate != null) {
-                holidayStrings.add(sdf.format(holiday.HolidayDate));
-            }
-        }
-        
-        // Set holidays to calendar
-        RussianCalendarView russianCalendar = findViewById(R.id.calendarView1);
-        russianCalendar.setHolidays(holidayStrings);
-        
-        runOnUiThread(() -> {
-            String msg = "Праздники загружены: " + holidayStrings.size() + " дней";
-            Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-        });
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -530,7 +437,7 @@ public class MainActivity extends BaseScreenActivity {
                 .show();
     }
 
-    private void refreshListView() {
+    void refreshListView() {
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
             if (activeDate != null) {
@@ -614,193 +521,7 @@ public class MainActivity extends BaseScreenActivity {
         }
         inputCalPlanLauncher.launch(intent);
     }
-
     public void onQuickButtonClick(View view) {
-        int buttonIndex = buttonIndexForView(view);
-        if (buttonIndex < 1) return;
-        handleQuickButton(buttonIndex, defaultButtonIdForIndex(buttonIndex));
-    }
-
-    /** Номер быстрой кнопки (1..5) по её id - позволяет масштабировать количество кнопок копированием. */
-    private int buttonIndexForView(View view) {
-        if (view == null) return -1;
-        int id = view.getId();
-        if (id == R.id.buttonAction1) return 1;
-        if (id == R.id.buttonAction2) return 2;
-        if (id == R.id.buttonAction3) return 3;
-        if (id == R.id.buttonAction4) return 4;
-        if (id == R.id.buttonAction5) return 5;
-        return -1;
-    }
-
-    /** Id LIVETYPE по умолчанию для номера кнопки (соответствует предустановкам справочника). */
-    private int defaultButtonIdForIndex(int index) {
-        switch (index) {
-            case 1: return CalParamRecord.DEFAULT_BUTTON1_ID;
-            case 2: return CalParamRecord.DEFAULT_BUTTON2_ID;
-            case 3: return CalParamRecord.DEFAULT_BUTTON3_ID;
-            case 4: return CalParamRecord.DEFAULT_BUTTON4_ID;
-            case 5: return CalParamRecord.DEFAULT_BUTTON5_ID;
-            default: return index;
-        }
-    }
-
-    /**
-     * Quick-button handler (задачи 27/28/29).
-     * Создаёт запись HEALTHPLAN из значения справочника LIVETYPE, соответствующего кнопке:
-     * Название, Form и все поля органов берутся из записи LIVETYPE; автор = Ведущий (CALPARAM),
-     * Дата создания = сегодня, Дата старта = выбранная дата кастомного календаря над кнопками.
-     * Для активности типа HealthSport дополнительно запускается реальный шагомер (задача 29).
-     */
-    private void handleQuickButton(int buttonIndex, int defaultId) {
-        try {
-            if (owerDb == null) owerDb = ManageSQLDatabase.getInstance(this);
-
-            Integer configuredId = getConfiguredButtonId(buttonIndex, defaultId);
-            LivetypeSQLManage livetypeDb = new LivetypeSQLManage(owerDb.getWritableDatabase());
-            livetypeRecord typeRecord = livetypeDb.getLivetypeById(configuredId);
-            if (typeRecord == null) {
-                Toast.makeText(this, "Не найден тип жизнедеятельности (id=" + configuredId + ")", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            // Название, Form и все поля органов переписываются из справочника
-            healthPlanRecord record = new healthPlanRecord(typeRecord);
-            record.AuthorID = ManageSQLDatabase.AuthorID;         // Ведущий
-            record.AuthorName = ManageSQLDatabase.AuthorName;     // Ведущий
-            record.Okdate = new Date();                            // Дата создания = сегодня
-            record.StartDate = (russianCalendar != null && russianCalendar.activeDate != null)
-                    ? russianCalendar.activeDate : new Date();     // Дата старта из календаря
-
-            HealthSQLManage healthDb = new HealthSQLManage(owerDb.getWritableDatabase());
-            healthDb.upsertHealth(record);
-
-            Toast.makeText(this, "Создано: " + (record.Name != null ? record.Name : ""), Toast.LENGTH_SHORT).show();
-            refreshListView();
-
-            // Задача 29/42: реальный шагомер включается только для активностей HealthSport,
-            // у которых он разрешён в справочнике Типы жизнедеятельности (StepCounter=1).
-            // При запуске нового шагомера старый сеанс автоматически завершается
-            // (внутри Pedometer.start -> stop), и это завершение пишется в Историю.
-            if ("HealthSport".equals(record.Form) && isPedometerAllowed(typeRecord)) {
-                startPedometer(record.id);
-            }
-        } catch (Exception err) {
-            Toast.makeText(this, "Error: " + err.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /** Task 42: шагомер разрешён только если в справочнике LIVETYPE включён StepCounter. */
-    private boolean isPedometerAllowed(livetypeRecord typeRecord) {
-        return typeRecord != null && typeRecord.StepCounter != null && typeRecord.StepCounter == 1;
-    }
-
-    /** Возвращает настроенный id LIVETYPE для кнопки (из CALPARAM), иначе значение по умолчанию. */
-    private Integer getConfiguredButtonId(int buttonIndex, int defaultId) {
-        try {
-            CalParamRecord param = owerDb.getCalParam();
-            if (param == null) return defaultId;
-            switch (buttonIndex) {
-                case 1: return param.Button1Id != null ? param.Button1Id : defaultId;
-                case 2: return param.Button2Id != null ? param.Button2Id : defaultId;
-                case 3: return param.Button3Id != null ? param.Button3Id : defaultId;
-                case 4: return param.Button4Id != null ? param.Button4Id : defaultId;
-                case 5: return param.Button5Id != null ? param.Button5Id : defaultId;
-                default: return defaultId;
-            }
-        } catch (Exception e) {
-            return defaultId;
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // Task 37: quick button icons come from the LIVETYPE "Icon" field
-    // ---------------------------------------------------------------------
-    private static final int[] QUICK_BUTTON_VIEW_IDS = {
-            R.id.buttonAction1, R.id.buttonAction2, R.id.buttonAction3,
-            R.id.buttonAction4, R.id.buttonAction5
-    };
-
-    /**
-     * Refreshes the icons of the 5 quick "жизнедеятельность" buttons.
-     * The icon name is taken from the LIVETYPE "Icon" field of the button's
-     * configured record; when the drawable is not found by name (or the record
-     * is missing) the hardcoded icon bound to the Form field is used
-     * (ic_pedometer / ic_burger / ic_coffee / ic_stress / ic_joy).
-     */
-    private void refreshQuickButtonIcons() {
-        try {
-            if (owerDb == null) owerDb = ManageSQLDatabase.getInstance(this);
-            LivetypeSQLManage livetypeDb = new LivetypeSQLManage(owerDb.getReadableDatabase());
-            for (int i = 0; i < QUICK_BUTTON_VIEW_IDS.length; i++) {
-                ImageButton btn = findViewById(QUICK_BUTTON_VIEW_IDS[i]);
-                if (btn == null) continue;
-
-                int buttonIndex = i + 1;
-                Integer configuredId = getConfiguredButtonId(buttonIndex, defaultQuickButtonId(buttonIndex));
-
-                livetypeRecord typeRecord = null;
-                if (configuredId != null) {
-                    try {
-                        typeRecord = livetypeDb.getLivetypeById(configuredId);
-                    } catch (Exception e) {
-                        typeRecord = null;
-                    }
-                }
-
-                int fallbackRes = defaultIconForQuickButton(typeRecord, buttonIndex);
-                int iconRes = findIconDrawable(typeRecord != null ? typeRecord.Icon : null, fallbackRes);
-                btn.setImageResource(iconRes);
-            }
-        } catch (Exception e) {
-            // Non-fatal: icons are a visual improvement, the buttons still work
-        }
-    }
-
-    /** Находит drawable по имени (поле Icon); если не найдено - запасная иконка. */
-    private int findIconDrawable(String iconName, int fallbackRes) {
-        if (iconName != null && !iconName.trim().isEmpty()) {
-            int res = getResources().getIdentifier(iconName.trim(), "drawable", getPackageName());
-            if (res != 0) return res;
-        }
-        return fallbackRes;
-    }
-
-    /** Значение id LIVETYPE по умолчанию для кнопки с индексом 1..5. */
-    private int defaultQuickButtonId(int buttonIndex) {
-        switch (buttonIndex) {
-            case 1: return CalParamRecord.DEFAULT_BUTTON1_ID;
-            case 2: return CalParamRecord.DEFAULT_BUTTON2_ID;
-            case 3: return CalParamRecord.DEFAULT_BUTTON3_ID;
-            case 4: return CalParamRecord.DEFAULT_BUTTON4_ID;
-            case 5: return CalParamRecord.DEFAULT_BUTTON5_ID;
-            default: return 1;
-        }
-    }
-
-    /**
-     * Возвращает иконку привязанную к Form жизнедеятельности (как раньше):
-     * HealthSport -> ic_pedometer, HealthEat -> ic_burger, HealthDrink -> ic_coffee,
-     * HealthStress -> ic_stress, HealthJoy -> ic_joy; иначе - по индексу кнопки.
-     */
-    private int defaultIconForQuickButton(livetypeRecord typeRecord, int buttonIndex) {
-        if (typeRecord != null && typeRecord.Form != null) {
-            switch (typeRecord.Form) {
-                case "HealthSport": return R.drawable.ic_pedometer;
-                case "HealthEat":   return R.drawable.ic_burger;
-                case "HealthDrink": return R.drawable.ic_coffee;
-                case "HealthStress": return R.drawable.ic_stress;
-                case "HealthJoy":   return R.drawable.ic_joy;
-                default: break;
-            }
-        }
-        switch (buttonIndex) {
-            case 1: return R.drawable.ic_pedometer;
-            case 2: return R.drawable.ic_burger;
-            case 3: return R.drawable.ic_coffee;
-            case 4: return R.drawable.ic_stress;
-            case 5: return R.drawable.ic_joy;
-            default: return R.drawable.ic_pedometer;
-        }
+        MainQuickButtons.handle(this, view);
     }
 }

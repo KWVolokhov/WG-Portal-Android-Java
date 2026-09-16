@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -18,7 +17,6 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -82,12 +80,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     // (Шаги / Вес еды / Объем питья / Каллории). Включено только для Health-форм.
     protected boolean showHealthNumbers() { return false; }
 
-    // Task 45: полный массив полей "Голова".."Каллории", как на activity_livetype_edit.
-    private static final String[] HEALTH_NUMBER_NAMES = {
-            "Голова", "Глаза", "Уши", "Нос", "Горло", "Зубы",
-            "Желудок", "Кишечник", "Печень", "Почки", "Сердце", "Лёгкие",
-            "Давление", "Сон", "Вес", "Нервная система", "Мораль", "Состояние кожи",
-            "Шаги", "Вес еды", "Объем питья", "Каллории"};
+    // Task 45: подписи полей "Голова".."Каллории" - в CalPlanHealthNumbers (Task 139)
 
     // ----- views -----
     protected Spinner spinnerForm, spinnerStatus, spinnerMainSystem, spinnerAnalitik, spinnerExector;
@@ -107,7 +100,8 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
 
     // Task 41: контейнер числовых полей Health на карточке
     protected LinearLayout healthContainer;
-    protected EditText[] healthNumberEdits;
+    // Task 139: числовые поля Health ("Голова".."Каллории") вынесены в отдельный класс
+    protected CalPlanHealthNumbers healthNumbers;
 
     // Task 44: таймер шагомера на карточке HealthSportActivity (рядом с "Дата создания").
     protected View rowPedometer;
@@ -128,14 +122,14 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     protected ManageSQLDatabase owerDb;
     protected String selectedRequestUNID;
     // Task 124: предвыбранные проект (для задачи) / заявка (для проекта)
-    private String preselectProjectUNID;
-    private String preselectRequestName;
+    protected String preselectProjectUNID;
+    protected String preselectRequestName;
 
     /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проекты/Задачи/Заявка). */
     private boolean projectsFormMode = false;
 
     // Task 114: предвыбранная Form для новой записи (для InputCalPlanActivity из диалога Добавить)
-    private String preselectFormValue;
+    protected String preselectFormValue;
 
     protected final ArrayList<String> contactLabels = new ArrayList<>();
     protected final ArrayList<String> contactIds = new ArrayList<>();
@@ -329,7 +323,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         spinner.setSelection(idx >= 0 ? idx : 0);
     }
 
-    private void setupContactSpinner(Spinner spinner, String current) {
+    protected void setupContactSpinner(Spinner spinner, String current) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, contactLabels);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -414,15 +408,11 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
         if (projectLike) btnTasks.setOnClickListener(v -> openTasksList(form));
     }
 
-    /** Task 124: открывает список задач проекта (или проектов/задач заявки). */
+    /** Task 124: открывает список задач проекта (или проектов/задач заявки). Task 138. */
     private void openTasksList(String form) {
         String name = editTextName.getText().toString().trim();
         String unid = record != null ? record.UNID : null;
-        Intent intent = new Intent(BaseCalPlanEditActivity.this, ProjectTasksActivity.class);
-        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_FORM, form);
-        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_UNID, unid);
-        intent.putExtra(ProjectTasksActivity.EXTRA_SOURCE_NAME, name);
-        startActivity(intent);
+        startActivity(ProjectsActivity.linkedIntent(BaseCalPlanEditActivity.this, form, unid, name));
     }
 
     // =====================================================================
@@ -477,326 +467,31 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     // Task 41: числовые поля Health (Шаги/Вес еды/Объем питья/Каллории)
     // =====================================================================
 
-    /** Builds the Health number fields (only when the subclass asks for them). */
+    /** Builds the Health number fields (only when the subclass asks for them). Task 139. */
     private void setupHealthNumbers() {
         if (healthContainer == null) return;
         boolean visible = showHealthNumbers();
         setRowVisible(healthContainer, visible);
         if (!visible) return;
-
-        if (healthContainer.getChildCount() == 0) {
-            healthNumberEdits = new EditText[HEALTH_NUMBER_NAMES.length];
-            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
-                LinearLayout row = new LinearLayout(this);
-                row.setOrientation(LinearLayout.HORIZONTAL);
-                row.setGravity(Gravity.CENTER_VERTICAL);
-                row.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-                TextView label = new TextView(this);
-                label.setText(HEALTH_NUMBER_NAMES[i]);
-                label.setTextSize(16);
-                label.setGravity(Gravity.CENTER_VERTICAL);
-                row.addView(label);
-
-                EditText edit = new EditText(this);
-                // Task 128: числовые поля допускают и отрицательные значения
-                edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
-                        | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-                edit.setSingleLine(true);
-                LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
-                        0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-                row.addView(edit, weightLp);
-                healthNumberEdits[i] = edit;
-
-                healthContainer.addView(row);
-            }
-        }
+        if (healthNumbers == null) healthNumbers = new CalPlanHealthNumbers(this, healthContainer);
     }
 
-    /** Value typed in the Health number field with the given index (null when empty). */
-    private Integer healthNumberValue(int index) {
-        if (healthNumberEdits == null || index < 0 || index >= healthNumberEdits.length) return null;
-        EditText edit = healthNumberEdits[index];
-        if (edit == null) return null;
-        String text = edit.getText().toString().trim();
-        if (text.isEmpty()) return null;
-        try {
-            return Integer.valueOf(text);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private void setHealthNumber(int index, Integer value) {
-        if (healthNumberEdits != null && index >= 0 && index < healthNumberEdits.length
-                && healthNumberEdits[index] != null) {
-            EditText edit = healthNumberEdits[index];
-            if (value != null) {
-                edit.setText(String.valueOf(value));
-            } else {
-                edit.setText("");
-            }
-        }
-    }
-
-    /** Task 45: записывает значение поля "Голова".."Каллории" в calPlanRecord по индексу. */
-    private void putHealthRecordValue(calPlanRecord r, int index, Integer value) {
-        if (r == null) return;
-        switch (index) {
-            case 0: r.Head = value; break;
-            case 1: r.Eyes = value; break;
-            case 2: r.Ears = value; break;
-            case 3: r.Nose = value; break;
-            case 4: r.Throat = value; break;
-            case 5: r.Teeth = value; break;
-            case 6: r.Stomach = value; break;
-            case 7: r.Intestines = value; break;
-            case 8: r.Liver = value; break;
-            case 9: r.Kidneys = value; break;
-            case 10: r.Heart = value; break;
-            case 11: r.Lungs = value; break;
-            case 12: r.Pressure = value; break;
-            case 13: r.Sleep = value; break;
-            case 14: r.Weight = value; break;
-            case 15: r.Nervous = value; break;
-            case 16: r.Morality = value; break;
-            case 17: r.Skin = value; break;
-            case 18: r.Steps = value; break;
-            case 19: r.FoodWeight = value; break;
-            case 20: r.DrinkValue = value; break;
-            case 21: r.Kallory = value; break;
-            default: break;
-        }
-    }
-
-    /** Task 45: читает значение поля "Голова".."Каллории" из calPlanRecord по индексу. */
-    private Integer getHealthRecordValue(calPlanRecord r, int index) {
-        if (r == null) return null;
-        switch (index) {
-            case 0: return r.Head;
-            case 1: return r.Eyes;
-            case 2: return r.Ears;
-            case 3: return r.Nose;
-            case 4: return r.Throat;
-            case 5: return r.Teeth;
-            case 6: return r.Stomach;
-            case 7: return r.Intestines;
-            case 8: return r.Liver;
-            case 9: return r.Kidneys;
-            case 10: return r.Heart;
-            case 11: return r.Lungs;
-            case 12: return r.Pressure;
-            case 13: return r.Sleep;
-            case 14: return r.Weight;
-            case 15: return r.Nervous;
-            case 16: return r.Morality;
-            case 17: return r.Skin;
-            case 18: return r.Steps;
-            case 19: return r.FoodWeight;
-            case 20: return r.DrinkValue;
-            case 21: return r.Kallory;
-            default: return null;
-        }
-    }
+    // Task 139: healthNumberValue/setHealthNumber - в CalPlanHealthNumbers
 
     // =====================================================================
     // Fill / save
     // =====================================================================
 
+    /** Task 139: заполнение полей экрана из record вынесено в CalPlanCardMapper. */
     private void populateFields() {
-        okdateValue = (record != null && record.Okdate != null) ? record.Okdate : activeDate;
-        textViewOkdate.setText(DISPLAY_DATE_TIME.format(okdateValue));
-
-        if (showStartDate()) {
-            Date start = record != null && record.StartDate != null ? record.StartDate : okdateValue;
-            dateFieldStartDate.setDate(start);
-        }
-
-        if (record == null) {
-            // New record: Author = "Ведущий" из CALPARAM (все типы форм)
-            CalParamRecord param = owerDb.getCalParam();
-            record = new calPlanRecord();
-            record.Form = preselectFormValue != null ? preselectFormValue : getFormType();
-            if (param != null) {
-                record.AuthorName = param.Vedushii;
-                record.AuthorID = param.VedushiiID;
-            }
-            // Task 122: в проектах/задачах/заявках Постановщик по умолчанию = Ведущий
-            if (projectLikeForm(record.Form)) {
-                record.AnalitikName = param != null ? param.Vedushii : null;
-                record.AnalitikID = param != null ? param.VedushiiID : null;
-                setupContactSpinner(spinnerAnalitik, record.AnalitikName);
-            }
-            textViewAuthorName.setText(record.AuthorName != null ? record.AuthorName : "");
-            // Task 124: предвыбранные проект (для задачи) / заявка (для проекта)
-            if (preselectRequestName != null) {
-                editTextRequestName.setText(preselectRequestName);
-                if (isRequestPicker() && preselectProjectUNID != null) selectedRequestUNID = preselectProjectUNID;
-            }
-            // Task 127: строка инфо-поля под текст есть сразу, даже если записи в SQL ещё нет
-            infoBodyText.setText("");
-            return;
-        }
-
-        // Task 102: имя автора подтягиваем из справочника контактов по ID
-        String authorName = contactNameById(record.AuthorID);
-        if (authorName != null) record.AuthorName = authorName;
-        textViewAuthorName.setText(record.AuthorName != null ? record.AuthorName : "");
-        if (isRequestPicker() && record.RequestUNID != null) selectedRequestUNID = record.RequestUNID;
-
-        if (record.Name != null) editTextName.setText(record.Name);
-        if (record.Priority != null) editTextPriority.setText(String.valueOf(record.Priority));
-        if (record.RequestName != null) editTextRequestName.setText(record.RequestName);
-        // Task 127: setText вызывается всегда - пустые блоки убираются, строка под текст добавляется
-        infoBodyText.setText(record.BodyText);
-        if (record.Comment != null) editTextComment.setText(record.Comment);
-        if (record.InstallOrder != null) editTextInstallOrder.setText(record.InstallOrder);
-        if (record.KeyWords != null) editTextKeyWords.setText(record.KeyWords);
-
-        // Task 102: имя обновившего подтягиваем из справочника контактов по ID
-        String updaterName = contactNameById(record.LastUpdatedByID);
-        if (updaterName != null) record.LastUpdatedBy = updaterName;
-        textViewLastUpdatedBy.setText(record.LastUpdatedBy != null ? record.LastUpdatedBy : "");
-        textViewLastUpdatedDate.setText(
-                record.LastUpdatedDate != null ? DISPLAY_DATE_TIME.format(record.LastUpdatedDate) : "");
-        textViewEndDate.setText(record.EndDate != null ? DISPLAY_DATE_TIME.format(record.EndDate) : "");
-        textViewHoldDate.setText(record.HoldDate != null ? DISPLAY_DATE_TIME.format(record.HoldDate) : "");
-
-        // Task 41/45: числовые поля Health на карточке ("Голова".."Каллории")
-        if (showHealthNumbers()) {
-            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
-                setHealthNumber(i, getHealthRecordValue(record, i));
-            }
-        }
+        CalPlanCardMapper.populate(this);
     }
 
-    /** Task 102: текущее имя контакта (Фамилия Имя) из справочника по числовому ID. */
-    private String contactNameById(String id) {
-        if (id == null || id.trim().isEmpty()) return null;
-        try {
-            ContactRecord c = owerDb.getContactById(Integer.valueOf(id.trim()));
-            if (c == null) return null;
-            StringBuilder sb = new StringBuilder();
-            if (c.Surname != null) sb.append(c.Surname).append(" ");
-            if (c.FirstName != null) sb.append(c.FirstName);
-            return sb.toString().trim().isEmpty() ? null : sb.toString().trim();
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
+    /** Task 139: contactNameById/dateAtMidnight - в CalPlanCardMapper. */
 
-    /** Task 115: обнуляет время даты (0ч 0м 0с 0мс) - Дата старта хранится без времени. */
-    private static Date dateAtMidnight(Date d) {
-        if (d == null) return null;
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(d);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
-    }
-
-    /** Заполняет record значениями с экрана; false - валидация не прошла (тост показан). */
+    /** Task 139: чтение значений экрана в record вынесено в CalPlanCardMapper. */
     private boolean fillRecordFromUi() {
-        String form = selectedFormValue();
-        String name = editTextName.getText().toString().trim();
-
-        if (name.isEmpty()) {
-            Toast.makeText(this, "Введите название", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        if (record == null) {
-            record = new calPlanRecord();
-        }
-        if (record.Okdate == null) record.Okdate = okdateValue;
-
-        record.Form = form;
-        record.Name = name;
-
-        String prio = editTextPriority.getText().toString().trim();
-        if (prio.isEmpty()) {
-            record.Priority = null;
-        } else {
-            try {
-                record.Priority = Integer.parseInt(prio);
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Приоритет должен быть числом", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        }
-
-        record.RequestName = editTextRequestName.getText().toString().trim();
-        if (isRequestPicker()) {
-            record.RequestUNID = selectedRequestUNID;
-        }
-
-        // Task 115: Дата старта хранится с 0ч 0м 0с; когда строка скрыта (History/Health) - дата создания.
-        record.StartDate = dateAtMidnight(showStartDate()
-                ? dateFieldStartDate.getDate()
-                : (record.Okdate != null ? record.Okdate : okdateValue));
-
-        if (showStatus()) {
-            int si = spinnerStatus.getSelectedItemPosition();
-            record.Status = STATUS_LABELS[si];
-            record.StatusID = STATUS_IDS[si];
-        }
-
-        // Task 48: для Project/Task/Request даты завершения/откладывания проставляются по состоянию.
-        if (projectLikeForm(form)) {
-            if ("Выполнено".equals(record.Status) || "Отменено".equals(record.Status)) {
-                record.EndDate = new Date();      // дата завершения проекта (факт) - сегодня со временем
-                record.HoldDate = null;
-            } else if ("Отложено".equals(record.Status)) {
-                record.HoldDate = new Date();     // дата откладывания проекта - сегодня со временем
-                record.EndDate = null;
-            } else {
-                record.EndDate = null;
-                record.HoldDate = null;
-            }
-        }
-
-        // Task 48/49: последний изменивший и дата/время обновления на каждом сохранении
-        record.LastUpdatedDate = new Date();
-        record.LastUpdatedBy = ManageSQLDatabase.AuthorName;
-        record.LastUpdatedByID = ManageSQLDatabase.AuthorID;
-
-        if (showMainSystem()) record.MainSystem = spinnerMainSystem.getSelectedItem().toString();
-
-        if (showAnalitikExector()) {
-            int ai = spinnerAnalitik.getSelectedItemPosition();
-            if (ai > 0) {
-                record.AnalitikName = contactLabels.get(ai);
-                record.AnalitikID = contactIds.get(ai);
-            } else {
-                record.AnalitikName = null;
-                record.AnalitikID = null;
-            }
-
-            int ei = spinnerExector.getSelectedItemPosition();
-            if (ei > 0) {
-                record.ExectorName = contactLabels.get(ei);
-                record.ExectorID = contactIds.get(ei);
-            } else {
-                record.ExectorName = null;
-                record.ExectorID = null;
-            }
-        }
-
-        record.BodyText = infoBodyText.getText();
-        record.Comment = editTextComment.getText().toString().trim();
-
-        if (showInstallOrder()) record.InstallOrder = editTextInstallOrder.getText().toString().trim();
-        if (showKeyWords()) record.KeyWords = editTextKeyWords.getText().toString().trim();
-
-        if (showHealthNumbers()) {
-            for (int i = 0; i < HEALTH_NUMBER_NAMES.length; i++) {
-                putHealthRecordValue(record, i, healthNumberValue(i));
-            }
-        }
-        return true;
+        return CalPlanCardMapper.fill(this);
     }
 
     private void saveAndFinish() {
@@ -838,7 +533,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
      * In "Проекты"-mode the spinner shows "Проекты"/"Задачи"/"Заявка на автоматизацию"
      * and the value is mapped back to Project/Task/Request before saving.
      */
-    private String selectedFormValue() {
+    protected String selectedFormValue() {
         if (projectsFormMode) {
             int pos = spinnerForm.getSelectedItemPosition();
             if (pos >= 0 && pos < PROJECT_FORM_VALUES.length) return PROJECT_FORM_VALUES[pos];

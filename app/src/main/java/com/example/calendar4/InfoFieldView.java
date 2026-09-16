@@ -5,13 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.net.Uri;
-import android.text.Editable;
 import android.text.Html;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -31,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,12 +55,6 @@ public class InfoFieldView extends LinearLayout {
     private static final int REQ_PICK_VIDEO = 4102;
     private static final int REQ_PICK_FILE = 4103;
 
-    /** Task 136: vertical row of 7 text colors in the color picker dialog. */
-    private static final int[] TEXT_COLORS = {
-            0xFF000000, 0xFFE53935, 0xFFFB8C00, 0xFF43A047,
-            0xFF1E88E5, 0xFF8E24AA, 0xFF757575
-    };
-
     /** The view that currently waits for a picker result (one picker at a time). */
     private static InfoFieldView activePickerView;
 
@@ -85,10 +73,10 @@ public class InfoFieldView extends LinearLayout {
     final Map<String, Bitmap> thumbs = new HashMap<>();
     CharSequence hint = "";
 
-    private TextView tvCollapsed;
+    TextView tvCollapsed;
     private LinearLayout expandedPane;
     RecyclerView recycler;
-    private InfoBlocksAdapter adapter;
+    InfoBlocksAdapter adapter;
 
     public InfoFieldView(Context context) {
         this(context, null);
@@ -267,105 +255,12 @@ public class InfoFieldView extends LinearLayout {
 
     /** Task 136: жирный/нежирный - выделение, а без выделения весь текст последнего EditText. */
     private void toggleBoldOnEditor() {
-        EditText et = adapter.focusedOrLastEditor();
-        if (et == null) {
-            Toast.makeText(getContext(), "Поставьте курсор в текст", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        int[] range = targetRange(et);
-        if (range[0] >= range[1]) {
-            Toast.makeText(getContext(), "Нет текста для форматирования", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Editable s = et.getText();
-        if (rangeFullyBold(s, range[0], range[1])) removeStyleSpans(s, range[0], range[1], Typeface.BOLD);
-        else s.setSpan(new StyleSpan(Typeface.BOLD), range[0], range[1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        adapter.writeBack(et);
+        InfoTextFormat.toggleBold(this);
     }
 
     /** Task 136: vertical row of 7 colors; the pick recolors the last focused EditText. */
     private void showColorPickerDialog() {
-        final EditText editor = adapter.focusedOrLastEditor();
-        if (editor == null) {
-            Toast.makeText(getContext(), "Поставьте курсор в текст", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LinearLayout column = new LinearLayout(getContext());
-        column.setOrientation(VERTICAL);
-        int pad = dpToPx(24);
-        column.setPadding(pad, pad, pad, pad);
-        final AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Цвет текста")
-                .setView(column)
-                .create();
-        for (final int color : TEXT_COLORS) {
-            View swatch = new View(getContext());
-            swatch.setBackgroundColor(color);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dpToPx(140), dpToPx(32));
-            lp.bottomMargin = dpToPx(8);
-            swatch.setLayoutParams(lp);
-            swatch.setOnClickListener(v -> {
-                applyColorToEditor(editor, color);
-                dialog.dismiss();
-            });
-            column.addView(swatch);
-        }
-        dialog.show();
-    }
-
-    /** Task 136: recolors the selection (or the whole text), replacing existing color spans. */
-    private void applyColorToEditor(EditText et, int color) {
-        int[] range = targetRange(et);
-        if (range[0] >= range[1]) return;
-        Editable s = et.getText();
-        for (ForegroundColorSpan span : s.getSpans(range[0], range[1], ForegroundColorSpan.class)) {
-            int a = s.getSpanStart(span), b = s.getSpanEnd(span);
-            int flags = s.getSpanFlags(span);
-            int old = span.getForegroundColor();
-            s.removeSpan(span);
-            if (a < range[0]) s.setSpan(new ForegroundColorSpan(old), a, range[0], flags);
-            if (range[1] < b) s.setSpan(new ForegroundColorSpan(old), range[1], b, flags);
-        }
-        s.setSpan(new ForegroundColorSpan(color), range[0], range[1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        adapter.writeBack(et);
-    }
-
-    /** Selection bounds of an editor; without a selection - the whole text. */
-    private static int[] targetRange(EditText et) {
-        int a = et.getSelectionStart(), b = et.getSelectionEnd();
-        int start = Math.min(a, b), end = Math.max(a, b);
-        if (start < 0 || end < 0 || start == end) { start = 0; end = et.length(); }
-        return new int[]{start, end};
-    }
-
-    /** True when every character in [start, end) carries a BOLD StyleSpan. */
-    private static boolean rangeFullyBold(Editable s, int start, int end) {
-        ArrayList<int[]> parts = new ArrayList<>();
-        for (StyleSpan span : s.getSpans(start, end, StyleSpan.class)) {
-            if ((span.getStyle() & Typeface.BOLD) == 0) continue;
-            int a = Math.max(start, s.getSpanStart(span)), b = Math.min(end, s.getSpanEnd(span));
-            if (a < b) parts.add(new int[]{a, b});
-        }
-        if (parts.isEmpty()) return false;
-        Collections.sort(parts, (p, q) -> p[0] - q[0]);
-        int covered = start;
-        for (int[] p : parts) {
-            if (p[0] > covered) return false;
-            if (p[1] > covered) covered = p[1];
-        }
-        return covered >= end;
-    }
-
-    /** Removes (with splitting) all StyleSpans of the given style crossing [start, end). */
-    private static void removeStyleSpans(Editable s, int start, int end, int style) {
-        for (StyleSpan span : s.getSpans(start, end, StyleSpan.class)) {
-            if ((span.getStyle() & style) == 0) continue;
-            int a = s.getSpanStart(span), b = s.getSpanEnd(span);
-            int flags = s.getSpanFlags(span);
-            s.removeSpan(span);
-            if (a < start) s.setSpan(new StyleSpan(style), a, start, flags);
-            if (end < b) s.setSpan(new StyleSpan(style), end, b, flags);
-        }
+        InfoTextFormat.showColorPicker(this);
     }
 
     /** Starts the system content picker through the host activity. */
@@ -587,7 +482,7 @@ public class InfoFieldView extends LinearLayout {
         }
     }
 
-    private static String plainOfBlock(Block b) {
+    static String plainOfBlock(Block b) {
         if (b.text == null) return "";
         return b.isHtml ? htmlToPlain(b.text) : b.text;
     }
@@ -601,7 +496,7 @@ public class InfoFieldView extends LinearLayout {
                 || h.contains("<ul") || h.contains("<ol") || h.contains("<li");
     }
 
-    private static String htmlToPlain(String html) {
+    static String htmlToPlain(String html) {
         if (html == null) return "";
         try { return Html.fromHtml(html).toString(); } catch (Exception e) { return html; }
     }
@@ -627,7 +522,7 @@ public class InfoFieldView extends LinearLayout {
                             if (cs == null) continue;
                             ArrayList<String> cells = new ArrayList<>();
                             for (int j = 0; j < cs.length(); j++) cells.add(cs.optString(j, ""));
-                            String t = tablePlain(cells);
+                            String t = InfoPreview.tablePlain(cells);
                             if (t.isEmpty()) continue;
                             if (sb.length() > 0) sb.append("\n");
                             sb.append(t);
@@ -646,66 +541,14 @@ public class InfoFieldView extends LinearLayout {
     // Collapsed preview
     // ------------------------------------------------------------------
 
-    /** Task 123: preview - первая строка текста + счётчики вложений (без лишних строк). */
+    /** Task 123: preview - первая строка текста + счётчики вложений (Task 139: в InfoPreview). */
     public void updateCollapsed() {
-        String preview = firstPreviewLine(plainPreview());
-        String counters = attachmentCounters();
-        if (!counters.isEmpty()) preview = preview + counters;
-        tvCollapsed.setText(preview);
+        InfoPreview.update(this);
     }
 
-    /** Task 123: первая непустая строка (убирает 2-е строки, добавляемые в поле над чертой). */
-    private static String firstPreviewLine(String plain) {
-        if (plain == null) return "";
-        String t = plain.trim();
-        int nl = t.indexOf('\n');
-        if (nl >= 0) t = t.substring(0, nl).trim();
-        return t;
-    }
-
+    // Plain-проекция блоков поля (для getText/превью) - см. InfoPreview
     private String plainPreview() {
-        StringBuilder sb = new StringBuilder();
-        for (Block b : blocks) {
-            if (b.type.equals("text")) {
-                String t = plainOfBlock(b);
-                if (t.trim().isEmpty()) continue;
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(t);
-            } else if (b.type.equals("tbl") && b.cells != null) {
-                String t = tablePlain(b.cells);
-                if (t.isEmpty()) continue;
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(t);
-            }
-        }
-        return sb.toString();
-    }
-
-    /** Task 136: plain projection of table cells (joined with " | "). */
-    private static String tablePlain(ArrayList<String> cells) {
-        StringBuilder tb = new StringBuilder();
-        for (String cell : cells) {
-            String t = cell == null ? "" : htmlToPlain(cell).trim();
-            if (t.isEmpty()) continue;
-            if (tb.length() > 0) tb.append(" | ");
-            tb.append(t);
-        }
-        return tb.toString();
-    }
-
-    private String attachmentCounters() {
-        int images = 0, videos = 0, files = 0;
-        for (Block b : blocks) {
-            if (b.type.equals("img")) images++;
-            else if (b.type.equals("vid")) videos++;
-            else if (b.type.equals("file")) files++;
-        }
-        if (images + videos + files == 0) return "";
-        StringBuilder sb = new StringBuilder();
-        if (images > 0) sb.append(" 📷").append(images);
-        if (videos > 0) sb.append(" 🎥").append(videos);
-        if (files > 0) sb.append(" 📎").append(files);
-        return sb.toString();
+        return InfoPreview.plainPreview(this);
     }
 
     int dpToPx(int dp) {

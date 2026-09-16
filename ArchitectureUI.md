@@ -41,7 +41,7 @@
 | 2 | `ParamsActivity` | `activity_params.xml` | «Параметры» | Настройки, 1 запись | CALPARAM / `ManageSQLDatabase` (`CalParamRecord`) |
 | 3 | `ContactsActivity` | `activity_contacts.xml` | «Контакты» | Список + фильтр по набору букв | CONTACTS / `ManageSQLDatabase` |
 | 4 | `EditContactActivity` | `activity_editcontact.xml` | Карточка контакта | Редактирование | CONTACTS / `ManageSQLDatabase` |
-| 5 | `ProjectsActivity` | `activity_projects.xml` | «Проекты\Все» / «Проекты\Рабочие» (extra `EXTRA_WORK_MODE`) | Список + поиск от 3 символов | CALPLAN / `ManageSQLDatabase` |
+| 5 | `ProjectsActivity` | `activity_projects.xml` | Универсальный экран списков (Task 138, объединил ProjectTasksActivity): «Проекты\Все» / «Проекты\Рабочие» (extra `EXTRA_WORK_MODE`), «Для проекта: <имя>» / «Для заявки: <имя>» (extras `sourceForm`/`sourceUnid`/`sourceName`; фабрики `allIntent`/`projectIntent`/`requestIntent`/`linkedIntent`) | Список + поиск от 3 символов + добавление по режиму | CALPLAN / `ManageSQLDatabase` |
 | 6 | `InputCalPlanActivity` | `activity_input_cal_plan.xml` | Карточка Проекта/Заявки (кнопка «Переделать» `btnRework`: Заявка→Проект/Задача, Проект→Задача/Заявка) | Редактирование | CALPLAN / `ManageSQLDatabase` |
 | 7 | `TaskActivity` | `activity_input_cal_plan.xml` | Карточка Задачи (кнопка «Переделать» `btnRework`: Задача→Проект/Заявку) | Редактирование | CALPLAN / `ManageSQLDatabase` |
 | 8 | `NoteActivity` | `activity_input_cal_plan.xml` | Карточка Заметки | Редактирование | NOTEPLAN / `NoteRememSQLManage` |
@@ -59,13 +59,13 @@
 | 20 | `SmsChatActivity` | `activity_smschat.xml` | «СМС-чат Ведущий<->Контакт» (extra `contactId`) | Чат | SMSCALPLAN / `SmsSQLManage` |
 | 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» (тип — вычисляемый `DisplayType` по позиции Ведущего, Task 130) | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
 | 22 | `CrashActivity` | `activity_crash.xml` | Отчёт о сбое | Диагностика | — |
-| 23 | `ProjectTasksActivity` | `activity_project_tasks.xml` | «Для проекта:/Для заявки:» (extras `sourceForm`/`sourceUnid`/`sourceName`) | Список задач проекта / проектов+задач заявки, добавление, фильтр | CALPLAN / `ManageSQLDatabase` |
+| 23 | — | — | Task 138: бывший `ProjectTasksActivity` (`activity_project_tasks.xml`) объединён с `ProjectsActivity` (режимы «Для проекта:/Для заявки:», layout `activity_projects.xml`) | — | CALPLAN / `ManageSQLDatabase` |
 
 Все экраны зарегистрированы в `app/src/main/AndroidManifest.xml` (LAUNCHER — только `MainActivity`).
 
 ### Экран `MainActivity` (зоны)
 1. Календарь: нестандартный `RussianCalendarView` (id `calendarView1`), выбор даты обновляет список.
-2. Кнопки управления (в т.ч. быстрые кнопки LIVETYPE Button1..Button5 из CALPARAM: Шагомер/Бургер/Кофе и т.д.).
+2. Кнопки управления (в т.ч. быстрые кнопки LIVETYPE Button1..Button5 из CALPARAM: Шагомер/Бургер/Кофе и т.д.; Task 139: обработка кнопок и иконок — в хелпере `MainQuickButtons`, загрузка праздников — в `RussianHolidaysLoader`).
 3. Список (id `listView1`) записей за выбранную дату: Заявки на проекты, Проекты, Задачи, Уведомления, Заметки.
 
 ### Шаблон заголовка экрана (единый стиль)
@@ -124,6 +124,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 - `MainActivity` — карточки записей через `ActivityResultLauncher` (современный Activity Result API, старый `startActivityForResult` не используется): результат `calPlanRecord` сохраняется `owerDb.upsertCalPlan(record)`.
 - `ContactsActivity` -> `EditContactActivity` (редактирование контакта).
 - `ProjectsActivity` — по Form записи: `Task` -> `TaskActivity`, иначе -> `InputCalPlanActivity`.
+- Карточки Проекта/Заявки (`BaseCalPlanEditActivity`, кнопка «Список задач») -> `ProjectsActivity.linkedIntent` в режимах «Для проекта:/Для заявки:» (Task 138).
 - `SmsActivity` -> `SmsChatActivity` (extra `contactId`) / `SmsViewActivity` (extra `smsRecord`).
 - `CrashActivity` запускается из `HardcoreCrashHandler` (перехват UncaughtException всех потоков). Обработчик ставится в `WGPortalApp.onCreate` (Application, Task 134) — `CrashActivity` показывается при любой необработанной ошибке на любом Activity, включая падения до `onCreate` экранов и рестарт процесса в другое Activity.
 - Пункт меню `calendar` (в любом экране через `BaseScreenActivity`) — переход/возврат к первому `MainActivity` (Task 135).
@@ -136,7 +137,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `RussianCalendarView` | `ConstraintLayout` | Нестандартный российский календарь (GridView + `CalendarAdapter`, праздники через `RussianHolidaysFetcher` в таблицу HOLIDAYS) | `MainActivity` (id `calendarView1`), layout `russian_calendar_view.xml`, callback `setOnDateSelectedListener` |
 | `DateFieldView` | `LinearLayout` | Поле выбора даты с маской `__.__.____` | Карточки редактирования |
 | `PhoneFieldView` | `LinearLayout` | Поле телефона, до 10 цифр, маска-заполнитель `•` | `EditContactActivity` |
-| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями и таблицами (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков); строка под текст есть сразу при создании карточки, пустые текстовые блоки над/под текстом удаляются (Task 127). Кнопки: текст/картинка/видео/файл/**таблица**/**Ж-жирный**/**цвет текста** (Task 136). Таблица: диалог выбора строк×колонок (NumberPicker 1..10, умолчание 2×2), блок JSON `"tbl"` (`r`,`c`,`cells` — HTML каждой ячейки), EditText в каждой ячейке с рамкой `bg_table_cell`, у таблицы кнопка удаления. Жирный (`ic_bold_t`) и цвет (`ic_text_color`, вертикальный ряд из 7 цветов) применяются к выделению, а без выделения — ко всему тексту последнего фокусного EditText (строки текста или ячейки таблицы), спаны `StyleSpan(BOLD)`/`ForegroundColorSpan` → `<b>`/`<font color>` | Карточки редактирования |
+| `InfoFieldView` | `LinearLayout` | Блок описания с вложениями и таблицами (файлы в папке CALPARAM.AttachFolder, раскрытие/сворачивание, RecyclerView блоков); строка под текст есть сразу при создании карточки, пустые текстовые блоки над/под текстом удаляются (Task 127). Кнопки: текст/картинка/видео/файл/**таблица**/**Ж-жирный**/**цвет текста** (Task 136). Таблица: диалог выбора строк×колонок (NumberPicker 1..10, умолчание 2×2), блок JSON `"tbl"` (`r`,`c`,`cells` — HTML каждой ячейки), EditText в каждой ячейке с рамкой `bg_table_cell`, у таблицы кнопка удаления. Жирный (`ic_bold_t`) и цвет (`ic_text_color`, вертикальный ряд из 7 цветов) применяются к выделению, а без выделения — ко всему тексту последнего фокусного EditText (строки текста или ячейки таблицы), спаны `StyleSpan(BOLD)`/`ForegroundColorSpan` → `<b>`/`<font color>`; Task 139: форматирование (жирный/цвет) вынесено в хелпер `InfoTextFormat`, свёрнутое превью — в `InfoPreview` | Карточки редактирования |
 | `MessageListItem` | `LinearLayout` | Универсальный элемент списка: иконка + 1..N строк текста + кнопки (Редактировать/Удалить, или Просмотр), разделитель `--5--` | Все списки (бывший TwoLineListItem, Task 125) |
 | `FlyOutContainer` | `LinearLayout` | Выдвижной контейнер (fly-out) | Резерв |
 | `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний; статус рисуется полным словом (Draft/Work/Test/Ok/Hold/Cancel), шрифт автоуменьшается под ширину иконки (Task 132) | Списки |
@@ -145,7 +146,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 ## 6. Данные, передаваемые между экранами
 
 - Карточка -> вызывающий экран: `Intent` result, extra `"calPlanRecord"` (Serializable) — сохраняет вызывающий экран.
-- `ProjectsActivity`: extra `EXTRA_WORK_MODE` (boolean, режим «Рабочие»), `EXTRA_PRESELECT_FORM` (Form новой записи).
+- `ProjectsActivity`: extra `EXTRA_WORK_MODE` (boolean, режим «Рабочие»), `EXTRA_PRESELECT_FORM` (Form новой записи); Task 138 — extras `sourceForm`/`sourceUnid`/`sourceName` (режимы «Для проекта:/Для заявки:», фабрики `allIntent`/`projectIntent`/`requestIntent`/`linkedIntent`), результат карточек через `ActivityResultLauncher`.
 - `SmsActivity`: extra `EXTRA_SMS_FOLDER` (FOLDER_ALL/FOLDER_INCOME/FOLDER_OUTCOME/FOLDER_TRASH); Корзина = записи без FromID и ToID.
 - `SmsChatActivity`: extra `EXTRA_CONTACT_ID` (`"contactId"`); требует телефон 10 цифр у Ведущего или Контакта, иначе Toast и выход.
 - `SmsViewActivity`: extra `EXTRA_SMS_RECORD` (`"smsRecord"`); тип записи — вычисляемое поле `smsRecord.DisplayType` (`effectiveType(vedushiiId)`): From и To разные и один из них Ведущий → по позиции Ведущего (от Ведущего — Outgoing, до Ведущего — Incoming), иначе сохранённый `Type` (Task 130).
