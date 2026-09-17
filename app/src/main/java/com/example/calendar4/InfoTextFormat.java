@@ -73,6 +73,9 @@ final class InfoTextFormat {
             swatch.setLayoutParams(lp);
             swatch.setOnClickListener(v -> {
                 applyColorToEditor(editor, color);
+                // Task 141: TextWatcher на смену спанов не срабатывает - пишем HTML в блок явно
+                view.adapter.writeBack(editor);
+                view.updateCollapsed();
                 dialog.dismiss();
             });
             column.addView(swatch);

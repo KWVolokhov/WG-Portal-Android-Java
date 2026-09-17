@@ -349,7 +349,8 @@ public class ProjectsActivity extends BaseScreenActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
             return sdf.format(record.StartDate);
         }
-        return shortBodyText(InfoFieldView.plainText(record != null ? record.BodyText : null));
+        return shortBodyText(InfoFieldView.listText(
+                record != null ? record.BodyText : null, record != null ? record.Comment : null));
     }
 
     private String shortBodyText(String bodyText) {

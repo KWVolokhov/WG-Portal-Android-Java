@@ -370,14 +370,14 @@ public class InfoFieldView extends LinearLayout {
         }
     }
 
-    /** Task 127: строка под текст есть сразу, даже если записи в SQL ещё нет. */
+    /** Task 127: строка под текст есть сразу, даже если записи в SQL ещё нет; Task 141: текстовый блок всегда ПЕРВЫЙ. */
     private void ensureTextLine() {
-        for (Block b : blocks) if (b.type.equals("text")) return;
+        if (!blocks.isEmpty() && blocks.get(0).type.equals("text")) return;
         Block b = new Block();
         b.type = "text";
         b.text = "";
         b.isHtml = false;
-        blocks.add(b);
+        blocks.add(0, b);
     }
 
     public void setHint(CharSequence hint) {
@@ -501,6 +501,26 @@ public class InfoFieldView extends LinearLayout {
         try { return Html.fromHtml(html).toString(); } catch (Exception e) { return html; }
     }
 
+    /**
+     * Task 143: fromHtml для загрузки блока - хвостовые \n (от <p>/<br> обёртки toHtml)
+     * обрезаются, чтобы лишние строки не накапливались при каждом редактировании.
+     */
+    static CharSequence fromHtmlTrimmed(String html) {
+        CharSequence cs;
+        try { cs = Html.fromHtml(html == null ? "" : html); } catch (Exception e) { cs = html == null ? "" : html; }
+        int end = cs.length();
+        while (end > 0 && Character.isWhitespace(cs.charAt(end - 1))) end--;
+        if (end == cs.length()) return cs;
+        return new android.text.SpannableString(cs.subSequence(0, end));
+    }
+
+    /** Task 143: toHtml для записи блока - хвостовые \n пользователя не сохраняются. */
+    static String toHtmlTrimmed(CharSequence s) {
+        int end = s == null ? 0 : s.length();
+        while (end > 0 && Character.isWhitespace(s.charAt(end - 1))) end--;
+        try { return Html.toHtml(new android.text.SpannableString(s.subSequence(0, end))); } catch (Exception e) { return s == null ? "" : s.toString(); }
+    }
+
     /** Text-only projection of a stored value (JSON or legacy text) for the list screens. */
     public static String plainText(String stored) {
         if (stored == null) return "";
@@ -535,6 +555,13 @@ public class InfoFieldView extends LinearLayout {
             }
         }
         return stored;
+    }
+
+    /** Task 142: text of the stored value; when the Info field is empty - the Comment field. */
+    public static String listText(String stored, String comment) {
+        String t = plainText(stored);
+        if (t != null && !t.trim().isEmpty()) return t;
+        return comment == null ? "" : comment;
     }
 
     // ------------------------------------------------------------------

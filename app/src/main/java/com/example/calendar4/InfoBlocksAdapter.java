@@ -150,18 +150,18 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             });
         }
 
-        /** Task 136: явная запись HTML (смена спанов TextWatcher не вызывает). */
+        /** Task 136: явная запись HTML (смена спанов TextWatcher не вызывает). Task 143: без хвостовых \n. */
         void writeBack() {
             if (bound == null) return;
             bound.isHtml = true;
-            bound.text = Html.toHtml(et.getText());
+            bound.text = InfoFieldView.toHtmlTrimmed(et.getText());
         }
 
         void bind(InfoFieldView.Block b) {
             binding = true;
             bound = b;
-            et.setText(b.isHtml ? Html.fromHtml(b.text == null ? "" : b.text)
-                    : (b.text == null ? "" : b.text));
+            if (b.isHtml) et.setText(InfoFieldView.fromHtmlTrimmed(b.text));
+            else et.setText(b.text == null ? "" : b.text);
             binding = false;
         }
     }
@@ -245,13 +245,13 @@ class InfoBlocksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         private CharSequence cellHtml(InfoFieldView.Block b, int idx) {
             String html = (b.cells != null && idx < b.cells.size()) ? b.cells.get(idx) : "";
-            return html == null ? "" : Html.fromHtml(html);
+            return InfoFieldView.fromHtmlTrimmed(html);
         }
 
-        /** Task 136: записывает текущий HTML ячейки в блок (смена спанов TextWatcher не вызывает). */
+        /** Task 136: записывает текущий HTML ячейки в блок (смена спанов TextWatcher не вызывает). Task 143: без хвостовых \n. */
         void writeCell(int idx) {
             if (bound == null || bound.cells == null || idx >= bound.cells.size()) return;
-            bound.cells.set(idx, Html.toHtml(cells.get(idx).getText()));
+            bound.cells.set(idx, InfoFieldView.toHtmlTrimmed(cells.get(idx).getText()));
         }
     }
 

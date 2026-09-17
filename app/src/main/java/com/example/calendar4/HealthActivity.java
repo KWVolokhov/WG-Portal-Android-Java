@@ -69,7 +69,8 @@ public class HealthActivity extends BaseScreenActivity {
                 }
                 final healthPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");
-                row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
+                // Task 142: вторая строка - поле Info, а если оно не заполнено - Комментарий
+                row.setBottomText(shortBodyText(InfoFieldView.listText(record.BodyText, record.Comment)));
                 row.setTypeIcon(iconForForm(record.Form));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));

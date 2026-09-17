@@ -72,7 +72,8 @@ public class HistoryActivity extends BaseScreenActivity {
                 row.setTopText(record.Name != null ? record.Name : "");
                 // Task 129: вторая строка - дата создания со временем, третья - расшифровка
                 row.setMiddleText(historyDate(record));
-                row.setBottomText(shortBodyText(InfoFieldView.plainText(record.BodyText)));
+                // Task 142: третья строка - поле Info, а если оно не заполнено - Комментарий
+                row.setBottomText(shortBodyText(InfoFieldView.listText(record.BodyText, record.Comment)));
                 row.setTypeIcon(R.drawable.ic_type_history);
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
