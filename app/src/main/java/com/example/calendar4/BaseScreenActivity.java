@@ -32,6 +32,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         }
         else if (id == R.id.contacts) startActivity(new Intent(this, ContactsActivity.class));
         else if (id == R.id.livetype) startActivity(new Intent(this, LivetypeActivity.class));
+		else if (id == R.id.calculator) startActivity(new Intent(this, CaclActivity.class));
         else if (id == R.id.projects_all) startActivity(new Intent(this, ProjectsActivity.class));
         else if (id == R.id.projects_work) startActivity(new Intent(this, ProjectsActivity.class)
                 .putExtra(ProjectsActivity.EXTRA_WORK_MODE, true));

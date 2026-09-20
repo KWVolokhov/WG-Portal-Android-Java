@@ -139,6 +139,10 @@
             android:name=".SmsViewActivity"
             android:exported="false"
              />
+        <activity
+            android:name=".CaclActivity"
+            android:exported="false"
+            />
 
         <!-- Task 100: shares InfoFieldView attachment files with the standard Android viewers -->
         <provider
