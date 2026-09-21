@@ -6,9 +6,9 @@
 
 ## 0. Текущее состояние (кратко для ИИ)
 
-- Серверная синхронизация данных НЕ реализована. Классов SyncAdapter/WorkManager/OkHttp/Retrofit/Volley в проекте НЕТ.
+- Task 143: первая фаза серверной синхронизации реализована — класс `SynchroCal` (POST JSON `CalParamRecord` на сервер, Basic-авторизация). Классов SyncAdapter/WorkManager/OkHttp/Retrofit/Volley в проекте НЕТ; транспорт — `HttpURLConnection`.
 - Приложение работает автономно на локальной SQLite `WGPlanDatabase.db`.
-- Единственная сетевая функция: `RussianHolidaysFetcher` — загрузка праздников (HTTP GET через `HttpURLConnection`, API holidays: год/CountryCode=RU) в таблицу HOLIDAYS. Разрешения: `INTERNET`, `ACCESS_NETWORK_STATE`.
+- Единственная сетевая функция: `RussianHolidaysFetcher` — загрузка праздников (HTTP GET через `HttpURLConnection`, API holidays: год/CountryCode=RU) в таблицу HOLIDAYS. Разрешения: `INTERNET`, `ACCESS_NETWORK_STATE`. Task 144: с 1 сентября текущего года загружается также следующий год (`fetchHolidaysForYears` — объединённый результат; список лет — `yearsToFetch()`).
 - Все бизнес-записи уже подготовлены к будущей синхронизации: имеют `UNID TEXT UNIQUE` и аудит-поля (`AuthorID/AuthorName`, `LastUpdatedByID/LastUpdatedBy`, `LastUpdatedDate`, `Revisions`).
 
 ## 1. Таблицы, подлежащие синхронизации (целевая схема)
@@ -22,7 +22,7 @@
 | `CONTACTS` | обе стороны | `id`/`EntryID` | `DateModified` |
 | `SMSCALPLAN` | обе стороны | `UNID` | `DateReceived` |
 | `LIVETYPE` | на клиент (справочник) | `UNID` (у предустановок = Form из HEALTHPLAN) | — |
-| `CALPARAM` | не синхронизируется (локальные настройки устройства) | — | — |
+| `CALPARAM` | на сервер (Task 143, `SynchroCal`); обратная корректировка локально — только поле `SyncTime` | `id` | `SyncTime` |
 | `HOLIDAYS` | на клиент (внешний API, уже реализовано) | (CountryCode, HolidayDate) | — |
 
 ## 2. Планируемая целевая схема (заготовка для реализации)
@@ -33,10 +33,17 @@
 - Цикл обмена: выгрузка записей с `LastUpdatedDate` > метки последней синхронизации, затем загрузка чужих изменений; конфликты — по более новой `LastUpdatedDate` (last-write-wins), журнал правок — `Revisions`.
 - Запись данных всегда через менеджеры из `ArchitectureLocalBackEnd.md`, чтобы аудит-поля заполнялись единообразно.
 - Место для деталей (заполняется по мере реализации):
-  - Endpoint-ы: —
-  - Формат пакетов (batch/дельта): —
-  - Хранение метки последней синхронизации: —
-  - Обработка ошибок/повторов: —
+
+### 2.1. Реализовано (Task 143, SynchroCal)
+- Класс: `SynchroCal` (`com.example.calendar4`); инициализируется из `ParamsActivity` значениями `editTextAddress / editTextName / editTextPassword`; запуск — кнопка `btnSync` «Синхронизовать» (`ParamsActivity.startSync`).
+- Endpoint: адрес из `CALPARAM.Address` (без схемы добавляется `http://`); запрос POST, тело JSON; таймауты 10 с connect / 15 с read; сеть — фоновый поток `ExecutorService`, callback — Handler main looper.
+- Аутентификация: заголовок `Authorization: Basic base64(Name:Password)` (`android.util.Base64`, NO_WRAP).
+- Формат запроса: `{"ContentType":"CalParamRecord","LastSyncDate":<CALPARAM.SyncTime|null>,"Updated":<текущее время "yyyy-MM-dd HH:mm:ss">,"Record":{id, Address, Name, Password, Vedushii, VedushiiID, StartPage, Button1Id..Button5Id, Height, Weight, Age, AttachFolder, DBName}}` (null передаётся как JSON null).
+- Формат ответа (ожидается): JSON `{"Status":"OK","Session":"<номер сессии>"}`; ключи статуса разыскиваются как `Status/Result/Confirmation`, сессии — `Session/SessionId/SessionID/session`; статус (если задан) должен быть OK/success/true/2xx; без номера сессии обмен считается неуспешным.
+- Номер сессии: `SynchroCal.getSession()` (static, в памяти процесса; НЕ реализовано: персистентное хранение).
+- Метка последней синхронизации: колонка `CALPARAM.SyncTime` (миграция DATABASE_VERSION 10→11, `upgradeToV11` + safety-net); после успешного обмена обновляется ТОЛЬКО она: `ManageSQLDatabase.updateCalParamSyncTime(id, время)` → `CalParamSQLManage.updateSyncTime`.
+- Обработка ошибок: HTTP 401 — «Сервер отклонил имя/пароль»; прочие HTTP-коды и не-JSON ответ — ошибка; результат (успех/ошибка, сессия) через `SynchroCal.SynchroListener` → Toast в `ParamsActivity`.
+- Прочие таблицы (CALPLAN, HISTORY, NOTEPLAN, HEALTHPLAN, CONTACTS, SMSCALPLAN, LIVETYPE) — НЕ реализовано (следующие шаги: дельта-выгрузка по `LastUpdatedDate`, приём чужих изменений, конфликты last-write-wins).
 
 ## 3. Правила ведения файла (для ИИ)
 

@@ -12,6 +12,7 @@ import java.util.Locale;
  * Task 139: загрузка праздников (интернет -> HOLIDAYS -> календарь) - вынесено из
  * MainActivity. Проверяется необходимость обновления (нет данных с начала месяца
  * или сегодня 1-е число), затем RussianHolidaysFetcher и сохранение в БД.
+ * Task 144: с 1 сентября проверяется и загружается также следующий год.
  */
 final class RussianHolidaysLoader {
 
@@ -27,12 +28,14 @@ final class RussianHolidaysLoader {
         // Check if holidays need to be updated (on 1st day of month or if no data)
         boolean isFirstDayOfMonth = (currentDay == 1);
         boolean needsUpdate = act.owerDb.needsHolidayUpdate("RUS", currentYear, currentMonth);
+        // Task 144: после 1 сентября догружаем и следующий год, если его данных ещё нет
+        if (RussianHolidaysFetcher.yearsToFetch().size() > 1 && act.owerDb.needsHolidayUpdate("RUS", currentYear + 1, 1)) needsUpdate = true;
         if (!needsUpdate && !isFirstDayOfMonth) {
             loadFromDatabase(act);
             return;
         }
         act.holidaysFetcher = new RussianHolidaysFetcher(act);
-        act.holidaysFetcher.fetchHolidaysForYear(currentYear, new RussianHolidaysFetcher.HolidaysFetchListener() {
+        act.holidaysFetcher.fetchHolidaysForYears(new RussianHolidaysFetcher.HolidaysFetchListener() {
             @Override
             public void onHolidaysFetched(HashSet<String> holidays) {
                 saveHolidays(act, currentYear, holidays);

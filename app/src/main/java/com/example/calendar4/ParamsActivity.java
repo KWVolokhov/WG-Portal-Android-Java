@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -47,6 +48,7 @@ public class ParamsActivity extends BaseScreenActivity {
     private EditText editTextDBName;       // Task 100: название базы
     private ImageButton btnOK;
     private ImageButton btnCancel;
+    private Button btnSync;                // Task 143: запуск синхронизации с сервером
 
     private ManageSQLDatabase owerDb;
     private CalParamRecord currentRecord;
@@ -83,6 +85,7 @@ public class ParamsActivity extends BaseScreenActivity {
         editTextDBName = findViewById(R.id.editTextDBName);
         btnOK = findViewById(R.id.btnOK);
         btnCancel = findViewById(R.id.btnCancel);
+        btnSync = findViewById(R.id.btnSync);
 
         // Initialize database and load current parameters
         // owerDb = new ManageSQLDatabase(this);
@@ -99,28 +102,7 @@ public class ParamsActivity extends BaseScreenActivity {
             setupVedushiiSpinner(null);
         }
 
-        // If record exists, populate fields
-        if (currentRecord != null) {
-            if (currentRecord.Address != null) editTextAddress.setText(currentRecord.Address);
-            if (currentRecord.Name != null) editTextName.setText(currentRecord.Name);
-            if (currentRecord.Password != null) editTextPassword.setText(currentRecord.Password);
-
-            // Task 54: Рост/Вес/Возраст (getCalParam подставляет умолчания)
-            editTextHeight.setText(String.valueOf(currentRecord.Height));
-            editTextWeight.setText(String.valueOf(currentRecord.Weight));
-            editTextAge.setText(String.valueOf(currentRecord.Age));
-
-            // Task 100: папка вложений и имя базы (getCalParam подставляет умолчания)
-            editTextAttachFolder.setText(currentRecord.AttachFolder);
-            editTextDBName.setText(currentRecord.DBName);
-        } else {
-            // Task 54/100: умолчания, когда запись параметров ещё не создана
-            editTextHeight.setText(String.valueOf(CalParamRecord.DEFAULT_HEIGHT));
-            editTextWeight.setText(String.valueOf(CalParamRecord.DEFAULT_WEIGHT));
-            editTextAge.setText(String.valueOf(CalParamRecord.DEFAULT_AGE));
-            editTextAttachFolder.setText(CalParamRecord.DEFAULT_ATTACH_FOLDER);
-            editTextDBName.setText(CalParamRecord.DEFAULT_DB_NAME);
-        }
+        fillParamFields();
 
         // Populate "Стартовая страница" (default = Календарь when not set yet)
         setupStartPageSpinner(currentRecord != null ? currentRecord.StartPage : null);
@@ -207,6 +189,64 @@ public class ParamsActivity extends BaseScreenActivity {
             public void onClick(View v) {
                 setResult(Activity.RESULT_CANCELED);
                 finish();
+            }
+        });
+
+        // Task 143: кнопка «Синхронизовать» — обмен CalParamRecord с сервером
+        btnSync.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startSync();
+            }
+        });
+    }
+
+    // Заполнение полей формы из текущей записи параметров (или умолчаний, Tasks 54/100)
+    private void fillParamFields() {
+        if (currentRecord == null) {
+            editTextHeight.setText(String.valueOf(CalParamRecord.DEFAULT_HEIGHT));
+            editTextWeight.setText(String.valueOf(CalParamRecord.DEFAULT_WEIGHT));
+            editTextAge.setText(String.valueOf(CalParamRecord.DEFAULT_AGE));
+            editTextAttachFolder.setText(CalParamRecord.DEFAULT_ATTACH_FOLDER);
+            editTextDBName.setText(CalParamRecord.DEFAULT_DB_NAME);
+            return;
+        }
+        if (currentRecord.Address != null) editTextAddress.setText(currentRecord.Address);
+        if (currentRecord.Name != null) editTextName.setText(currentRecord.Name);
+        if (currentRecord.Password != null) editTextPassword.setText(currentRecord.Password);
+        editTextHeight.setText(String.valueOf(currentRecord.Height));
+        editTextWeight.setText(String.valueOf(currentRecord.Weight));
+        editTextAge.setText(String.valueOf(currentRecord.Age));
+        editTextAttachFolder.setText(currentRecord.AttachFolder);
+        editTextDBName.setText(currentRecord.DBName);
+    }
+
+    // Task 143: обмен CalParamRecord с сервером (POST JSON, Basic-авторизация)
+    private void startSync() {
+        String address = editTextAddress.getText().toString().trim();
+        String name = editTextName.getText().toString().trim();
+        String password = editTextPassword.getText().toString().trim();
+        if (address.isEmpty()) {
+            Toast.makeText(this, "Укажите адрес сервера", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (currentRecord == null) currentRecord = new CalParamRecord();
+        currentRecord.Address = address;
+        currentRecord.Name = name;
+        currentRecord.Password = password;
+        owerDb.upsertCalParam(currentRecord);
+        currentRecord = owerDb.getCalParam();
+        SynchroCal synchro = new SynchroCal(this, address, name, password);
+        synchro.synchronize(currentRecord, new SynchroCal.SynchroListener() {
+            @Override
+            public void onSyncSuccess(String session, String message) {
+                currentRecord = owerDb.getCalParam();
+                Toast.makeText(ParamsActivity.this, message + " (сессия " + session + ")", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onSyncError(String error) {
+                Toast.makeText(ParamsActivity.this, error, Toast.LENGTH_LONG).show();
             }
         });
     }

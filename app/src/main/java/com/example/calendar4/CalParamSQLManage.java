@@ -53,6 +53,7 @@ public class CalParamSQLManage {
         record.Age = getInteger(cursor, "Age");
         record.AttachFolder = getString(cursor, "AttachFolder");
         record.DBName = getString(cursor, "DBName");
+        record.SyncTime = getString(cursor, "SyncTime");
         // Task 54/100: умолчания, когда значение ещё не задано
         if (record.Height == null) record.Height = CalParamRecord.DEFAULT_HEIGHT;
         if (record.Weight == null) record.Weight = CalParamRecord.DEFAULT_WEIGHT;
@@ -86,6 +87,7 @@ public class CalParamSQLManage {
         if (record.Age != null) values.put("Age", record.Age);
         if (record.AttachFolder != null) values.put("AttachFolder", record.AttachFolder);
         if (record.DBName != null) values.put("DBName", record.DBName);
+        if (record.SyncTime != null) values.put("SyncTime", record.SyncTime);
         if (record.id != null) {
             int rowsAffected = db.update("CALPARAM", values, "id=?",
                     new String[]{String.valueOf(record.id)});
@@ -93,6 +95,14 @@ public class CalParamSQLManage {
         } else {
             db.insert("CALPARAM", null, values);
         }
+    }
+
+    // Task 143: корректировка записи CALPARAM только в поле SyncTime (после успешного обмена)
+    public void updateSyncTime(Integer recordId, String syncTime) {
+        if (recordId == null) return;
+        ContentValues values = new ContentValues();
+        values.put("SyncTime", syncTime);
+        db.update("CALPARAM", values, "id=?", new String[]{String.valueOf(recordId)});
     }
 
     // Значение String колонки (null, если колонки нет или значение NULL)

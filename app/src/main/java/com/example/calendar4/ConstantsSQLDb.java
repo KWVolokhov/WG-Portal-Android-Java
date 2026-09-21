@@ -204,7 +204,8 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "Weight INTEGER, " +//Label: Вес, кг (умолчание 110)
             "Age INTEGER, " +//Label: Возраст, лет (умолчание 50)
             "AttachFolder TEXT, " +//Label: Папка вложений InfoFieldView (умолчание Attachments)
-            "DBName TEXT" +//Label: Название базы данных
+            "DBName TEXT, " +//Label: Название базы данных
+            "SyncTime TEXT" +//Label: Время синхронизации (Task 143)
             ")";
     
     public static final String CREATE_TABLE_HOLIDAYS = "CREATE TABLE IF NOT EXISTS HOLIDAYS (" +

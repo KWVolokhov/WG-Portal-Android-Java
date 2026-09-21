@@ -273,6 +273,15 @@
             android:layout_gravity="center_vertical" />
     </LinearLayout>
 
+    <!-- Task 143: кнопка запуска синхронизации CalParamRecord с сервером -->
+    <Button
+        android:id="@+id/btnSync"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="Синхронизовать" />
+
     <!-- Task 105: разделительная линия - заголовок секции "Настройки интерфейса" -->
     <LinearLayout
         android:layout_width="match_parent"

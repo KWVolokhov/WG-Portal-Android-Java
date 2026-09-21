@@ -45,7 +45,6 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         else if (id == R.id.sms_trash) startActivity(new Intent(this, SmsActivity.class)
                 .putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_TRASH));
         else if (id == R.id.parametrs) startActivity(new Intent(this, ParamsActivity.class));
-        // Калькулятор пока не реализован - только Жаба
         else Toast.makeText(this, "Меню " + item.getTitle(), Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
     }

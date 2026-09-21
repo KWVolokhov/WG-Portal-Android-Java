@@ -19,7 +19,7 @@ import java.util.Map;
  * Экраны продолжают работать через методы этого класса - вызовы не менялись.
  */
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 
     public static String AuthorName = null;
@@ -73,6 +73,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         upgradeToV7(db, oldVersion);
         upgradeToV10(db, oldVersion);
+        upgradeToV11(db, oldVersion);
         safetyNetColumns(db);
     }
 
@@ -210,6 +211,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         }
     }
 
+    // Version 11 (Task 143): CALPARAM — поле SyncTime (время последней синхронизации)
+    private void upgradeToV11(SQLiteDatabase db, int oldVersion) {
+        if (oldVersion < 11) addColumnIfMissing(db, "CALPARAM", "SyncTime", "TEXT");
+    }
+
     // Safety net (Task 34): гарантируем наличие всех колонок, какие нужны приложению
     // (старые сборки могли иметь завышенную версию БД и пропустить классические миграции).
     private void safetyNetColumns(SQLiteDatabase db) {
@@ -242,6 +248,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "CALPARAM", "Age", "INTEGER");
         addColumnIfMissing(db, "CALPARAM", "AttachFolder", "TEXT");
         addColumnIfMissing(db, "CALPARAM", "DBName", "TEXT");
+        addColumnIfMissing(db, "CALPARAM", "SyncTime", "TEXT");
         // Task 106: таблица СМС создаётся и наполняется тестовыми записями на всякий случай
         try {
             db.execSQL(ConstantsSQLDb.CREATE_TABLE_SMSCALPLAN);
@@ -422,6 +429,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
     /** Сохранение параметров приложения. */
     public void upsertCalParam(CalParamRecord record) {
         new CalParamSQLManage(getWritableDatabase()).upsert(record);
+    }
+
+    /** Task 143: корректировка записи CALPARAM только в поле SyncTime. */
+    public void updateCalParamSyncTime(Integer recordId, String syncTime) {
+        new CalParamSQLManage(getWritableDatabase()).updateSyncTime(recordId, syncTime);
     }
 
     // ===================== Фасад CONTACTS (ContactsSQLManage) =====================

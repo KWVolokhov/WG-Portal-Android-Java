@@ -38,7 +38,7 @@
 | # | Класс | Layout | Название экрана | Тип | Локальный Backend (таблица / менеджер) |
 |---|---|---|---|---|---|
 | 1 | `MainActivity` | `activity_main.xml` | «Календарный план» | Список + календарь | CALPLAN, HISTORY, NOTEPLAN, HEALTHPLAN / `ManageSQLDatabase` |
-| 2 | `ParamsActivity` | `activity_params.xml` | «Параметры» | Настройки, 1 запись | CALPARAM / `ManageSQLDatabase` (`CalParamRecord`) |
+| 2 | `ParamsActivity` | `activity_params.xml` | «Параметры» | Настройки, 1 запись; кнопка `btnSync` «Синхронизовать» (Task 143: обмен CalParamRecord с сервером через `SynchroCal`, Toast результата) | CALPARAM / `ManageSQLDatabase` (`CalParamRecord`) |
 | 3 | `ContactsActivity` | `activity_contacts.xml` | «Контакты» | Список + фильтр по набору букв | CONTACTS / `ManageSQLDatabase` |
 | 4 | `EditContactActivity` | `activity_editcontact.xml` | Карточка контакта | Редактирование | CONTACTS / `ManageSQLDatabase` |
 | 5 | `ProjectsActivity` | `activity_projects.xml` | Универсальный экран списков (Task 138, объединил ProjectTasksActivity): «Проекты\Все» / «Проекты\Рабочие» (extra `EXTRA_WORK_MODE`), «Для проекта: <имя>» / «Для заявки: <имя>» (extras `sourceForm`/`sourceUnid`/`sourceName`; фабрики `allIntent`/`projectIntent`/`requestIntent`/`linkedIntent`) | Список + поиск от 3 символов + добавление по режиму | CALPLAN / `ManageSQLDatabase` |
@@ -65,7 +65,7 @@
 
 ### Экран `MainActivity` (зоны)
 1. Календарь: нестандартный `RussianCalendarView` (id `calendarView1`), выбор даты обновляет список.
-2. Кнопки управления (в т.ч. быстрые кнопки LIVETYPE Button1..Button5 из CALPARAM: Шагомер/Бургер/Кофе и т.д.; Task 139: обработка кнопок и иконок — в хелпере `MainQuickButtons`, загрузка праздников — в `RussianHolidaysLoader`).
+2. Кнопки управления (в т.ч. быстрые кнопки LIVETYPE Button1..Button5 из CALPARAM: Шагомер/Бургер/Кофе и т.д.; Task 139: обработка кнопок и иконок — в хелпере `MainQuickButtons`, загрузка праздников — в `RussianHolidaysLoader`; Task 144: с 1 сентября — догрузка праздников следующего года).
 3. Список (id `listView1`) записей за выбранную дату: Заявки на проекты, Проекты, Задачи, Уведомления, Заметки.
 
 ### Шаблон заголовка экрана (единый стиль)
@@ -99,6 +99,7 @@ AppCompatActivity
 |   +-- SmsActivity
 |   +-- SmsChatActivity
 |   +-- SmsViewActivity
+|   +-- CaclActivity                          (калькулятор, layout activity_calc.xml, Task 142)
 CrashActivity (extends android.app.Activity, singleTask)
 ```
 
@@ -110,7 +111,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 |---|---|---|
 | `calendar` | Календарь | `MainActivity` — вызов/возврат к первому экрану (`FLAG_ACTIVITY_CLEAR_TOP` + `FLAG_ACTIVITY_SINGLE_TOP`) (Task 135) |
 | `contacts` | Контакты | `ContactsActivity` |
-| `calculator` | Калькулятор | НЕ реализовано — Toast |
+| `calculator` | Калькулятор | `CaclActivity` (layout `activity_calc.xml`, Task 142) |
 | `livetype` | Типы жизнедеятельности | `LivetypeActivity` |
 | `projects_all` | Проекты\Все | `ProjectsActivity` (без extra) |
 | `projects_work` | Проекты\Рабочие | `ProjectsActivity` + `EXTRA_WORK_MODE=true` |
@@ -154,7 +155,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 
 ## 7. Разрешения, влияющие на UI
 
-- `INTERNET`, `ACCESS_NETWORK_STATE` — загрузка праздников (`RussianHolidaysFetcher`).
+- `INTERNET`, `ACCESS_NETWORK_STATE` — загрузка праздников (`RussianHolidaysFetcher`) и синхронизация с сервером (`SynchroCal`, Task 143; в манифесте `android:usesCleartextTraffic="true"` для http-адресов).
 - `READ_PHONE_STATE` — телефон/IMEI устройства при старте (`MainActivity`).
 - `ACTIVITY_RECOGNITION` — реальный шагомер Android 10+ (`Pedometer`).
 

@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CaclActivity extends AppCompatActivity {
+public class CaclActivity extends BaseScreenActivity {
     //общие переменные
     private static BigDecimal bdResult = new BigDecimal("0.0");       //Основное значение ввиде числа. Для Высокой точночти использовать BigDecimal, BigInteger
     private String txtResult="0";       //Основное значение ввиде текста
@@ -54,7 +54,7 @@ public class CaclActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_calc);
 
         //String[] mas1= {"asss", "Fala"};
         //StringBuilder sada = new StringBuilder();

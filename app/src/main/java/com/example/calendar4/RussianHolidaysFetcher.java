@@ -14,6 +14,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,6 +104,41 @@ public class RussianHolidaysFetcher {
             }
         });
     }
+    // Task 144: годы для загрузки — текущий; с 1 сентября добавляется следующий год
+    public static ArrayList<Integer> yearsToFetch() {
+        ArrayList<Integer> years = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        years.add(cal.get(Calendar.YEAR));
+        if (cal.get(Calendar.MONTH) >= Calendar.SEPTEMBER) years.add(cal.get(Calendar.YEAR) + 1);
+        return years;
+    }
+
+    // Task 144: загрузка за все нужные годы, слушатель получает объединённый набор один раз
+    public void fetchHolidaysForYears(@NonNull final HolidaysFetchListener listener) {
+        this.listener = listener;
+        fetchYears(yearsToFetch(), 0, new HashSet<String>(), listener);
+    }
+
+    // Последовательная загрузка по списку лет на однопоточном executor
+    private void fetchYears(final ArrayList<Integer> years, final int index, final HashSet<String> collected, final HolidaysFetchListener listener) {
+        if (index >= years.size()) {
+            if (listener != null) listener.onHolidaysFetched(collected);
+            return;
+        }
+        fetchHolidaysForYear(years.get(index), new HolidaysFetchListener() {
+            @Override
+            public void onHolidaysFetched(HashSet<String> holidays) {
+                collected.addAll(holidays);
+                fetchYears(years, index + 1, collected, listener);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (listener != null) listener.onError(error);
+            }
+        });
+    }
+
     public void shutdown() {
         if (executor != null && !executor.isShutdown()) {
             executor.shutdown();

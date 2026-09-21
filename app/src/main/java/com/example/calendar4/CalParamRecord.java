@@ -48,6 +48,7 @@ public class CalParamRecord implements Serializable {
     public Integer Age;         // Возраст, лет (null = умолчание 50)
     public String AttachFolder; // Папка вложений поля InfoFieldView (null = "Attachments")
     public String DBName;       // Название базы данных (null = "WGPlanDatabase.db")
+    public String SyncTime;     // Время синхронизации (Task 143: дата/время последнего успешного обмена)
 
     public CalParamRecord() {
     }
