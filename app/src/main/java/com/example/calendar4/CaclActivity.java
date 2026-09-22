@@ -185,58 +185,55 @@ public class CaclActivity extends BaseScreenActivity {
     {
         //((Activity)view.getContext()).finish();
         //обработка кнопок с цифрами
-        switch (view.getId())
-        {	case R.id.button17:	//1
-                pushDigit(1);break;
-            case R.id.button18:		//2
-                pushDigit(2);break;
-            case R.id.button19:		//3
-                pushDigit(3);break;
-            case R.id.button7:	//4
-                pushDigit(4);break;
-            case R.id.button16:		//5
-                pushDigit(5);break;
-            case R.id.button15:		//6
-                pushDigit(6);break;
-            case R.id.button:	//7
-                pushDigit(7);break;
-            case R.id.button13:		//8
-                pushDigit(8);break;
-            case R.id.button14:		//9
-                pushDigit(9);break;
-            case R.id.button9:		//0
-                pushDigit(0);break;
-            case R.id.button12:		//Point
-                if(!resultPoint)
-                {   txtResult=txtResult + ".";
-                    resultPoint=true;
-                    isUpdateMainValue=true;
-                }
-                break;
-            case R.id.button3:      //Из Памяти
-            case R.id.button4:      //Память +
-            case R.id.button5:      //Память *
-            case R.id.button6:      //Память Сброс
-                pushMemory(view.getId());
-                break;
-            case R.id.button11:		//Сброс
-                PushOperation(0);break;
-            case R.id.button33:		//Равно
-                pushEQUAL();break;
-            case R.id.button39:		//+
-                PushOperation(1);break;
-            case R.id.button38:		//-
-                PushOperation(2);break;
-            case R.id.button37:		//*
-                PushOperation(3);break;
-            case R.id.button35:		// делить
-                PushOperation(4); break;
-            case R.id.button36:		// 1/x
-                PushOperation(6); break;
-            case R.id.button34:		// +/-
-                PushOperation(7); break;
-            default:
-                return;
+        int id = view.getId();//Из Памяти
+//Память +
+//Память *
+        if (id == R.id.button17) {    //1
+            pushDigit(1);
+        } else if (id == R.id.button18) {        //2
+            pushDigit(2);
+        } else if (id == R.id.button19) {        //3
+            pushDigit(3);
+        } else if (id == R.id.button7) {    //4
+            pushDigit(4);
+        } else if (id == R.id.button16) {        //5
+            pushDigit(5);
+        } else if (id == R.id.button15) {        //6
+            pushDigit(6);
+        } else if (id == R.id.button) {    //7
+            pushDigit(7);
+        } else if (id == R.id.button13) {        //8
+            pushDigit(8);
+        } else if (id == R.id.button14) {        //9
+            pushDigit(9);
+        } else if (id == R.id.button9) {        //0
+            pushDigit(0);
+        } else if (id == R.id.button12) {        //Point
+            if (!resultPoint) {
+                txtResult = txtResult + ".";
+                resultPoint = true;
+                isUpdateMainValue = true;
+            }
+        } else if (id == R.id.button3 || id == R.id.button4 || id == R.id.button5 || id == R.id.button6) {      //Память Сброс
+            pushMemory(view.getId());
+        } else if (id == R.id.button11) {        //Сброс
+            PushOperation(0);
+        } else if (id == R.id.button33) {        //Равно
+            pushEQUAL();
+        } else if (id == R.id.button39) {        //+
+            PushOperation(1);
+        } else if (id == R.id.button38) {        //-
+            PushOperation(2);
+        } else if (id == R.id.button37) {        //*
+            PushOperation(3);
+        } else if (id == R.id.button35) {        // делить
+            PushOperation(4);
+        } else if (id == R.id.button36) {        // 1/x
+            PushOperation(6);
+        } else if (id == R.id.button34) {        // +/-
+            PushOperation(7);
+        } else {
+            return;
         }
         updFields();
     }
@@ -403,31 +400,26 @@ public class CaclActivity extends BaseScreenActivity {
 
     //=================================================== Отработка нажатия Кнопок Памяти
     private void pushMemory(int buttonId)
-    {   switch (buttonId)
-        {
-            case R.id.button3:      //Из Памяти
-                digitOperation=0;
-                bdResult=memValue;
-                txtResult=memValue.toString();
-                resultPoint=true;
-                isUpdateMainValue=true;
-                break;
-            case R.id.button4:      //Память +
-                // != "undefined")
-                memValue = memValue.add(bdResult);
-                isUpdateMemLabel=true;
-                break;
-            case R.id.button5:      //Память *
-                memValue = memValue.multiply(bdResult);
-                isUpdateMemLabel=true;
-                resultPoint=false;
-                isUpdateMainValue=true;
-                isUpdateHistory=true;
-                break;
-            case R.id.button6:      //Память Сброс
-                memValue = BigDecimal.valueOf(0);
-                isUpdateMemLabel=true;
-                break;
+    {
+        if (buttonId == R.id.button3) {      //Из Памяти
+            digitOperation = 0;
+            bdResult = memValue;
+            txtResult = memValue.toString();
+            resultPoint = true;
+            isUpdateMainValue = true;
+        } else if (buttonId == R.id.button4) {      //Память +
+            // != "undefined")
+            memValue = memValue.add(bdResult);
+            isUpdateMemLabel = true;
+        } else if (buttonId == R.id.button5) {      //Память *
+            memValue = memValue.multiply(bdResult);
+            isUpdateMemLabel = true;
+            resultPoint = false;
+            isUpdateMainValue = true;
+            isUpdateHistory = true;
+        } else if (buttonId == R.id.button6) {      //Память Сброс
+            memValue = BigDecimal.valueOf(0);
+            isUpdateMemLabel = true;
         }
     }
 
