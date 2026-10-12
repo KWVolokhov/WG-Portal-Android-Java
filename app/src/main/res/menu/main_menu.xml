@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Task 148: кнопка Help в ActionBar (слева от троеточия), вызывает Spotlight -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help"
+        android:title="Help"
+        app:showAsAction="always" />
+
         <item
             android:id="@+id/calendar"
             android:orderInCategory="1"
@@ -48,8 +57,18 @@
                             android:title="Корзина" />
                 </menu>
         </item>
+        <!-- Task 147: пункт меню "Help Справочник" над "Параметры" -->
+        <item
+            android:id="@+id/help_book"
+            android:orderInCategory="19"
+            android:title="Help Справочник" />
         <item
             android:id="@+id/parametrs"
             android:orderInCategory="20"
             android:title="Параметры" />
+        <!-- Task 146: пункт меню "О Программе" под "Параметры" -->
+        <item
+            android:id="@+id/about"
+            android:orderInCategory="21"
+            android:title="О Программе" />
 </menu>

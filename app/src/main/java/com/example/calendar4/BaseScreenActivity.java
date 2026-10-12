@@ -44,7 +44,21 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
                 .putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_OUTCOME));
         else if (id == R.id.sms_trash) startActivity(new Intent(this, SmsActivity.class)
                 .putExtra(SmsActivity.EXTRA_SMS_FOLDER, SmsActivity.FOLDER_TRASH));
+        // Task 148: кнопка Help в ActionBar вызывает Spotlight (контекстную подсказку).
+        else if (id == R.id.action_help) {
+            // Task 148a: передаём суть текущего экрана (заглушка - заголовок/класс Activity),
+            // содержимое придёт из будущего "Help Справочника".
+            Intent help = new Intent(this, SpotlightActivity.class);
+            CharSequence title = getTitle();
+            help.putExtra(SpotlightActivity.EXTRA_HELP_TEXT,
+                    "Экран: " + (title != null ? title : getClass().getSimpleName()));
+            startActivity(help);
+        }
+        // Task 147: пункт меню "Help Справочник".
+        else if (id == R.id.help_book) startActivity(new Intent(this, HelpActivity.class));
         else if (id == R.id.parametrs) startActivity(new Intent(this, ParamsActivity.class));
+        // Task 146: пункт меню "О Программе".
+        else if (id == R.id.about) startActivity(new Intent(this, AboutActivity.class));
         else Toast.makeText(this, "Меню " + item.getTitle(), Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
     }

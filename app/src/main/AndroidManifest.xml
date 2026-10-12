@@ -145,6 +145,24 @@
             android:exported="false"
             />
 
+        <!-- Task 146: экран "О Программе" (пункт меню под "Параметры") -->
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            />
+
+        <!-- Task 147: экран "Help Справочник" (пункт меню над "Параметры", пока заглушка) -->
+        <activity
+            android:name=".HelpActivity"
+            android:exported="false"
+            />
+
+        <!-- Task 148/148a: экран Spotlight - контекстная подсказка по кнопке Help -->
+        <activity
+            android:name=".SpotlightActivity"
+            android:exported="false"
+            />
+
         <!-- Task 100: shares InfoFieldView attachment files with the standard Android viewers -->
         <provider
             android:name="androidx.core.content.FileProvider"

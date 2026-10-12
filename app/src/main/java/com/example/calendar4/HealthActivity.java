@@ -69,7 +69,9 @@ public class HealthActivity extends BaseScreenActivity {
                 }
                 final healthPlanRecord record = getItem(position);
                 row.setTopText(record.Name != null ? record.Name : "");
-                // Task 142: вторая строка - поле Info, а если оно не заполнено - Комментарий
+                // Task 145: вторая строка - время записи
+                row.setMiddleText(recordTime(record));
+                // Task 142: третья строка - поле Info, а если оно не заполнено - Комментарий
                 row.setBottomText(shortBodyText(InfoFieldView.listText(record.BodyText, record.Comment)));
                 row.setTypeIcon(iconForForm(record.Form));
                 row.setOnEditClickListener(v -> openEdit(record));
@@ -190,5 +192,13 @@ public class HealthActivity extends BaseScreenActivity {
         if (newline >= 0) text = text.substring(0, newline).trim();
         if (text.length() > 20) text = text.substring(0, 20);
         return text;
+    }
+
+    /** Task 145: время записи здоровья (Okdate со временем, иначе StartDate) для 2-й строки списка. */
+    private String recordTime(healthPlanRecord record) {
+        if (record == null) return "";
+        Date d = record.Okdate != null ? record.Okdate : record.StartDate;
+        if (d == null) return "";
+        return new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(d);
     }
 }

@@ -41,6 +41,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         return instance;
     }
 
+    /** Task 146: текущая версия структур баз данных (для экрана "О Программе"). */
+    public static int getDatabaseVersion() {
+        return DATABASE_VERSION;
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         createAllTables(db);

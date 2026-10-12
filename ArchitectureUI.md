@@ -48,7 +48,7 @@
 | 9 | `RememberActivity` | `activity_input_cal_plan.xml` | Карточка Напоминания | Редактирование | NOTEPLAN / `NoteRememSQLManage` |
 | 10 | `HistoryActivity` | `activity_history.xml` | «<дата> История»; 3 строки в списке: название / дата создания со временем / текст, сверху самая поздняя (Task 129) | Список | HISTORY / `HistorySQLManage` |
 | 11 | `HistoryEditActivity` | `activity_input_cal_plan.xml` | Карточка Истории | Редактирование | HISTORY / `HistorySQLManage` |
-| 12 | `HealthActivity` | `activity_health.xml` | «<дата> Health» + кнопка Add | Список | HEALTHPLAN / `HealthSQLManage` |
+| 12 | `HealthActivity` | `activity_health.xml` | «<дата> Health» + кнопка Add | Список; Task 145: 2-я строка — время записи (Okdate/StartDate, `dd.MM.yyyy HH:mm:ss`), 3-я — Info/Comment | HEALTHPLAN / `HealthSQLManage` |
 | 13 | `HealthEditActivity` | `activity_input_cal_plan.xml` | Карточка Health | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 14 | `HealthEatActivity` | `activity_input_cal_plan.xml` | Карточка Еды | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 15 | `HealthDrinkActivity` | `activity_input_cal_plan.xml` | Карточка Гидратации | Редактирование | HEALTHPLAN / `HealthSQLManage` |
@@ -60,6 +60,9 @@
 | 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» (тип — вычисляемый `DisplayType` по позиции Ведущего, Task 130) | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
 | 22 | `CrashActivity` | `activity_crash.xml` | Отчёт о сбое | Диагностика | — |
 | 23 | — | — | Task 138: бывший `ProjectTasksActivity` (`activity_project_tasks.xml`) объединён с `ProjectsActivity` (режимы «Для проекта:/Для заявки:», layout `activity_projects.xml`) | — | CALPLAN / `ManageSQLDatabase` |
+| 24 | `AboutActivity` | `activity_about.xml` | «О Программе» (Task 146): допустимая версия Android (мин. API 26 / Android 8) + текущая `DATABASE_VERSION` (`ManageSQLDatabase.getDatabaseVersion()`), кнопка назад крестиком | Информация | `ManageSQLDatabase` (только версия) |
+| 25 | `HelpActivity` | `activity_help.xml` | «Help Справочник» (Task 147): заглушка по образцу `LivetypeActivity`, БЕЗ SQL; поля `listViewHealth`/`editTextFilter`/`headerTitle`/`btnBack`, фильтр списка от 3 символов, кнопка назад крестиком | Список (заглушка) | — (пока без SQL) |
+| 26 | `SpotlightActivity` | `activity_spotlight.xml` | «Подсказка» (Task 148/148a): контекстная подсказка по кнопке Help; текстовое поле сути экрана (extra `help_text` из будущего «Help Справочника») + 3 кнопки 32dp*32dp (назад/вперёд/закрыть) | Подсказка | — |
 
 Все экраны зарегистрированы в `app/src/main/AndroidManifest.xml` (LAUNCHER — только `MainActivity`).
 
@@ -119,7 +122,10 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `sms_income` | СМС\Входящие | `SmsActivity` + `FOLDER_INCOME` |
 | `sms_outcome` | СМС\Исходящие | `SmsActivity` + `FOLDER_OUTCOME` |
 | `sms_trash` | СМС\Корзина | `SmsActivity` + `FOLDER_TRASH` |
+| `action_help` | Help (кнопка ActionBar, `showAsAction=always`, иконка `ic_help`) | `SpotlightActivity` (Task 148) |
+| `help_book` | Help Справочник | `HelpActivity` (Task 147) |
 | `parametrs` | Параметры | `ParamsActivity` |
+| `about` | О Программе | `AboutActivity` (Task 146) |
 
 ### Программные переходы (основные)
 - `MainActivity` — карточки записей через `ActivityResultLauncher` (современный Activity Result API, старый `startActivityForResult` не используется): результат `calPlanRecord` сохраняется `owerDb.upsertCalPlan(record)`.

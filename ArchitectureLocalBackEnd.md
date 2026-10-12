@@ -7,7 +7,7 @@
 ## 0. Сводные факты (коротко для ИИ)
 
 - Единственная локальная БД: SQLite, файл `WGPlanDatabase.db`.
-- Класс доступа: `ManageSQLDatabase extends SQLiteOpenHelper`, singleton (`getInstance(Context)`), `DATABASE_VERSION = 11` (v11 — Task 143: колонка `CALPARAM.SyncTime`).
+- Класс доступа: `ManageSQLDatabase extends SQLiteOpenHelper`, singleton (`getInstance(Context)`), `DATABASE_VERSION = 11` (v11 — Task 143: колонка `CALPARAM.SyncTime`). Task 146: статический геттер `getDatabaseVersion()` отдаёт текущую версию схемы для экрана «О Программе» (`AboutActivity`).
 - Task 139: `ManageSQLDatabase` — фасад (схема/миграции + делегаты); CRUD каждой таблицы — в своём `*SQLManage` (`CalPlanSQLManage`, `CalParamSQLManage`, `ContactsSQLManage`, `HolidaysSQLManage`, а также прежние `HistorySQLManage`, `NoteRememSQLManage`, `HealthSQLManage`, `LivetypeSQLManage`, `SmsSQLManage`); экраны вызывают методы `ManageSQLDatabase` без изменений.
 - Все DDL-строки собраны в `ConstantsSQLDb` (`CREATE_TABLE_*`, `INSERT_*`, `UPDATE_*`).
 - Паттерн доступа: на таблицу — свой менеджер (`*SQLManage`) и свой record-класс (POJO, Serializable).
