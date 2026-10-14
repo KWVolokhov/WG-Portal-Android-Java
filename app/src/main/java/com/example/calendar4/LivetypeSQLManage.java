@@ -96,9 +96,6 @@ public class LivetypeSQLManage {
         putInt(values, "Kallory", record.Kallory);
         putInt(values, "StepCounter", record.StepCounter);
 
-
-
-
         if (record.id != null) {
             int rows = db.update(TABLE_LIVETYPE, values, "id=?", new String[]{String.valueOf(record.id)});
             if (rows == 0) {

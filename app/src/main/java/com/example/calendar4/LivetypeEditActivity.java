@@ -3,6 +3,8 @@ package com.example.calendar4;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
+import android.text.Spanned;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -32,6 +34,8 @@ public class LivetypeEditActivity extends BaseScreenActivity {
             "Stomach", "Intestines", "Liver", "Kidneys", "Heart", "Lungs",
             "Pressure", "Sleep", "Weight", "Nervous", "Morality", "Skin",
             "Steps", "FoodWeight", "DrinkValue", "Kallory"};
+    private static final int FOOD_WEIGHT_INDEX = 19;
+    private static final int DRINK_VALUE_INDEX = 20;
     private EditText editTextName;
     private Spinner spinnerCategory;
     private EditText editTextIcon;
@@ -160,8 +164,8 @@ public class LivetypeEditActivity extends BaseScreenActivity {
         currentRecord.Skin        = organValue(17);
         // Task 41: новые числовые поля справочника
         currentRecord.Steps       = organValue(18);
-        currentRecord.FoodWeight  = organValue(19);
-        currentRecord.DrinkValue  = organValue(20);
+        currentRecord.FoodWeight  = organValueDbl(FOOD_WEIGHT_INDEX);
+        currentRecord.DrinkValue  = organValueDbl(DRINK_VALUE_INDEX);
         currentRecord.Kallory     = organValue(21);
 
         livetypeDb.upsertLivetype(currentRecord);
@@ -178,6 +182,18 @@ public class LivetypeEditActivity extends BaseScreenActivity {
         if (text.isEmpty()) return null;
         try {
             return Integer.valueOf(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    private Double organValueDbl(int index) {
+        if (organEdits == null || index < 0 || index >= organEdits.length) return null;
+        EditText edit = organEdits[index];
+        if (edit == null) return null;
+        String text = edit.getText().toString().trim();
+        if (text.isEmpty()) return null;
+        try {
+            return Double.valueOf(text);
         } catch (NumberFormatException e) {
             return null;
         }
@@ -211,9 +227,13 @@ public class LivetypeEditActivity extends BaseScreenActivity {
             row.addView(label);
 
             EditText edit = new EditText(this);
-            // Task 128: числовые поля допускают и отрицательные значения
-            edit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
-                    | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+            // Task 128: числовые поля допускают и отрицательные значения,а вес и объем только положительные, но дробные
+            if (i == FOOD_WEIGHT_INDEX || i == DRINK_VALUE_INDEX) {
+                edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                edit.setFilters(new android.text.InputFilter[]{this::filterMax2Decimals});
+            } else {
+                edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+            }
             edit.setSingleLine(true);
             LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -223,7 +243,18 @@ public class LivetypeEditActivity extends BaseScreenActivity {
             organContainer.addView(row);
         }
     }
-
+    private CharSequence filterMax2Decimals(CharSequence source, int start, int end,
+                                            Spanned dest, int dstart, int dend) {
+        if (source == null || dest == null) return null;
+        StringBuilder out = new StringBuilder();
+        out.append(dest, 0, dstart).append(source, start, end).append(dest, dend, dest.length());
+        String next = out.toString().replace(',', '.');
+        if (next.isEmpty()) return null;
+        int sep = next.indexOf('.');
+        if (sep != next.lastIndexOf('.')) return "";      // вторая точка - запрет
+        if (sep >= 0 && next.length() - sep - 1 > 2) return "";   // >2 знаков - запрет
+        return null;
+    }
     private void loadRecord(int id) {
         currentRecord = livetypeDb.getLivetypeById(id);
         if (currentRecord == null) return;
@@ -252,11 +283,13 @@ public class LivetypeEditActivity extends BaseScreenActivity {
                 currentRecord.Kidneys, currentRecord.Heart, currentRecord.Lungs,
                 currentRecord.Pressure, currentRecord.Sleep, currentRecord.Weight,
                 currentRecord.Nervous, currentRecord.Morality, currentRecord.Skin,
-                currentRecord.Steps, currentRecord.FoodWeight, currentRecord.DrinkValue,
+                currentRecord.Steps, 0,0,
                 currentRecord.Kallory};
         for (int i = 0; i < organEdits.length; i++) {
             if (vals[i] != null) organEdits[i].setText(String.valueOf(vals[i]));
         }
+        if(currentRecord.FoodWeight!=null) organEdits[FOOD_WEIGHT_INDEX].setText(String.valueOf(currentRecord.FoodWeight));
+        if(currentRecord.DrinkValue!=null) organEdits[DRINK_VALUE_INDEX].setText(String.valueOf(currentRecord.DrinkValue));
 
         // Task 42: разрешён ли шагомер
         if (checkboxStepCounter != null && currentRecord.StepCounter != null && currentRecord.StepCounter == 1) {
