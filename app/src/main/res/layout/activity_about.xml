@@ -42,6 +42,22 @@
         android:textSize="16sp"
         android:layout_marginTop="16dp" />
 
+    <!-- Task 151: текущая версия Android устройства (под допустимой) -->
+    <TextView
+        android:id="@+id/textCurrentAndroidVersion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp" />
+
+    <!-- Task 150: кнопка показа полного соответствия версий API и Android -->
+    <Button
+        android:id="@+id/btnShowVersions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Показать версии Android"
+        android:layout_marginTop="8dp" />
+
     <!-- Task 146: текущая версия структур баз данных DATABASE_VERSION -->
     <TextView
         android:id="@+id/textDbVersion"

@@ -29,6 +29,7 @@ public class HealthActivity extends BaseScreenActivity {
 
     private ListView listViewHealth;
     private EditText editTextFilter;
+    private TextView textViewHealthTotal;
     private TextView headerTitle;
     private ImageButton btnNew;
     private ImageButton btnBack;
@@ -45,6 +46,7 @@ public class HealthActivity extends BaseScreenActivity {
 
         listViewHealth = findViewById(R.id.listViewHealth);
         editTextFilter = findViewById(R.id.editTextHealthFilter);
+        textViewHealthTotal = findViewById(R.id.textViewHealthTotal);
         headerTitle = findViewById(R.id.headerTitle);
         btnNew = findViewById(R.id.btnNew);
         btnBack = findViewById(R.id.btnBack);
@@ -115,6 +117,36 @@ public class HealthActivity extends BaseScreenActivity {
             }
         }
         if (adapter != null) adapter.notifyDataSetChanged();
+        updateDayTotals();
+    }
+
+    // Task 149: "тог: Xкг, Yл, Zшг" - сумма за день по конкретным формам:
+    // вес еды (HealthEat -> FoodWeight), объем питья (HealthDrink -> DrinkValue),
+    // шаги (HealthSport -> Steps). тог считается по всем записям дня (без учета
+    // фильтра списка); пустые значения считаются нулём.
+    private void updateDayTotals() {
+        if (textViewHealthTotal == null) return;
+        healthPlanRecord[] all = healthDb.getHealthByDate(day, "");
+        double foodWeight = 0;
+        double drinkValue = 0;
+        long steps = 0;
+        if (all != null) {
+            for (healthPlanRecord r : all) {
+                if (r == null) continue;
+                if ("HealthEat".equals(r.Form) && r.FoodWeight != null) foodWeight += r.FoodWeight;
+                if ("HealthDrink".equals(r.Form) && r.DrinkValue != null) drinkValue += r.DrinkValue;
+                if ("HealthSport".equals(r.Form) && r.Steps != null) steps += r.Steps;
+            }
+        }
+        textViewHealthTotal.setText("Итог: " + formatDecimal(foodWeight) + "кг, "
+                + formatDecimal(drinkValue) + "л, " + steps + "шг");
+    }
+
+    // Task 149: формат дробного значения не более чем с 2 знаками после запятой.
+    private String formatDecimal(double value) {
+        double rounded = Math.round(value * 100.0) / 100.0;
+        if (rounded == Math.floor(rounded)) return String.valueOf((long) rounded);
+        return String.format(Locale.getDefault(), "%.2f", rounded);
     }
 
     private void openEdit(healthPlanRecord record) {

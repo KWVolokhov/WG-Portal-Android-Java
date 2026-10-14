@@ -39,8 +39,8 @@ public class calPlanRecord implements Serializable {
     // Health numbers added for the Health edit screens and quick buttons
     // (Task 41/42): согласованы с healthPlanRecord / livetypeRecord.
     public Integer Steps;        // Шаги
-    public Integer FoodWeight;   // Вес еды
-    public Integer DrinkValue;   // Объем питья
+    public Double FoodWeight;   // Вес еды (кг, до 2 знаков - Task 149)
+    public Double DrinkValue;   // Объем питья (л, до 2 знаков - Task 149)
     public Integer Kallory;      // Каллории
 
     // Task 45: полный массив полей "Голова".."Каллории" из activity_livetype_edit

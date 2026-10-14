@@ -1,15 +1,18 @@
 package com.example.calendar4;
 
+import android.app.AlertDialog;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 /**
  * Task 146: экран "О Программе" (пункт меню под "Параметры").
- * Показывает допустимую (минимальную) версию Android для запуска приложения
- * и текущую версию структур баз данных DATABASE_VERSION, плюс кнопку
- * "вернуться" крестиком, как на других экранах.
+ * Показывает допустимую (минимальную) версию Android для запуска приложения,
+ * текущую версию Android устройства, версию структур баз данных DATABASE_VERSION,
+ * плюс кнопку показа полного соответствия API<->версии и кнопку "вернуться" крестиком.
  */
 public class AboutActivity extends BaseScreenActivity {
 
@@ -22,15 +25,26 @@ public class AboutActivity extends BaseScreenActivity {
         setContentView(R.layout.activity_about);
 
         TextView textAndroidVersion = findViewById(R.id.textAndroidVersion);
+        TextView textCurrentAndroidVersion = findViewById(R.id.textCurrentAndroidVersion);
         TextView textDbVersion = findViewById(R.id.textDbVersion);
+        Button btnShowVersions = findViewById(R.id.btnShowVersions);
         ImageButton btnBack = findViewById(R.id.btnBack);
 
-        textAndroidVersion.setText("Допустимая версия Android: не ниже "
-                + MIN_ANDROID_API + " (Android 8.0)");
+        // Task 150: допустимая версия из словаря API -> версия Android.
+        textAndroidVersion.setText("Допустимая версия Android не ниже: "
+                + AndroidVersions.versionName(MIN_ANDROID_API) + " (Api " + MIN_ANDROID_API + ")");
+
+        // Task 151: текущая версия Android устройства (рядом с допустимой).
+        int curApiVer = Build.VERSION.SDK_INT;
+        textCurrentAndroidVersion.setText("Текущая версия Android: "
+                + AndroidVersions.versionName(curApiVer) + " (Api " + curApiVer + ")");
 
         // Task 146: текущая версия структур баз данных из ManageSQLDatabase.
         textDbVersion.setText("Версия структур баз данных (DATABASE_VERSION): "
                 + ManageSQLDatabase.getDatabaseVersion());
+
+        // Task 150: по кнопке показываем полное соответствие версий API и Android.
+        btnShowVersions.setOnClickListener(v -> showVersionsDialog());
 
         // Кнопка "вернуться" крестиком - закрыть экран (как на других Activity).
         btnBack.setOnClickListener(new View.OnClickListener() {
@@ -39,5 +53,14 @@ public class AboutActivity extends BaseScreenActivity {
                 finish();
             }
         });
+    }
+
+    /** Task 150: диалог со всем соответствием API <-> версия Android (включая смартчасы). */
+    private void showVersionsDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Соответствие версий Android")
+                .setItems(AndroidVersions.allEntries(), null)
+                .setPositiveButton("Ок", null)
+                .show();
     }
 }

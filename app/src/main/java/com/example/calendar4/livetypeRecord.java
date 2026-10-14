@@ -71,8 +71,8 @@ public class livetypeRecord implements Serializable {
     public Integer Skin;        // Состояние кожи
 
 	public Integer Steps;        // Шаги
-	public Integer FoodWeight;   // Вес еды
-	public Integer DrinkValue;   // Объем питья
+	public Double FoodWeight;   // Вес еды (кг, до 2 знаков - Task 149)
+	public Double DrinkValue;   // Объем питья (л, до 2 знаков - Task 149)
 	public Integer Kallory;      // Каллории
 	public Integer StepCounter;  // Разрешён ли шагомер для этого типа (1=да, 0/нет - Task 42)
 	

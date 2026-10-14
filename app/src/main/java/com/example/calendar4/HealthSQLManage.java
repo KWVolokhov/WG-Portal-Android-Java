@@ -191,8 +191,8 @@ public class HealthSQLManage {
 
         // Task 41: новые числовые поля HEALTHPLAN
         putInt(values, "Steps", record.Steps);
-        putInt(values, "FoodWeight", record.FoodWeight);
-        putInt(values, "DrinkValue", record.DrinkValue);
+        putDouble(values, "FoodWeight", record.FoodWeight);
+        putDouble(values, "DrinkValue", record.DrinkValue);
         putInt(values, "Kallory", record.Kallory);
 
         if (record.id != null) {
@@ -319,8 +319,8 @@ public class HealthSQLManage {
         record.Skin = getInt(cursor, "Skin");
         // Task 41: новые числовые поля HEALTHPLAN
         record.Steps = getInt(cursor, "Steps");
-        record.FoodWeight = getInt(cursor, "FoodWeight");
-        record.DrinkValue = getInt(cursor, "DrinkValue");
+        record.FoodWeight = getDouble(cursor, "FoodWeight");
+        record.DrinkValue = getDouble(cursor, "DrinkValue");
         record.Kallory = getInt(cursor, "Kallory");
         return record;
     }
@@ -375,6 +375,17 @@ public class HealthSQLManage {
     }
 
     private void putInt(ContentValues values, String column, Integer value) {
+        if (value != null) values.put(column, value);
+    }
+
+    // Task 149: FoodWeight/DrinkValue хранятся с дробной частью (REAL в SQLite).
+    private Double getDouble(Cursor cursor, String column) {
+        int idx = cursor.getColumnIndex(column);
+        if (idx >= 0 && !cursor.isNull(idx)) return cursor.getDouble(idx);
+        return null;
+    }
+
+    private void putDouble(ContentValues values, String column, Double value) {
         if (value != null) values.put(column, value);
     }
 

@@ -7,7 +7,7 @@
 ## 0. Сводные факты (коротко для ИИ)
 
 - Единственная локальная БД: SQLite, файл `WGPlanDatabase.db`.
-- Класс доступа: `ManageSQLDatabase extends SQLiteOpenHelper`, singleton (`getInstance(Context)`), `DATABASE_VERSION = 11` (v11 — Task 143: колонка `CALPARAM.SyncTime`). Task 146: статический геттер `getDatabaseVersion()` отдаёт текущую версию схемы для экрана «О Программе» (`AboutActivity`).
+- Класс доступа: `ManageSQLDatabase extends SQLiteOpenHelper`, singleton (`getInstance(Context)`), `DATABASE_VERSION = 12` (v11 — Task 143: колонка `CALPARAM.SyncTime`; v12 — Task 149: `HEALTHPLAN`/`LIVETYPE`.FoodWeight и .DrinkValue тип `REAL`, миграция `upgradeToV12` в `onUpgrade` добавляет отсутствующие колонки через `addColumnIfMissing(..., "REAL")`). Task 146: статический геттер `getDatabaseVersion()` отдаёт текущую версию схемы для экрана «О Программе» (`AboutActivity`).
 - Task 139: `ManageSQLDatabase` — фасад (схема/миграции + делегаты); CRUD каждой таблицы — в своём `*SQLManage` (`CalPlanSQLManage`, `CalParamSQLManage`, `ContactsSQLManage`, `HolidaysSQLManage`, а также прежние `HistorySQLManage`, `NoteRememSQLManage`, `HealthSQLManage`, `LivetypeSQLManage`, `SmsSQLManage`); экраны вызывают методы `ManageSQLDatabase` без изменений.
 - Все DDL-строки собраны в `ConstantsSQLDb` (`CREATE_TABLE_*`, `INSERT_*`, `UPDATE_*`).
 - Паттерн доступа: на таблицу — свой менеджер (`*SQLManage`) и свой record-класс (POJO, Serializable).
@@ -60,7 +60,7 @@
 | Класс | Таблица | Примечание |
 |---|---|---|
 | `calPlanRecord` | CALPLAN / HISTORY / NOTEPLAN | общий record; поле `Form` различает Project/Task/Request/History/Note/Remember |
-| `healthPlanRecord` | HEALTHPLAN | поля органов/состояний (Head, Eyes, ..., Skin), Steps, FoodWeight, DrinkValue, Kallory |
+| `healthPlanRecord` | HEALTHPLAN | поля органов/состояний (Head, Eyes, ..., Skin), Steps, FoodWeight (Double, Task 149), DrinkValue (Double, Task 149), Kallory |
 | `livetypeRecord` | LIVETYPE | Name, Category, Icon, Form, StepCounter |
 | `CalParamRecord` | CALPARAM | параметры приложения |
 | `ContactRecord` | CONTACTS | Surname, FirstName, Patronymic, Phone, Phone2, Email, BirthDate, HomeAddress... |
@@ -76,6 +76,7 @@
 | `SynchroCal` | Task 143: обмен с сервером (POST JSON, Basic-авторизация): отправка CalParamRecord, получение подтверждения и номера сессии, корректировка CALPARAM.SyncTime; детали — в `ArchitectureServerSynkhro.md` |
 | `WGPortalApp` | Application (`android:name` в манифесте); ставит `HardcoreCrashHandler` в `onCreate` до любых экранов (Task 134) |
 | `AttachmentStore` | Хранение файлов вложений `InfoFieldView` (папка CALPARAM.AttachFolder) |
+| `AndroidVersions` | Task 150: статическое соответствие API level → название версии Android (`API_TO_VERSION`, включая Wear/смартчасы), методы `versionName(api)` и `allEntries()` (отсортированный массив «Api X — Название»); используется в `AboutActivity` (допустимая/текущая версия и диалог полного списка) |
 | `HardcoreCrashHandler` | Перехват UncaughtException всех потоков (ставится в `WGPortalApp.onCreate`, Task 134); сохранение стека и запуск `CrashActivity` при ошибке на любом Activity |
 | `SmsDefaultsSeeder` | Сидирование 2 тестовых СМС в SMSCALPLAN при создании/миграции БД (Task 106/112/121; Task 139 — вынесен из ManageSQLDatabase) |
 | `ConstantsSQLDb` | Все DDL/INSERT/UPDATE-строки схемы (единственное место изменения схемы) |

@@ -60,6 +60,9 @@ public class Pedometer implements SensorEventListener {
     // Task 47: базовые (из справочника) поля "Голова".."Каллории", на которые
     // умножается количество шагов при обновлении записи HealthSport.
     private final Integer[] baseOrgan = new Integer[22];
+    // Task 149: FoodWeight/DrinkValue теперь Double - храним их базу отдельно.
+    private Double baseFoodWeight;
+    private Double baseDrinkValue;
 
     // Task 44: единственный активный сеанс - карточка HealthSportActivity показывает таймер.
     public static volatile Pedometer activeInstance;
@@ -310,8 +313,9 @@ public class Pedometer implements SensorEventListener {
         rec.Morality = mul(baseOrgan[16], steps);
         rec.Skin = mul(baseOrgan[17], steps);
         // Шаги (18) - сам множитель, его не умножаем
-        rec.FoodWeight = mul(baseOrgan[19], steps);
-        rec.DrinkValue = mul(baseOrgan[20], steps);
+        // Task 149: FoodWeight/DrinkValue - Double, база хранится в отдельных полях.
+        rec.FoodWeight = mul(baseFoodWeight, steps);
+        rec.DrinkValue = mul(baseDrinkValue, steps);
         rec.Kallory = mul(baseOrgan[21], steps);
     }
 
@@ -341,8 +345,9 @@ public class Pedometer implements SensorEventListener {
             baseOrgan[15] = rec.Nervous;
             baseOrgan[16] = rec.Morality;
             baseOrgan[17] = rec.Skin;
-            baseOrgan[19] = rec.FoodWeight;
-            baseOrgan[20] = rec.DrinkValue;
+            // Task 149: FoodWeight/DrinkValue - Double, база хранится в отдельных полях.
+            baseFoodWeight = rec.FoodWeight;
+            baseDrinkValue = rec.DrinkValue;
             baseOrgan[21] = rec.Kallory;
         } catch (Exception e) {
             toast("Шагомер: ошибка чтения базовых полей: " + e.getMessage());
@@ -350,6 +355,11 @@ public class Pedometer implements SensorEventListener {
     }
 
     private Integer mul(Integer baseValue, int steps) {
+        return (baseValue == null) ? null : baseValue * steps;
+    }
+
+    // Task 149: умножение дробной базы (FoodWeight/DrinkValue) на количество шагов.
+    private Double mul(Double baseValue, int steps) {
         return (baseValue == null) ? null : baseValue * steps;
     }
 

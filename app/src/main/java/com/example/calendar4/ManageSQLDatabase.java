@@ -19,7 +19,7 @@ import java.util.Map;
  * Экраны продолжают работать через методы этого класса - вызовы не менялись.
  */
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 12;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 
     public static String AuthorName = null;
@@ -79,6 +79,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         upgradeToV7(db, oldVersion);
         upgradeToV10(db, oldVersion);
         upgradeToV11(db, oldVersion);
+        upgradeToV12(db, oldVersion);
         safetyNetColumns(db);
     }
 
@@ -221,6 +222,18 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         if (oldVersion < 11) addColumnIfMissing(db, "CALPARAM", "SyncTime", "TEXT");
     }
 
+    // Version 12 (Task 149): Вес еды (FoodWeight) и Объем питья (DrinkValue) стали
+    // дробными (REAL). SQLite хранит REAL в INTEGER-колонке без потерь (динамическая
+    // типизация), поэтому достаточно гарантировать наличие колонок; пересоздание
+    // таблиц не требуется и данные не теряются. Чтение/запись — см. getDouble/putDouble
+    // в HealthSQLManage / LivetypeSQLManage.
+    private void upgradeToV12(SQLiteDatabase db, int oldVersion) {
+        addColumnIfMissing(db, "LIVETYPE", "FoodWeight", "REAL");
+        addColumnIfMissing(db, "LIVETYPE", "DrinkValue", "REAL");
+        addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "REAL");
+        addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "REAL");
+    }
+
     // Safety net (Task 34): гарантируем наличие всех колонок, какие нужны приложению
     // (старые сборки могли иметь завышенную версию БД и пропустить классические миграции).
     private void safetyNetColumns(SQLiteDatabase db) {
@@ -237,12 +250,12 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "LIVETYPE", "Form", "TEXT");
         addColumnIfMissing(db, "LIVETYPE", "StepCounter", "INTEGER");
         addColumnIfMissing(db, "LIVETYPE", "Steps", "INTEGER");
-        addColumnIfMissing(db, "LIVETYPE", "FoodWeight", "INTEGER");
-        addColumnIfMissing(db, "LIVETYPE", "DrinkValue", "INTEGER");
+        addColumnIfMissing(db, "LIVETYPE", "FoodWeight", "REAL");
+        addColumnIfMissing(db, "LIVETYPE", "DrinkValue", "REAL");
         addColumnIfMissing(db, "LIVETYPE", "Kallory", "INTEGER");
         addColumnIfMissing(db, "HEALTHPLAN", "Steps", "INTEGER");
-        addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "INTEGER");
-        addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "REAL");
+        addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "REAL");
         addColumnIfMissing(db, "HEALTHPLAN", "Kallory", "INTEGER");
         addColumnIfMissing(db, "CONTACTS", "AuthorID", "TEXT");
         addColumnIfMissing(db, "CONTACTS", "AuthorName", "TEXT");

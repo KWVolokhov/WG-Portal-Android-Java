@@ -48,7 +48,7 @@
 | 9 | `RememberActivity` | `activity_input_cal_plan.xml` | Карточка Напоминания | Редактирование | NOTEPLAN / `NoteRememSQLManage` |
 | 10 | `HistoryActivity` | `activity_history.xml` | «<дата> История»; 3 строки в списке: название / дата создания со временем / текст, сверху самая поздняя (Task 129) | Список | HISTORY / `HistorySQLManage` |
 | 11 | `HistoryEditActivity` | `activity_input_cal_plan.xml` | Карточка Истории | Редактирование | HISTORY / `HistorySQLManage` |
-| 12 | `HealthActivity` | `activity_health.xml` | «<дата> Health» + кнопка Add | Список; Task 145: 2-я строка — время записи (Okdate/StartDate, `dd.MM.yyyy HH:mm:ss`), 3-я — Info/Comment | HEALTHPLAN / `HealthSQLManage` |
+| 12 | `HealthActivity` | `activity_health.xml` | «<дата> Health» + кнопка Add | Список; Task 145: 2-я строка — время записи (Okdate/StartDate, `dd.MM.yyyy HH:mm:ss`), 3-я — Info/Comment. Task 149: между `editTextHealthFilter` и `listViewHealth` строка `textViewHealthTotal` — «Итог: Xкг, Yл, Zшг» (сумма веса еды HealthEat→FoodWeight, объёма питья HealthDrink→DrinkValue, шагов HealthSport→Steps за весь день, без учёта фильтра; пусто = 0, дробные — до 2 знаков) | HEALTHPLAN / `HealthSQLManage` |
 | 13 | `HealthEditActivity` | `activity_input_cal_plan.xml` | Карточка Health | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 14 | `HealthEatActivity` | `activity_input_cal_plan.xml` | Карточка Еды | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 15 | `HealthDrinkActivity` | `activity_input_cal_plan.xml` | Карточка Гидратации | Редактирование | HEALTHPLAN / `HealthSQLManage` |
@@ -60,7 +60,7 @@
 | 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» (тип — вычисляемый `DisplayType` по позиции Ведущего, Task 130) | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
 | 22 | `CrashActivity` | `activity_crash.xml` | Отчёт о сбое | Диагностика | — |
 | 23 | — | — | Task 138: бывший `ProjectTasksActivity` (`activity_project_tasks.xml`) объединён с `ProjectsActivity` (режимы «Для проекта:/Для заявки:», layout `activity_projects.xml`) | — | CALPLAN / `ManageSQLDatabase` |
-| 24 | `AboutActivity` | `activity_about.xml` | «О Программе» (Task 146): допустимая версия Android (мин. API 26 / Android 8) + текущая `DATABASE_VERSION` (`ManageSQLDatabase.getDatabaseVersion()`), кнопка назад крестиком | Информация | `ManageSQLDatabase` (только версия) |
+| 24 | `AboutActivity` | `activity_about.xml` | «О Программе» (Task 146): допустимая версия Android + текущая `DATABASE_VERSION` (`ManageSQLDatabase.getDatabaseVersion()`), кнопка назад крестиком. Task 150/151: `textAndroidVersion` = «Допустимая версия Android не ниже: <версия> (Api <MIN_ANDROID_API>)»; ниже строка `textCurrentAndroidVersion` = «Текущая версия Android: <версия> (Api <curApiVer>)» (соответствие API→версия из `AndroidVersions.API_TO_VERSION`, включая смартчасы); кнопка диалога показывает полное соответствие API↔версия | Информация | `ManageSQLDatabase` (версия), `AndroidVersions` |
 | 25 | `HelpActivity` | `activity_help.xml` | «Help Справочник» (Task 147): заглушка по образцу `LivetypeActivity`, БЕЗ SQL; поля `listViewHealth`/`editTextFilter`/`headerTitle`/`btnBack`, фильтр списка от 3 символов, кнопка назад крестиком | Список (заглушка) | — (пока без SQL) |
 | 26 | `SpotlightActivity` | `activity_spotlight.xml` | «Подсказка» (Task 148/148a): контекстная подсказка по кнопке Help; текстовое поле сути экрана (extra `help_text` из будущего «Help Справочника») + 3 кнопки 32dp*32dp (назад/вперёд/закрыть) | Подсказка | — |
 

@@ -100,8 +100,8 @@ public class ConstantsSQLDb {
             "Morality INTEGER, " +//Label: Мораль
             "Skin INTEGER, " +//Label: Состояние кожи
             "Steps INTEGER, " +//Label: Шаги
-            "FoodWeight INTEGER, " +//Label: Вес еды
-            "DrinkValue INTEGER, " +//Label: Объем питья
+            "FoodWeight REAL, " +//Label: Вес еды (дробный - Task 149)
+            "DrinkValue REAL, " +//Label: Объем питья (дробный - Task 149)
             "Kallory INTEGER " +//Label: Каллории
             ")";
 public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS LIVETYPE (" +
@@ -134,8 +134,8 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "Form TEXT, " +//Label: Тип жизнедеятельности (ID-поле для Category: HealthEat/HealthDrink/HealthSport/HealthStress/HealthJoy)
             "StepCounter INTEGER DEFAULT 0, " +//Label: Разрешён ли шагомер (1=да, 0/нет)
             "Steps INTEGER, " +//Label: Шаги
-            "FoodWeight INTEGER, " +//Label: Вес еды
-            "DrinkValue INTEGER, " +//Label: Объем питья
+            "FoodWeight REAL, " +//Label: Вес еды (дробный - Task 149)
+            "DrinkValue REAL, " +//Label: Объем питья (дробный - Task 149)
             "Kallory INTEGER " +//Label: Каллории
             ")";
     public static final String CREATE_TABLE_CLASSIFICATOR = "CREATE TABLE IF NOT EXISTS CLASSIFICATOR (" +

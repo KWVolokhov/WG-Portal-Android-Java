@@ -91,8 +91,8 @@ public class LivetypeSQLManage {
 
         // Task 41/42: новые числовые поля LIVETYPE
         putInt(values, "Steps", record.Steps);
-        putInt(values, "FoodWeight", record.FoodWeight);
-        putInt(values, "DrinkValue", record.DrinkValue);
+        putDouble(values, "FoodWeight", record.FoodWeight);
+        putDouble(values, "DrinkValue", record.DrinkValue);
         putInt(values, "Kallory", record.Kallory);
         putInt(values, "StepCounter", record.StepCounter);
 
@@ -221,8 +221,8 @@ public class LivetypeSQLManage {
         record.Skin = getInt(cursor, "Skin");
         // Task 41/42: новые числовые поля LIVETYPE
         record.Steps = getInt(cursor, "Steps");
-        record.FoodWeight = getInt(cursor, "FoodWeight");
-        record.DrinkValue = getInt(cursor, "DrinkValue");
+        record.FoodWeight = getDouble(cursor, "FoodWeight");
+        record.DrinkValue = getDouble(cursor, "DrinkValue");
         record.Kallory = getInt(cursor, "Kallory");
         record.StepCounter = getInt(cursor, "StepCounter");
         return record;
@@ -241,6 +241,17 @@ public class LivetypeSQLManage {
     }
 
     private void putInt(ContentValues values, String column, Integer value) {
+        if (value != null) values.put(column, value);
+    }
+
+    // Task 149: FoodWeight/DrinkValue хранятся с дробной частью (REAL в SQLite).
+    private Double getDouble(Cursor cursor, String column) {
+        int idx = cursor.getColumnIndex(column);
+        if (idx >= 0 && !cursor.isNull(idx)) return cursor.getDouble(idx);
+        return null;
+    }
+
+    private void putDouble(ContentValues values, String column, Double value) {
         if (value != null) values.put(column, value);
     }
 

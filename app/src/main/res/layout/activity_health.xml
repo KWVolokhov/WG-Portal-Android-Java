@@ -53,6 +53,16 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp" />
 
+    <!-- Task 149: итог за день (вес еды / объем питья / шаги) между фильтром и списком -->
+    <TextView
+        android:id="@+id/textViewHealthTotal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp" />
+
     <!-- Health records list (HEALTHPLAN for the selected day) -->
     <ListView
         android:id="@+id/listViewHealth"

@@ -2,10 +2,13 @@ package com.example.calendar4;
 
 import android.app.Activity;
 import android.text.InputType;
+import android.text.Spanned;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.util.Locale;
 
 /**
  * Task 139: числовые поля Health ("Голова".."Каллории") на карточке - вынесены из
@@ -20,6 +23,11 @@ public class CalPlanHealthNumbers {
             "Желудок", "Кишечник", "Печень", "Почки", "Сердце", "Лёгкие",
             "Давление", "Сон", "Вес", "Нервы", "Мораль", "Кожа",
             "Шаги", "Вес еды", "Объем питья", "Каллории"};
+
+    // Task 149: индексы полей с дробным вводом (не более 2 знаков после запятой),
+    // пустой ввод трактуется как 0: 19=Вес еды (FoodWeight), 20=Объем питья (DrinkValue).
+    private static final int FOOD_WEIGHT_INDEX = 19;
+    private static final int DRINK_VALUE_INDEX = 20;
 
     private final Activity host;
     private final LinearLayout container;
@@ -51,8 +59,14 @@ public class CalPlanHealthNumbers {
         label.setGravity(Gravity.CENTER_VERTICAL);
         row.addView(label);
         EditText edit = new EditText(host);
-        edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+        boolean decimal = (index == FOOD_WEIGHT_INDEX || index == DRINK_VALUE_INDEX);
+        if (decimal) {
+            edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        } else {
+            edit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+        }
         edit.setSingleLine(true);
+        if (decimal) edit.setFilters(new android.text.InputFilter[]{this::filterMax2Decimals});
         LinearLayout.LayoutParams weightLp = new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         row.addView(edit, weightLp);
@@ -81,13 +95,23 @@ public class CalPlanHealthNumbers {
     /** Task 45: заполняет поля значениями полей "Голова".."Каллории" из записи. */
     public void loadFrom(calPlanRecord r) {
         if (r == null) return;
-        for (int i = 0; i < NAMES.length; i++) setValue(i, recordValue(r, i));
+        for (int i = 0; i < NAMES.length; i++) {
+            if (isDecimal(i)) setValueDecimal(i, recordDoubleValue(r, i));
+            else setValue(i, recordValue(r, i));
+        }
     }
 
     /** Task 45: записывает значения полей экрана в поля "Голова".."Каллории" записи. */
     public void applyTo(calPlanRecord r) {
         if (r == null) return;
-        for (int i = 0; i < NAMES.length; i++) setRecordValue(r, i, value(i));
+        for (int i = 0; i < NAMES.length; i++) {
+            if (isDecimal(i)) setRecordValueDouble(r, i, valueDecimal(i));
+            else setRecordValue(r, i, value(i));
+        }
+    }
+
+    private boolean isDecimal(int index) {
+        return index == FOOD_WEIGHT_INDEX || index == DRINK_VALUE_INDEX;
     }
 
     // Читает значение поля "Голова".."Каллории" из calPlanRecord по индексу
@@ -112,8 +136,7 @@ public class CalPlanHealthNumbers {
             case 16: return r.Morality;
             case 17: return r.Skin;
             case 18: return r.Steps;
-            case 19: return r.FoodWeight;
-            case 20: return r.DrinkValue;
+            // Task 149: 19/20 (FoodWeight/DrinkValue) читаются через recordDoubleValue
             case 21: return r.Kallory;
             default: return null;
         }
@@ -141,10 +164,76 @@ public class CalPlanHealthNumbers {
             case 16: r.Morality = value; break;
             case 17: r.Skin = value; break;
             case 18: r.Steps = value; break;
-            case 19: r.FoodWeight = value; break;
-            case 20: r.DrinkValue = value; break;
+            // Task 149: 19/20 (FoodWeight/DrinkValue) пишутся через setRecordValueDouble
             case 21: r.Kallory = value; break;
             default: break;
         }
+    }
+
+    // ----- Task 149: дробные поля (Вес еды / Объем питья), до 2 знаков, пусто = 0 -----
+
+    // Читает дробное значение поля из записи (FoodWeight / DrinkValue).
+    private Double recordDoubleValue(calPlanRecord r, int index) {
+        switch (index) {
+            case FOOD_WEIGHT_INDEX: return r.FoodWeight;
+            case DRINK_VALUE_INDEX: return r.DrinkValue;
+            default: return null;
+        }
+    }
+
+    // Записывает дробное значение поля в запись (FoodWeight / DrinkValue).
+    private void setRecordValueDouble(calPlanRecord r, int index, Double value) {
+        switch (index) {
+            case FOOD_WEIGHT_INDEX: r.FoodWeight = value; break;
+            case DRINK_VALUE_INDEX: r.DrinkValue = value; break;
+            default: break;
+        }
+    }
+
+    /** Значение дробного поля (пустой ввод трактуется как 0 - Task 149). */
+    private Double valueDecimal(int index) {
+        if (edits == null || index < 0 || index >= edits.length || edits[index] == null) return null;
+        return parseDecimal(edits[index].getText().toString().trim());
+    }
+
+    /** Записать дробное значение в поле (null - очистить). */
+    private void setValueDecimal(int index, Double value) {
+        if (edits == null || index < 0 || index >= edits.length || edits[index] == null) return;
+        edits[index].setText(value != null ? formatDecimal(value) : "");
+    }
+
+    // Task 149: формат дробного значения не более чем с 2 знаками после запятой.
+    private String formatDecimal(double value) {
+        double rounded = Math.round(value * 100.0) / 100.0;
+        if (rounded == Math.floor(rounded)) return String.valueOf((long) rounded);
+        return String.format(Locale.getDefault(), "%.2f", rounded);
+    }
+
+    // Парсит дробный ввод: допускает и запятую, и точку; округляет до 2 знаков.
+    // Пустая строка / мусор трактуются как 0 (требование Task 149).
+    private Double parseDecimal(String text) {
+        String normalized = text.replace(',', '.').trim();
+        if (normalized.isEmpty() || ".".equals(normalized)) return 0.0;
+        try {
+            double d = Double.parseDouble(normalized);
+            if (Double.isNaN(d) || Double.isInfinite(d)) return 0.0;
+            return Math.round(d * 100.0) / 100.0;
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    // Task 149: не даёт ввести больше 2 знаков после запятой (и вторую точку/запятую).
+    private CharSequence filterMax2Decimals(CharSequence source, int start, int end,
+                                            Spanned dest, int dstart, int dend) {
+        if (source == null || dest == null) return null;
+        StringBuilder out = new StringBuilder();
+        out.append(dest, 0, dstart).append(source, start, end).append(dest, dend, dest.length());
+        String next = out.toString().replace(',', '.');
+        if (next.isEmpty()) return null;
+        int sep = next.indexOf('.');
+        if (sep != next.lastIndexOf('.')) return "";      // вторая точка - запрет
+        if (sep >= 0 && next.length() - sep - 1 > 2) return "";   // >2 знаков - запрет
+        return null;
     }
 }
