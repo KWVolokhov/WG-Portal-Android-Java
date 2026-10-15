@@ -431,10 +431,6 @@ private ListView listViewHealth;    private EditText editTextFilter;    private 
 Вызов Spotlight. 
 
 148а) Заготовка Spotlight должна содержать текстовое поле описывающее суть Activity на котором нажата кнопка Help из будущего "Help Справочник" и 3-и кнопки вперед, назад, закрыть - 32dp*32dp
-=============== DONE =========================
-=============== Todo =========================
-
-===============^Engineer Check & Fix AI done============
 
 149) Приделать в HealthActivity.java между EditText editTextFilter и ListView listViewHealth строку "Итог: " + X + "кг, " + Y + "л, " + Z+"шг",
 где X - это сумма веса за день еды HealthEat, а Y - это сумма объема потребления за день воды HealthDrink, Z - это сумма шагов за день HealthSport
@@ -447,6 +443,10 @@ private ListView listViewHealth;    private EditText editTextFilter;    private 
 
 151) на AboutActivity под строкой TextView textAndroidVersion
 добавить строку с текущей версией "Текущая версия Android: " + HashMap.get(curApiVer) + " (Api " + curApiVer + ")"
+=============== DONE =========================
+=============== Todo =========================
+
+===============^Engineer Check & Fix AI done============
 ===============^Engineer Check & Fix AI fail============
 
 170) Организация на JAVA ответного приема Json и сохранения в базе Lotus
