@@ -50,11 +50,10 @@ public class RussianHolidaysFetcher {
             BufferedReader reader = null;
             int attempt = 0;
 
-            try {
-                // Список шлюзов по приоритетам для фолбэка при таймауте/ошибке:
-                // 1 — htmlweb.ru (.ru домен), 2 — calendar.kuzyak.in (доп. шлюз),
-                // 3 — date.nager.at v3 (основной), 4 — date.nager.at v2 (резерв)
-                String[] apiUrls = {
+            // Список шлюзов по приоритетам для фолбэка при таймауте/ошибке:
+            // 1 — htmlweb.ru (.ru домен), 2 — calendar.kuzyak.in (доп. шлюз),
+            // 3 — date.nager.at v3 (основной), 4 — date.nager.at v2 (резерв)
+            String[] apiUrls = {
                         "https://htmlweb.ru/service/holidays.php?country=RU&year=" + year,
                         "https://calendar.kuzyak.in/api/holidays?country=RU&year=" + year,
                         HOLIDAYS_API_URL + year + "/RU",
@@ -63,7 +62,9 @@ public class RussianHolidaysFetcher {
                 int urlIndex = 0;
 
                 while (urlIndex < apiUrls.length) {
-                    URL url = new URL(apiUrls[urlIndex]);
+                    try {
+
+                        URL url = new URL(apiUrls[urlIndex]);
                     urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setRequestMethod("GET");
                     urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
