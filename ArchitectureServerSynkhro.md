@@ -8,7 +8,8 @@
 
 - Task 143: первая фаза серверной синхронизации реализована — класс `SynchroCal` (POST JSON `CalParamRecord` на сервер, Basic-авторизация). Классов SyncAdapter/WorkManager/OkHttp/Retrofit/Volley в проекте НЕТ; транспорт — `HttpURLConnection`.
 - Приложение работает автономно на локальной SQLite `WGPlanDatabase.db`.
-- Единственная сетевая функция: `RussianHolidaysFetcher` — загрузка праздников (HTTP GET через `HttpURLConnection`, API holidays: год/CountryCode=RU) в таблицу HOLIDAYS. Разрешения: `INTERNET`, `ACCESS_NETWORK_STATE`. Task 144: с 1 сентября текущего года загружается также следующий год (`fetchHolidaysForYears` — объединённый результат; список лет — `yearsToFetch()`).
+- Единственная сетевая функция: `RussianHolidaysFetcher` — загрузка праздников (HTTP GET через `HttpURLConnection`, API holidays: год/CountryCode=RU) в таблицу HOLIDAYS. Разрешения: `INTERNET`, `ACCESS_NETWORK_STATE`. Task 144: с 1 сентября текущего года загружается также следующий год (`fetchHolidaysForYears` — объединённый результат; список лет — `yearsToFetch()`). Таймауты 30 с connect / 30 с read с до 2 повторов при таймауте. При ошибке одного года загрузка продолжается для следующего года (исправление Task 153). Поддерживается фолбэк на резервные шлюзы (в т.ч. .ru-домены) при таймауте/ошибке основного (Task 154, приоритеты по Task 155): `htmlweb.ru` (1) → `calendar.kuzyak.in` (2) → `date.nager.at` v3 (3) → `date.nager.at` v2 (4). Парсер поддерживает форматы JSON массива, `holiday[]` и `holidays[]` (пробуются в том же порядке приоритетов).
+- В `RussianHolidaysLoader` добавлена проверка `isNetworkAvailable()` через `ConnectivityManager` перед попыткой сетевой загрузки; при отсутствии сети праздники загружаются из локальной БД. При сетевой ошибке также выполняется `loadFromDatabase()` как фолбэк.
 - Все бизнес-записи уже подготовлены к будущей синхронизации: имеют `UNID TEXT UNIQUE` и аудит-поля (`AuthorID/AuthorName`, `LastUpdatedByID/LastUpdatedBy`, `LastUpdatedDate`, `Revisions`).
 
 ## 1. Таблицы, подлежащие синхронизации (целевая схема)
@@ -36,7 +37,7 @@
 
 ### 2.1. Реализовано (Task 143, SynchroCal)
 - Класс: `SynchroCal` (`com.example.calendar4`); инициализируется из `ParamsActivity` значениями `editTextAddress / editTextName / editTextPassword`; запуск — кнопка `btnSync` «Синхронизовать» (`ParamsActivity.startSync`).
-- Endpoint: адрес из `CALPARAM.Address` (без схемы добавляется `http://`); запрос POST, тело JSON; таймауты 10 с connect / 15 с read; сеть — фоновый поток `ExecutorService`, callback — Handler main looper.
+- Endpoint: адрес из `CALPARAM.Address` (без схемы добавляется `http://`); запрос POST, тело JSON; таймауты 30 с connect / 30 с read (увеличены с 10/15 в рамках Task 152); сеть — фоновый поток `ExecutorService`, callback — Handler main looper.
 - Аутентификация: заголовок `Authorization: Basic base64(Name:Password)` (`android.util.Base64`, NO_WRAP).
 - Формат запроса: `{"ContentType":"CalParamRecord","LastSyncDate":<CALPARAM.SyncTime|null>,"Updated":<текущее время "yyyy-MM-dd HH:mm:ss">,"Record":{id, Address, Name, Password, Vedushii, VedushiiID, StartPage, Button1Id..Button5Id, Height, Weight, Age, AttachFolder, DBName}}` (null передаётся как JSON null).
 - Формат ответа (ожидается): JSON `{"Status":"OK","Session":"<номер сессии>"}`; ключи статуса разыскиваются как `Status/Result/Confirmation`, сессии — `Session/SessionId/SessionID/session`; статус (если задан) должен быть OK/success/true/2xx; без номера сессии обмен считается неуспешным.

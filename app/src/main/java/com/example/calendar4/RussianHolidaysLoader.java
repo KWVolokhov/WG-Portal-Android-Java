@@ -1,5 +1,8 @@
 package com.example.calendar4;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -19,6 +22,18 @@ final class RussianHolidaysLoader {
     private RussianHolidaysLoader() {
     }
 
+    /** Проверка наличия сетевого подключения. */
+    private static boolean isNetworkAvailable(Context ctx) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return false;
+            NetworkInfo info = cm.getActiveNetworkInfo();
+            return info != null && info.isConnected();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /** Загружает праздники текущего года: при необходимости - из интернета, затем в календарь. */
     static void fetch(MainActivity act) {
         Calendar cal = Calendar.getInstance();
@@ -34,6 +49,13 @@ final class RussianHolidaysLoader {
             loadFromDatabase(act);
             return;
         }
+        // Если сети нет — не пытаемся ходить в интернет, загружаем то, что есть в БД
+        if (!isNetworkAvailable(act)) {
+            act.runOnUiThread(() -> Toast.makeText(act,
+                    "Нет доступа к интернету — праздники загружены из локальной базы", Toast.LENGTH_LONG).show());
+            loadFromDatabase(act);
+            return;
+        }
         act.holidaysFetcher = new RussianHolidaysFetcher(act);
         act.holidaysFetcher.fetchHolidaysForYears(new RussianHolidaysFetcher.HolidaysFetchListener() {
             @Override
@@ -46,8 +68,8 @@ final class RussianHolidaysLoader {
             public void onError(String error) {
                 act.runOnUiThread(() -> Toast.makeText(act,
                         "Ошибка загрузки праздников: " + error, Toast.LENGTH_SHORT).show());
-                // Try to load from database anyway
-                //WG 11.08.26 loadFromDatabase(act);   //Нарушение свежей безопасности Андроида
+                // При ошибке сети всё равно показываем то, что есть в локальной базе
+                loadFromDatabase(act);
             }
         });
     }

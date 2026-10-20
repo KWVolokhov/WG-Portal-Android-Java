@@ -118,8 +118,8 @@ public class SynchroCal {
             URL url = new URL(normalizeAddress(address));
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(30000);
+            conn.setReadTimeout(30000);
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             conn.setRequestProperty("Accept", "application/json");
