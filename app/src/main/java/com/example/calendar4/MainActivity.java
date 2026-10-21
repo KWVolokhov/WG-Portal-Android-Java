@@ -13,8 +13,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CalendarView;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -27,17 +25,17 @@ import android.os.Build;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.telephony.TelephonyManager;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 
 public class MainActivity extends BaseScreenActivity {
     ListView mainListView;
-    ManageSQLDatabase owerDb=null;
+    static ManageSQLDatabase owerDb = null;
     //CalendarView mainCalendar;
     RussianCalendarView russianCalendar;
-    calPlanRecord[] activRecordS=null;
-    Integer rowNum=0;
+    calPlanRecord[] activRecordS = null;
     private ArrayAdapter<calPlanRecord> mainListAdapter;
     RussianHolidaysFetcher holidaysFetcher;
 
@@ -74,11 +72,12 @@ public class MainActivity extends BaseScreenActivity {
     private final ActivityResultLauncher<Intent> projectsLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Task 134: HardcoreCrashHandler ставится в WGPortalApp.onCreate - CrashActivity при падении любого Activity
-    
+
         setContentView(R.layout.activity_main);
 
         //savedInstanceState.windowActionBar = true;
@@ -88,12 +87,8 @@ public class MainActivity extends BaseScreenActivity {
         //=============Старт
         russianCalendar = findViewById(R.id.calendarView1);
         russianCalendar.setOnDateSelectedListener(date -> {
-            String[] monthStr = {"Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"};
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
-            String dateStr = cal.get(Calendar.DAY_OF_MONTH) + " " + monthStr[cal.get(Calendar.MONTH)] + " " + cal.get(Calendar.YEAR);
-            //WG в самом календаре Toast.makeText(this, dateStr, Toast.LENGTH_SHORT).show();
-            
             // Refresh list view when date changes
             refreshListView();
         });
@@ -102,19 +97,19 @@ public class MainActivity extends BaseScreenActivity {
         //fetchRussianHolidays();
 
         initMainListView();
-        
+
         // Set active date to today
         russianCalendar.activeDate = Calendar.getInstance().getTime();
-        
+
         // Initialize database and load records for today
         // owerDb = new ManageSQLDatabase(this); //OLD code
-		owerDb = ManageSQLDatabase.getInstance(this);
+        owerDb = ManageSQLDatabase.getInstance(this);
         SQLiteDatabase classDb = owerDb.getWritableDatabase();
         owerDb.onCreate(classDb);
 
         // Auto-register this device as a contact and set up "Ведущий" at startup
         ensureDeviceContactOnStart();
-        
+
         // Load and display records for today
         refreshListView();
 
@@ -137,12 +132,16 @@ public class MainActivity extends BaseScreenActivity {
             CalParamRecord param = owerDb.getCalParam();
             if (param == null || param.StartPage == null || param.StartPage.isEmpty()) return;
 
-            if (CalParamRecord.START_PAGE_CONTACTS.equals(param.StartPage)) {
-                contactsLauncher.launch(startPageIntent(new Intent(this, ContactsActivity.class)));
-            } else if (CalParamRecord.START_PAGE_PROJECTS.equals(param.StartPage)) {
-                projectsLauncher.launch(startPageIntent(new Intent(this, ProjectsActivity.class)));
-            } else if (CalParamRecord.START_PAGE_PARAMS.equals(param.StartPage)) {
-                paramsLauncher.launch(startPageIntent(new Intent(this, ParamsActivity.class)));
+            switch (param.StartPage) {
+                case CalParamRecord.START_PAGE_CONTACTS:
+                    contactsLauncher.launch(startPageIntent(new Intent(this, ContactsActivity.class)));
+                    break;
+                case CalParamRecord.START_PAGE_PROJECTS:
+                    projectsLauncher.launch(startPageIntent(new Intent(this, ProjectsActivity.class)));
+                    break;
+                case CalParamRecord.START_PAGE_PARAMS:
+                    paramsLauncher.launch(startPageIntent(new Intent(this, ParamsActivity.class)));
+                    break;
             }
             // START_PAGE_CALENDAR (or anything else) -> stay on MainActivity
         } catch (Exception e) {
@@ -171,6 +170,7 @@ public class MainActivity extends BaseScreenActivity {
             refreshListView();
         }
     }
+
     // ===================== Startup device registration =====================
     private static final int REQUEST_PHONE_STATE = 100;
     // Задача 109: разрешение ACTIVITY_RECOGNITION обязательно на Android 10+ (targetSdk 30+),
@@ -282,7 +282,17 @@ public class MainActivity extends BaseScreenActivity {
         try {
             TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             if (tm == null) return null;
-            String line = tm.getLine1Number();
+            String line = null;
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                line = tm.getLine1Number();
+            }
             if (line == null) return null;
             StringBuilder digits = new StringBuilder();
             for (int i = 0; i < line.length() && digits.length() < 10; i++) {
@@ -320,8 +330,9 @@ public class MainActivity extends BaseScreenActivity {
         // Rows use MessageListItem: [text lines] [type icon 48dp] [Edit/Delete buttons]
         ArrayList<calPlanRecord> items = new ArrayList<>();
         mainListAdapter = new ArrayAdapter<calPlanRecord>(this, 0, items) {
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 MessageListItem row;
                 if (convertView instanceof MessageListItem) {
                     row = (MessageListItem) convertView;
@@ -471,16 +482,13 @@ public class MainActivity extends BaseScreenActivity {
         if ("HealthEat".equals(form) || "HealthDrink".equals(form) || "HealthSport".equals(form)
                 || "HealthStress".equals(form) || "HealthJoy".equals(form)) return true;
         // черновики проектов и задач
-        if (("Project".equals(form) || "Task".equals(form)) && "Draft".equals(record.StatusID)) return true;
-        return false;
+        return ("Project".equals(form) || "Task".equals(form)) && "Draft".equals(record.StatusID);
     }
 
     /** Task 114: кнопка Добавить - сначала диалог выбора типа, затем нужная карточка. */
     public void taskAdd(View view) {
         try {
-            if (owerDb == null) {
-                owerDb = new ManageSQLDatabase(this);
-            }
+            if (owerDb == null) owerDb = new ManageSQLDatabase(this);
             new AlertDialog.Builder(this)
                     .setTitle("Добавить")
                     .setItems(new String[]{"Проект", "Задача", "Заявка", "Заметка", "Напоминание"},

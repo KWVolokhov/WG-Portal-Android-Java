@@ -1,6 +1,5 @@
 package com.example.calendar4;
 
-import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,8 +11,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -27,22 +24,19 @@ public class RussianHolidaysFetcher {
     private static final int CONNECT_TIMEOUT_MS = 30000; // 30 seconds — BV5300Plus может быть медленным
     private static final int READ_TIMEOUT_MS = 30000;    // 30 seconds
     private static final int MAX_RETRIES = 2;            // повтор при таймауте/сетевой ошибке
-    private Context context;
-    private ExecutorService executor;
-    private HolidaysFetchListener listener;
+    private final ExecutorService executor;
 
     public interface HolidaysFetchListener {
         void onHolidaysFetched(HashSet<String> holidays);
+
         void onError(String error);
     }
 
-    public RussianHolidaysFetcher(Context context) {
-        this.context = context;
+    public RussianHolidaysFetcher() {
         this.executor = Executors.newSingleThreadExecutor();
     }
 
     public void fetchHolidaysForYear(int year, @NonNull HolidaysFetchListener listener) {
-        this.listener = listener;
 
         executor.execute(() -> {
             HashSet<String> holidays = new HashSet<>();
@@ -54,17 +48,17 @@ public class RussianHolidaysFetcher {
             // 1 — htmlweb.ru (.ru домен), 2 — calendar.kuzyak.in (доп. шлюз),
             // 3 — date.nager.at v3 (основной), 4 — date.nager.at v2 (резерв)
             String[] apiUrls = {
-                        "https://htmlweb.ru/service/holidays.php?country=RU&year=" + year,
-                        "https://calendar.kuzyak.in/api/holidays?country=RU&year=" + year,
-                        HOLIDAYS_API_URL + year + "/RU",
-                        HOLIDAYS_API_URL_BACKUP + year + "/RU"
-                };
-                int urlIndex = 0;
+                    "https://htmlweb.ru/service/holidays.php?country=RU&year=" + year,
+                    "https://calendar.kuzyak.in/api/holidays?country=RU&year=" + year,
+                    HOLIDAYS_API_URL + year + "/RU",
+                    HOLIDAYS_API_URL_BACKUP + year + "/RU"
+            };
+            int urlIndex = 0;
 
-                while (urlIndex < apiUrls.length) {
-                    try {
+            while (urlIndex < apiUrls.length) {
+                try {
 
-                        URL url = new URL(apiUrls[urlIndex]);
+                    URL url = new URL(apiUrls[urlIndex]);
                     urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setRequestMethod("GET");
                     urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -73,14 +67,14 @@ public class RussianHolidaysFetcher {
 
                     int responseCode = urlConnection.getResponseCode();
                     if (responseCode != HttpURLConnection.HTTP_OK) {
-                        if (urlConnection != null) {
-                            urlConnection.disconnect();
-                            urlConnection = null;
+                        urlConnection.disconnect();
+                        urlConnection = null;
+                        try {
+                            reader.close();
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Error closing reader", ex);
                         }
-                        if (reader != null) {
-                            try { reader.close(); } catch (Exception ex) { Log.e(TAG, "Error closing reader", ex); }
-                            reader = null;
-                        }
+                        reader = null;
                         urlIndex++;
                         continue;
                     }
@@ -95,9 +89,7 @@ public class RussianHolidaysFetcher {
                     String jsonString = buffer.toString();
                     parseHolidaysJson(jsonString, holidays);
 
-                    if (listener != null) {
-                        listener.onHolidaysFetched(holidays);
-                    }
+                    listener.onHolidaysFetched(holidays);
                     return;
 
                 } catch (java.net.SocketTimeoutException e) {
@@ -107,7 +99,11 @@ public class RussianHolidaysFetcher {
                         urlConnection = null;
                     }
                     if (reader != null) {
-                        try { reader.close(); } catch (Exception ex) { Log.e(TAG, "Error closing reader", ex); }
+                        try {
+                            reader.close();
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Error closing reader", ex);
+                        }
                         reader = null;
                     }
                     attempt++;
@@ -115,7 +111,11 @@ public class RussianHolidaysFetcher {
                         urlIndex++;
                         attempt = 0;
                     }
-                    try { Thread.sleep(2000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
                 } catch (Exception e) {
                     Log.e(TAG, "Error fetching holidays from URL " + apiUrls[urlIndex], e);
                     if (urlConnection != null) {
@@ -123,7 +123,11 @@ public class RussianHolidaysFetcher {
                         urlConnection = null;
                     }
                     if (reader != null) {
-                        try { reader.close(); } catch (Exception ex) { Log.e(TAG, "Error closing reader", ex); }
+                        try {
+                            reader.close();
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Error closing reader", ex);
+                        }
                         reader = null;
                     }
                     urlIndex++;
@@ -132,9 +136,7 @@ public class RussianHolidaysFetcher {
             }
 
             // Все шлюзы исчерпаны
-            if (listener != null) {
-                listener.onError("Таймаут соединения с серверами праздников (попробованы все шлюзы, нет доступа к интернету)");
-            }
+            listener.onError("Таймаут соединения с серверами праздников (попробованы все шлюзы, нет доступа к интернету)");
         });
     }
 
@@ -149,8 +151,7 @@ public class RussianHolidaysFetcher {
 
     // Task 144: загрузка за все нужные годы, слушатель получает объединённый набор один раз
     public void fetchHolidaysForYears(@NonNull final HolidaysFetchListener listener) {
-        this.listener = listener;
-        fetchYears(yearsToFetch(), 0, new HashSet<String>(), listener, 0);
+        fetchYears(yearsToFetch(), 0, new HashSet<>(), listener, 0);
     }
 
     // Последовательная загрузка по списку лет на однопоточном executor.
