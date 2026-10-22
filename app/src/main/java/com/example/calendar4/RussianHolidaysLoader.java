@@ -138,6 +138,7 @@ final class RussianHolidaysLoader {
             listener.onYearLoaded(year, getHolidaysForYear(ctx, year));
             return;
         }
+        if (MainActivity.owerDb == null) MainActivity.owerDb = ManageSQLDatabase.getInstance(ctx);
         holidayRecord[] dbHolidays = MainActivity.owerDb.getHolidays("RUS", year);
         if (dbHolidays != null && dbHolidays.length > 0) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());

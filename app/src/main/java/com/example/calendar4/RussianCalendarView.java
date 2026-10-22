@@ -44,7 +44,7 @@ public class RussianCalendarView extends ConstraintLayout {
     public Date activeDate; // Active/selected date
     private Context mContext;
 
-    public interface OnDateSelectedListener {
+    public interface OnDateSelectedListener {///
         void onDateSelected(Date date);
     }
 
@@ -81,13 +81,19 @@ public class RussianCalendarView extends ConstraintLayout {
         final String[] weekTitles = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
         weekHeadersGrid.setAdapter(new BaseAdapter() {
             @Override
-            public int getCount() { return weekTitles.length; }
+            public int getCount() {
+                return weekTitles.length;
+            }
 
             @Override
-            public Object getItem(int position) { return weekTitles[position]; }
+            public Object getItem(int position) {
+                return weekTitles[position];
+            }
 
             @Override
-            public long getItemId(int position) { return position; }
+            public long getItemId(int position) {
+                return position;
+            }
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -150,9 +156,13 @@ public class RussianCalendarView extends ConstraintLayout {
             return false;
         });
 
-        updateCalendar();
+        //updateCalendar(); //Не там ИИ воткнул
     }
-
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        updateCalendar(); // Запускаем календарь безопасно здесь
+    }
     private void navigateToPreviousMonth() {
         currentCalendar.add(Calendar.MONTH, -1);
         // Set active date to the last day of the previous month
@@ -173,7 +183,9 @@ public class RussianCalendarView extends ConstraintLayout {
         notifyDateSelected();
     }
 
-    /** Informs the listener that activeDate has changed (month/year navigation). */
+    /**
+     * Informs the listener that activeDate has changed (month/year navigation).
+     */
     private void notifyDateSelected() {
         if (dateSelectedListener != null && activeDate != null) {
             dateSelectedListener.onDateSelected(activeDate);
@@ -194,7 +206,15 @@ public class RussianCalendarView extends ConstraintLayout {
 
     public void setHolidays(HashSet<String> holidays) {
         this.holidays = holidays != null ? holidays : new HashSet<>();
-        updateCalendar();
+        // УДАЛЯЕМ updateCalendar(); (он вызывал бесконечный цикл)
+
+        // Вместо этого обновляем адаптер, чтобы сетка календаря перерисовала праздники
+        if (adapter != null) {
+            // Если у вас в адаптере есть метод для передачи праздников, вызовите его.
+            // Например: adapter.setHolidays(this.holidays);
+
+            adapter.notifyDataSetChanged();
+        }
     }
 
     public void setCurrentMonth(int year, int month) {
@@ -357,12 +377,13 @@ public class RussianCalendarView extends ConstraintLayout {
         adapter.notifyDataSetChanged();
         // Task 166: загружаем производственный календарь для отображаемого года
         int year = currentCalendar.get(Calendar.YEAR);
-        RussianHolidaysLoader.ensureYearLoaded(mContext, year, new RussianHolidaysLoader.YearLoadedListener() {
-            @Override
-            public void onYearLoaded(int y, HashSet<String> loadedHolidays) {
-                setHolidays(loadedHolidays);
-            }
-        });
+        RussianHolidaysLoader.ensureYearLoaded(mContext, year,
+                new RussianHolidaysLoader.YearLoadedListener() {
+                    @Override
+                    public void onYearLoaded(int y, HashSet<String> loadedHolidays) {
+                        setHolidays(loadedHolidays);
+                    }
+                });
     }
 
     private void updateZodiacIcons() {

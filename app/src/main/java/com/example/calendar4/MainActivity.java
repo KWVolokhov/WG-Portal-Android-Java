@@ -32,7 +32,7 @@ import androidx.core.content.ContextCompat;
 
 public class MainActivity extends BaseScreenActivity {
     ListView mainListView;
-    static ManageSQLDatabase owerDb = null;
+    public static ManageSQLDatabase owerDb = null;
     //CalendarView mainCalendar;
     RussianCalendarView russianCalendar;
     calPlanRecord[] activRecordS = null;
@@ -102,8 +102,8 @@ public class MainActivity extends BaseScreenActivity {
         russianCalendar.activeDate = Calendar.getInstance().getTime();
 
         // Initialize database and load records for today
-        // owerDb = new ManageSQLDatabase(this); //OLD code
-        owerDb = ManageSQLDatabase.getInstance(this);
+        //owerDb = new ManageSQLDatabase(this); //OLD code
+        if (owerDb == null) owerDb = ManageSQLDatabase.getInstance(this);
         SQLiteDatabase classDb = owerDb.getWritableDatabase();
         owerDb.onCreate(classDb);
 
