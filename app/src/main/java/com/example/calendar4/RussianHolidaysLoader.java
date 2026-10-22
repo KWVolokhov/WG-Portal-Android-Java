@@ -17,15 +17,23 @@ import java.util.Locale;
  * MainActivity. Проверяется необходимость обновления (нет данных с начала месяца
  * или сегодня 1-е число), затем RussianHolidaysFetcher и сохранение в БД.
  * Task 144: с 1 сентября проверяется и загружается также следующий год.
+ * Task 166: производственный календарь - нерабочие дни (включая переносы) хранятся
+ * в статическом кэше и загружаются для любого запрашиваемого года.
+ * Task 167: если календарь текущего года не получен, попытка повторяется 1 раз за запуск приложения.
  */
 final class RussianHolidaysLoader {
 
     private RussianHolidaysLoader() {
     }
 
-    /**
-     * Проверка наличия сетевого подключения.
-     */
+    /** Статический кэш нерабочих дней (производственный календарь) по датам "yyyy-MM-dd". */
+    private static final HashSet<String> holidaysCache = new HashSet<>();
+    /** Года, для которые кэш уже заполнен (из БД или интернета). */
+    private static final HashSet<Integer> cachedYears = new HashSet<>();
+    /** Флаг: был ли выполнен хотя бы один успешный fetch текущего года за запуск приложения. */
+    private static boolean currentYearFetched = false;
+
+    /** Проверка наличия сетевого подключения. */
     private static boolean isNetworkAvailable(Context ctx) {
         try {
             ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -49,23 +57,20 @@ final class RussianHolidaysLoader {
     static void fetch(MainActivity act) {
         Calendar cal = Calendar.getInstance();
         int currentYear = cal.get(Calendar.YEAR);
-        int currentMonth = cal.get(Calendar.MONTH) + 1; // 1-based month
+        int currentMonth = cal.get(Calendar.MONTH) + 1;
         int currentDay = cal.get(Calendar.DAY_OF_MONTH);
-        // Check if holidays need to be updated (on 1st day of month or if no data)
         boolean isFirstDayOfMonth = (currentDay == 1);
         boolean needsUpdate = MainActivity.owerDb.needsHolidayUpdate("RUS", currentYear, currentMonth);
-        // Task 144: после 1 сентября догружаем и следующий год, если его данных ещё нет
         if (RussianHolidaysFetcher.yearsToFetch().size() > 1 && MainActivity.owerDb.needsHolidayUpdate("RUS", currentYear + 1, 1))
             needsUpdate = true;
         if (!needsUpdate && !isFirstDayOfMonth) {
-            loadFromDatabase(act);
+            loadFromDatabase(act, currentYear);
             return;
         }
-        // Если сети нет — не пытаемся ходить в интернет, загружаем то, что есть в БД
         if (!isNetworkAvailable(act)) {
             act.runOnUiThread(() -> Toast.makeText(act,
                     "Нет доступа к интернету — праздники загружены из локальной базы", Toast.LENGTH_LONG).show());
-            loadFromDatabase(act);
+            loadFromDatabase(act, currentYear);
             return;
         }
         act.holidaysFetcher = new RussianHolidaysFetcher();
@@ -74,16 +79,129 @@ final class RussianHolidaysLoader {
                     @Override
                     public void onHolidaysFetched(HashSet<String> holidays) {
                         saveHolidays(currentYear, holidays);
-                        loadFromDatabase(act);
+                        currentYearFetched = true;
+                        loadFromDatabase(act, currentYear);
                     }
                     @Override
                     public void onError(String error) {
                         act.runOnUiThread(() -> Toast.makeText(act,
                                 "Ошибка загрузки праздников: " + error, Toast.LENGTH_SHORT).show());
-                        // При ошибке сети всё равно показываем то, что есть в локальной базе
-                        loadFromDatabase(act);
+                        loadFromDatabase(act, currentYear);
                     }
                 });
+    }
+
+    /**
+     * Task 167: гарантирует, что производственный календарь текущего года получен.
+     * Вызывается при первом использовании RussianCalendarView.
+     * Если данные за текущий год ещё не загружены, делает одну повторную попытку
+     * скачать их независимо от даты.
+     */
+    static void ensureCurrentYearLoaded(MainActivity act) {
+        Calendar cal = Calendar.getInstance();
+        int currentYear = cal.get(Calendar.YEAR);
+        if (cachedYears.contains(currentYear) && !holidaysCache.isEmpty()) return;
+        holidayRecord[] dbHolidays = MainActivity.owerDb.getHolidays("RUS", currentYear);
+        if (dbHolidays != null && dbHolidays.length > 0) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            for (holidayRecord hr : dbHolidays) {
+                if (hr.HolidayDate != null) holidaysCache.add(sdf.format(hr.HolidayDate));
+            }
+            cachedYears.add(currentYear);
+            return;
+        }
+        if (currentYearFetched) return;
+        if (!isNetworkAvailable(act)) return;
+        currentYearFetched = true;
+        act.holidaysFetcher = new RussianHolidaysFetcher();
+        act.holidaysFetcher.fetchHolidaysForYear(currentYear, new RussianHolidaysFetcher.HolidaysFetchListener() {
+            @Override
+            public void onHolidaysFetched(HashSet<String> holidays) {
+                saveHolidays(currentYear, holidays);
+                loadFromDatabase(act, currentYear);
+            }
+            @Override
+            public void onError(String error) {
+                act.runOnUiThread(() -> Toast.makeText(act,
+                        "Ошибка загрузки производственного календаря: " + error, Toast.LENGTH_SHORT).show());
+                loadFromDatabase(act, currentYear);
+            }
+        });
+    }
+
+    /**
+     * Task 166: загружает производственный календарь для указанного года.
+     * Если в кэше/БД нет данных — пытается скачать с интернета.
+     */
+    static void ensureYearLoaded(Context ctx, int year, final YearLoadedListener listener) {
+        if (cachedYears.contains(year) && !holidaysCache.isEmpty()) {
+            listener.onYearLoaded(year, getHolidaysForYear(ctx, year));
+            return;
+        }
+        holidayRecord[] dbHolidays = MainActivity.owerDb.getHolidays("RUS", year);
+        if (dbHolidays != null && dbHolidays.length > 0) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            for (holidayRecord hr : dbHolidays) {
+                if (hr.HolidayDate != null) holidaysCache.add(sdf.format(hr.HolidayDate));
+            }
+            cachedYears.add(year);
+            listener.onYearLoaded(year, getHolidaysForYear(ctx, year));
+            return;
+        }
+        if (!isNetworkAvailable(ctx)) {
+            listener.onYearLoaded(year, new HashSet<String>());
+            return;
+        }
+        RussianHolidaysFetcher fetcher = new RussianHolidaysFetcher();
+        fetcher.fetchHolidaysForYear(year, new RussianHolidaysFetcher.HolidaysFetchListener() {
+            @Override
+            public void onHolidaysFetched(HashSet<String> holidays) {
+                saveHolidays(year, holidays);
+                cachedYears.add(year);
+                listener.onYearLoaded(year, getHolidaysForYear(ctx, year));
+            }
+            @Override
+            public void onError(String error) {
+                listener.onYearLoaded(year, new HashSet<String>());
+            }
+        });
+    }
+
+    public interface YearLoadedListener {
+        void onYearLoaded(int year, HashSet<String> holidays);
+    }
+
+    /**
+     * Возвращает нерабочие дни для указанного года из кэша или из локальной БД.
+     * Если данных нет — возвращает пустое множество.
+     */
+    static HashSet<String> getHolidaysForYear(Context ctx, int year) {
+        if (cachedYears.contains(year) && !holidaysCache.isEmpty()) {
+            HashSet<String> result = new HashSet<>();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Calendar c = Calendar.getInstance();
+            for (String dateStr : holidaysCache) {
+                try {
+                    c.setTime(sdf.parse(dateStr));
+                    if (c.get(Calendar.YEAR) == year) {
+                        result.add(dateStr);
+                    }
+                } catch (Exception ignored) { }
+            }
+            return result;
+        }
+        holidayRecord[] holidays = MainActivity.owerDb.getHolidays("RUS", year);
+        HashSet<String> holidayStrings = new HashSet<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        for (holidayRecord holiday : holidays) {
+            if (holiday.HolidayDate != null) {
+                String ds = sdf.format(holiday.HolidayDate);
+                holidayStrings.add(ds);
+                holidaysCache.add(ds);
+            }
+        }
+        cachedYears.add(year);
+        return holidayStrings;
     }
 
     // Преобразует HashSet строк "yyyy-MM-dd Имя" в holidayRecord[] и сохраняет в БД
@@ -114,20 +232,22 @@ final class RussianHolidaysLoader {
     /**
      * Загружает праздники из HOLIDAYS и передаёт их в RussianCalendarView.
      */
-    static void loadFromDatabase(MainActivity act) {
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-        holidayRecord[] holidays = MainActivity.owerDb.getHolidays("RUS", currentYear);
-        // Convert to HashSet<String> for RussianCalendarView
+    static void loadFromDatabase(MainActivity act, int year) {
+        holidayRecord[] holidays = MainActivity.owerDb.getHolidays("RUS", year);
         HashSet<String> holidayStrings = new HashSet<>();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         for (holidayRecord holiday : holidays) {
-            if (holiday.HolidayDate != null) holidayStrings.add(sdf.format(holiday.HolidayDate));
+            if (holiday.HolidayDate != null) {
+                String ds = sdf.format(holiday.HolidayDate);
+                holidayStrings.add(ds);
+                holidaysCache.add(ds);
+            }
         }
+        cachedYears.add(year);
         RussianCalendarView russianCalendar = act.findViewById(R.id.calendarView1);
         russianCalendar.setHolidays(holidayStrings);
         act.runOnUiThread(() -> {
-            String msg = "Праздники загружены с локали: " + holidayStrings.size() + " дней";
+            String msg = "Производственный календарь загружен: " + holidayStrings.size() + " дней";
             Toast.makeText(act, msg, Toast.LENGTH_SHORT).show();
         });
     }

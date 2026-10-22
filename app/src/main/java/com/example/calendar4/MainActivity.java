@@ -169,6 +169,9 @@ public class MainActivity extends BaseScreenActivity {
         if (owerDb != null && russianCalendar != null) {
             refreshListView();
         }
+        // Task 167: гарантируем загрузку производственного календаря текущего года
+        // (повторная попытка 1 раз за запуск, если данные ещё не получены)
+        RussianHolidaysLoader.ensureCurrentYearLoaded(this);
     }
 
     // ===================== Startup device registration =====================

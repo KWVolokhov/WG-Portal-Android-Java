@@ -72,7 +72,8 @@
 | Класс | Роль |
 |---|---|
 | `Pedometer` | Реальный шагомер, разрешение ACTIVITY_RECOGNITION (Android 10+); запись Steps в HEALTHPLAN |
-| `RussianHolidaysFetcher` | Загрузка праздников по HTTP (`HttpURLConnection`) в таблицу HOLIDAYS; Task 144: с 1 сентября — текущий и следующий год (`fetchHolidaysForYears`, список лет `yearsToFetch()`) |
+| `RussianHolidaysFetcher` | Загрузка нерабочих дней производственного календаря по HTTP (`HttpURLConnection`) в таблицу HOLIDAYS; Task 144: с 1 сентября — текущий и следующий год (`fetchHolidaysForYears`, список лет `yearsToFetch()`). Шлюзы по приоритету: `calendar.kuzyak.in` (1, производственный календарь РФ) → `htmlweb.ru` (2) → `date.nager.at` v3 (3) → `date.nager.at` v2 (4). Таймауты 30 с connect / 30 с read с до 2 повторов при таймауте. |
+| `RussianHolidaysLoader` | Управляет производственным календарем: статический кэш нерабочих дней `holidaysCache`, загрузка для любого года (`ensureYearLoaded`, `getHolidaysForYear`), гарантированная загрузка текущего года с одной повторной попыткой за запуск (`ensureCurrentYearLoaded`, Task 167), сохранение в БД через `HolidaysSQLManage` |
 | `SynchroCal` | Task 143: обмен с сервером (POST JSON, Basic-авторизация): отправка CalParamRecord, получение подтверждения и номера сессии, корректировка CALPARAM.SyncTime; детали — в `ArchitectureServerSynkhro.md` |
 | `WGPortalApp` | Application (`android:name` в манифесте); ставит `HardcoreCrashHandler` в `onCreate` до любых экранов (Task 134) |
 | `AttachmentStore` | Хранение файлов вложений `InfoFieldView` (папка CALPARAM.AttachFolder) |

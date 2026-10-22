@@ -45,11 +45,12 @@ public class RussianHolidaysFetcher {
             int attempt = 0;
 
             // Список шлюзов по приоритетам для фолбэка при таймауте/ошибке:
-            // 1 — htmlweb.ru (.ru домен), 2 — calendar.kuzyak.in (доп. шлюз),
+            // 1 — calendar.kuzyak.in (производственный календарь РФ),
+            // 2 — htmlweb.ru (.ru домен),
             // 3 — date.nager.at v3 (основной), 4 — date.nager.at v2 (резерв)
             String[] apiUrls = {
-                    "https://htmlweb.ru/service/holidays.php?country=RU&year=" + year,
                     "https://calendar.kuzyak.in/api/holidays?country=RU&year=" + year,
+                    "https://htmlweb.ru/service/holidays.php?country=RU&year=" + year,
                     HOLIDAYS_API_URL + year + "/RU",
                     HOLIDAYS_API_URL_BACKUP + year + "/RU"
             };

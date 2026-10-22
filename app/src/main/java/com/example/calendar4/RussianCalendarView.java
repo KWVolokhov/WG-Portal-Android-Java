@@ -42,6 +42,7 @@ public class RussianCalendarView extends ConstraintLayout {
     private OnDateSelectedListener dateSelectedListener;
     private Date currentDate;
     public Date activeDate; // Active/selected date
+    private Context mContext;
 
     public interface OnDateSelectedListener {
         void onDateSelected(Date date);
@@ -63,6 +64,7 @@ public class RussianCalendarView extends ConstraintLayout {
     }
 
     private void init(Context context) {
+        mContext = context;
         // Inflate the custom calendar layout
         LayoutInflater.from(context).inflate(R.layout.russian_calendar_view, this, true);
 
@@ -353,6 +355,14 @@ public class RussianCalendarView extends ConstraintLayout {
         // Update adapter to regenerate dates for current month
         adapter.generateDates();
         adapter.notifyDataSetChanged();
+        // Task 166: загружаем производственный календарь для отображаемого года
+        int year = currentCalendar.get(Calendar.YEAR);
+        RussianHolidaysLoader.ensureYearLoaded(mContext, year, new RussianHolidaysLoader.YearLoadedListener() {
+            @Override
+            public void onYearLoaded(int y, HashSet<String> loadedHolidays) {
+                setHolidays(loadedHolidays);
+            }
+        });
     }
 
     private void updateZodiacIcons() {
