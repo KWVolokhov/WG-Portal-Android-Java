@@ -10,18 +10,19 @@
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.8"
-        android:pathData="M5,5 L5,15 Q5,20 12,20 Q19,20 19,15 L19,5 Z" />
-    <!-- Пар -->
+        android:pathData="M6,6 L6,22 Q6,23 12,23 Q19,23 19,22 L19,6 Z" />
+    <!-- Ручка ложки по диагонали (смещена ниже, чтобы войти внутрь чаши) -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#64B5F6"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M8,2.5 Q6,4 8,5.5 M16,2.5 Q14,4 16,5.5" />
-    <!-- Уровень жидкости -->
+        android:strokeColor="#1565C0"
+        android:strokeWidth="1.8"
+        android:pathData="M6,7 L3,4 Q2,3 3,2 Q4,1 5,2 L8,6" />
+
+    <!-- Ручка стакана (смещена ниже по оси Y, чтобы соответствовать уровню стакана) -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.6"
-        android:pathData="M5,8 L19,8" />
+        android:strokeLineCap="round"
+        android:pathData="M6,11 H3 Q1,12 1,13 V18 Q1,19 3,20 H5" />
 </vector>
