@@ -91,18 +91,18 @@ AppCompatActivity
 |   |       +-- HealthEatActivity           (Form=HealthEat)
 |   |       +-- HealthDrinkActivity         (Form=HealthDrink)
 |   |       +-- HealthSportActivity         (Form=HealthSport)
-|   +-- ContactsActivity
-|   +-- EditContactActivity
-|   +-- ProjectsActivity
-|   +-- HistoryActivity
-|   +-- HealthActivity
-|   +-- LivetypeActivity
-|   +-- LivetypeEditActivity
-|   +-- ParamsActivity
-|   +-- SmsActivity
+|   +-- ContactsActivity                    (Список Справочник Контактов, привязанных к Параметры\Ведущий)
+|   +-- EditContactActivity                 (Карточка редактирования контакта)
+|   +-- ProjectsActivity                    (Список Проектов)
+|   +-- HistoryActivity                     (Список активностей за день)
+|   +-- HealthActivity                      
+|   +-- LivetypeActivity                    (Список шаблонных активностей по HEALTH)
+|   +-- LivetypeEditActivity                (Карточка редактирования шаблонных активностей по HEALTH)
+|   +-- ParamsActivity                      (Параметры)
+|   +-- SmsActivity                         
 |   +-- SmsChatActivity
 |   +-- SmsViewActivity
-|   +-- CaclActivity                          (калькулятор, layout activity_calc.xml, Task 142)
+|   +-- CaclActivity                        (калькулятор, layout activity_calc.xml, Task 142)
 CrashActivity (extends android.app.Activity, singleTask)
 ```
 
