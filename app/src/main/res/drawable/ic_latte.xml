@@ -11,23 +11,17 @@
         android:strokeColor="#1565C0"
         android:strokeWidth="1.8"
         android:pathData="M6,5 L6,15 Q6,20 12,20 Q19,20 19,15 L19,5 Z" />
-    <!-- Пар -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#64B5F6"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M12,2.5 Q10,4 12,5.5" />
+    <!-- ручка кружки -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M6,9 Q1,13 6,16" />
+        android:pathData="M6,9 Q-2,13 6,16" />
     <!-- Уровень жидкости -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#1565C0"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="1.6"
-        android:pathData="M5,8 L19,8" />
+        android:pathData="M7,7 L17,7 17,10 8,10 8,9 17,9" />
 </vector>
