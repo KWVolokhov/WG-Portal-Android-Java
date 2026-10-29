@@ -17,11 +17,11 @@
         android:strokeColor="#1565C0"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M6,9 Q-2,13 6,16" />
+        android:pathData="M6,7 Q-3,10 6,16" />
     <!-- Уровень жидкости -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
+        android:strokeWidth="2"
         android:pathData="M7,7 L17,7 17,10 8,10 8,9 17,9" />
 </vector>

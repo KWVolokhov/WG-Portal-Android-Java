@@ -10,19 +10,19 @@
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.8"
-        android:pathData="M7,6 L7,22 Q7,23 12,23 Q19,23 19,22 L19,6 Z" />
+        android:pathData="M7,6 L7,20 Q7,20 12,20 Q17,20 17,20 L17,6 Z" />
     <!-- Ручка стакана (смещена ниже по оси Y, чтобы соответствовать уровню стакана) -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M7,10 H4 Q3,10 3,13 V18 Q3,19 6,19 H7" />
+        android:pathData="M7,10 H4 Q3,10 3,13 V16 Q3,17 6,17 H7" />
             <!-- Ручка ложки по диагонали (смещена ниже, чтобы войти внутрь чаши) -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.8"
-        android:pathData="M2,2 L16,2 Q12,5 12,2" />
+        android:pathData="M4,2 L16,2 Q14,5 12,2" />
 
 </vector>

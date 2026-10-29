@@ -10,14 +10,7 @@
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.8"
-        android:pathData="M6,5 L6,15 Q6,20 12,20 Q19,20 19,15 L19,5 Z" />
-    <!-- Пар -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#64B5F6"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M12,2.5 Q10,4 12,5.5" />
+        android:pathData="M6,5 L6,15 Q6,20 12,20 Q18,20 18,15 L18,5 Z" />
     <path
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
@@ -29,5 +22,11 @@
         android:fillColor="#00000000"
         android:strokeColor="#1565C0"
         android:strokeWidth="1.6"
-        android:pathData="M5,8 L19,8" />
+        android:pathData="M6,8 L18,8" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="1.2"
+        android:pathData="M9.5,17 L12,11 L14.5,17 M10.75,14 L13.25,14" />
+
 </vector>
