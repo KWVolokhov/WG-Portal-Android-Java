@@ -79,7 +79,8 @@ public class LivetypeActivity extends BaseScreenActivity {
                 final livetypeRecord record = allRecords.get(position);
                 row.setTopText(record.Name != null ? record.Name : "");
                 row.setBottomText(record.Category != null ? record.Category : "");
-                row.setTypeIcon(iconForForm(record.Form));
+                // Task 172: если у типа указано имя существующего drawable — показываем его, иначе иконку по Form
+                row.setTypeIcon(MessageListItem.resolveListIcon(LivetypeActivity.this, record.Icon, iconForForm(record.Form)));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
                 row.setPosition(position);

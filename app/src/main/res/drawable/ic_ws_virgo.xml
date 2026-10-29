@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Дева: фигура в платье с головой -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Virgo: M-shape with curl -->
+    <!-- платье -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.9"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M5,5 L5,11 L10,5 L10,11 L15,5 L15,11" />
+        android:pathData="M7,20 L8,10 Q8,6 12,6 Q16,6 16,10 L17,20" />
+    <!-- голова и венец -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.7"
         android:strokeLineCap="round"
-        android:pathData="M14.5,13 Q11,12 13.5,16 Q16,20 19,17" />
+        android:pathData="M12,9 Q12,6 9,6 Q9,9 12,12 M10,6 L14,6" />
 </vector>

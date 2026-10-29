@@ -218,6 +218,19 @@ public class MessageListItem extends LinearLayout {
         ivIcon.setContentDescription("Актуально");
     }
 
+    /**
+     * Task 172: иконка строки списка. Если у типа активности указано непустое имя drawable и
+     * такой ресурс существует — возвращает его, иначе fallback-иконку по типу (Form).
+     * Аналогично уже работает для 5 быстрых кнопок на MainActivity (MainQuickButtons.findIconDrawable).
+     */
+    public static int resolveListIcon(Context ctx, String iconName, int fallbackRes) {
+        if (iconName != null && !iconName.trim().isEmpty()) {
+            int res = ctx.getResources().getIdentifier(iconName.trim(), "drawable", ctx.getPackageName());
+            if (res != 0) return res;
+        }
+        return fallbackRes;
+    }
+
     public void setOnEditClickListener(View.OnClickListener l) {
         btnEdit.setOnClickListener(l);
     }

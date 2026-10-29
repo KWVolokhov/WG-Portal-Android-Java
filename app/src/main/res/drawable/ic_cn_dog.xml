@@ -1,22 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Собака: голова с висячими ушами и языком -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Dog: head + floppy ears + tongue -->
+    <!-- голова -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
-        android:pathData="M12,13 a5,4.5 0 1,0 0.01,0z M8.5,9 Q6,8.5 6.5,11.5 Q7,13 9,12.5 M15.5,9 Q18,8.5 17.5,11.5 Q17,13 15,12.5" />
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M12,13 a5,4.5 0 1,0 0.01,0z" />
+    <!-- уши -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M8.5,9 Q5.5,8 7,12 Q9,11.5 11,12" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M15.5,9 Q18.5,8 17,12 Q15,11.5 13,12" />
+    <!-- глаза и нос -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M9.6,11a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0 M12.8,11a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0" />
-    <!-- nose + mouth -->
+        android:pathData="M9.6,10.8a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0 M12.8,10.8a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0" />
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="1.4"
-        android:pathData="M11.3,14.2 L12.7,14.2 M12,14.2 L12,15.4 M11,16.2 Q12,17.5 13,16.2" />
+        android:strokeLineCap="round"
+        android:pathData="M12,13 L12,14.4 M11,15.5 Q12,16.8 13,15.5" />
 </vector>

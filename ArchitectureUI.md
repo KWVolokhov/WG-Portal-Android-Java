@@ -150,6 +150,21 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний; статус рисуется полным словом (Draft/Work/Test/Ok/Hold/Cancel), шрифт автоуменьшается под ширину иконки (Task 132) | Списки |
 | `InfoBlocksAdapter` | `RecyclerView.Adapter` | Сетка вложений (1/4 ширины строки) и таблицы (viewType 4, `TableHolder`: сетка rows×cols EditText-ячеек), тап по вложению открывает стандартный просмотрщик; `focusedOrLastEditor()` — EditText где стоял курсор, `writeBack()` — явная запись HTML после смены спанов (Task 136) | `InfoFieldView` |
 
+## 5.1. Векторные иконки (res/drawable)
+| Группа иконок | Файлы | Что изменено | Где используется |
+|---|---|---|---|
+| Знаки Зодиака | `ic_ws_*.xml` (12 шт.) | Перерисованы под символы знаков (Овен, Телец, Близнецы, Рак, Лев, Дева, Весы, Скорпион, Стрелец, Козерог, Водолей, Рыбы); белые обводки, viewport 24×24, 32dp (Task 168) | `RussianCalendarView` |
+| Китайские знаки | `ic_cn_*.xml` (12 шт.) | Перерисованы головы животных (особенно Собака, Лошадь, Обезьяна, Свинья, Крыса, Петух); тот же стиль (Task 168) | `RussianCalendarView` |
+| Иконки типов записей | `ic_type_project.xml`, `ic_type_task.xml`, `ic_type_request.xml` | Единый вид «документ»; буква в левом верхнем углу: `P` (зелёная `#4CAF50`), `T` (красная `#F44336`), `R` (синяя `#0D47A1`); убрана `android:tint`, заданы явные цвета (Task 169) | `MainActivity.typeIconForForm`, `StatusIconFactory`, `MessageListItem` |
+| Радость / шагомер | `ic_joy.xml`, `ic_pedometer.xml` | `ic_joy`: 2 бутылки (вино, коньяк) + рюмка коньяка; `ic_pedometer`: схематичный бегун с ветром (Task 170) | `HealthActivity.iconForForm`, `MainQuickButtons` |
+
+Удаление `ic_type_health_drink.xml`, `ic_type_health_eat.xml`, `ic_type_health_sport.xml` НЕ выполнено — все три ссылкуются в `MainActivity.typeIconForForm` (Case `HealthEat`/`HealthDrink`/`HealthSport`), поэтому они используются (Task 171).
+
+Task 172 — иконка в списках активностей: в `MessageListItem` добавлен статический хелпер `resolveListIcon(Context, iconName, fallbackRes)` (аналог `MainQuickButtons.findIconDrawable` для кнопок): если у типа активности (поле `Icon` записи LIVETYPE) указано непустое имя существующего drawable — показывается этот ресурс, иначе иконка по типу (Form). Применено:
+- `LivetypeActivity` (справочник «Типы жизнедеятельности») — `record.Icon` есть напрямую.
+- `HealthActivity` (список «сама активность» за день) — карта `Form → иконка` загружается один раз из LIVETYPE в `reload()` и используется в `getView` (без запроса к БД на строку).
+`MainActivity` в основном списке явно скрывает формы здоровья (`shouldHideFromMainList`), поэтому переопределения иконки там не требуется.
+
 ## 6. Данные, передаваемые между экранами
 
 - Карточка -> вызывающий экран: `Intent` result, extra `"calPlanRecord"` (Serializable) — сохраняет вызывающий экран.

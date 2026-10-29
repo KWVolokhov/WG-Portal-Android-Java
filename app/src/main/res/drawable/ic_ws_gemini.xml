@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Близнецы: две фигуры рядом -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Gemini: two vertical twins -->
-    <path
-        android:fillColor="#1E1E1E"
-        android:pathData="M8,4 L8,19 M16,4 L16,19 M10,19.5 L6,19.5 M14,19.5 L18,19.5" />
+    <!-- тела -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
-        android:pathData="M8,4 L8,8 M16,4 L16,8 M6,21 L10,21 M14,21 L18,21" />
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:pathData="M8,7 L8,16 M16,7 L16,16" />
+    <!-- головы -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,6a1,1 0 1,0 0.01,0 M16,6a1,1 0 1,0 0.01,0" />
+    <!-- руки -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M7,7 L6,9 M9,7 L10,9 M15,7 L14,9 M17,7 L18,9" />
 </vector>

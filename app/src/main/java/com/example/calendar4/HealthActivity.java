@@ -17,7 +17,9 @@ import android.widget.TextView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Day Health screen: shows HEALTHPLAN records (Form=HealthEat / HealthDrink / HealthSport)
@@ -38,6 +40,8 @@ public class HealthActivity extends BaseScreenActivity {
     private ArrayAdapter<healthPlanRecord> adapter;
     private ArrayList<healthPlanRecord> records;
     private Date day;
+    // Task 172: Form -> имя иконки drawable (из поля Icon справочника LIVETYPE), заполняется в reload()
+    private Map<String,String> healthFormIconMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +79,9 @@ public class HealthActivity extends BaseScreenActivity {
                 row.setMiddleText(recordTime(record));
                 // Task 142: третья строка - поле Info, а если оно не заполнено - Комментарий
                 row.setBottomText(shortBodyText(InfoFieldView.listText(record.BodyText, record.Comment)));
-                row.setTypeIcon(iconForForm(record.Form));
+                // Task 172: иконка из поля Icon типа активности, если ресурс существует — иначе иконка по Form
+                String iconName = healthFormIconMap.get(record.Form);
+                row.setTypeIcon(MessageListItem.resolveListIcon(HealthActivity.this, iconName, iconForForm(record.Form)));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
                 row.setPosition(position);
@@ -115,6 +121,19 @@ public class HealthActivity extends BaseScreenActivity {
             for (healthPlanRecord r : arr) {
                 if (r != null) records.add(r);
             }
+        }
+        // Task 172: загружаем из справочника LIVETYPE соответствие Form -> имя иконки (поля Icon)
+        healthFormIconMap.clear();
+        try {
+            LivetypeSQLManage ltDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
+            livetypeRecord[] all = ltDb.getAllLivetype("");
+            if (all != null) {
+                for (livetypeRecord lr : all) {
+                    if (lr != null && lr.Form != null) healthFormIconMap.put(lr.Form, lr.Icon);
+                }
+            }
+        } catch (Exception ignored) {
+            // Не críticaльно: иконки по типам останутся стандартными
         }
         if (adapter != null) adapter.notifyDataSetChanged();
         updateDayTotals();

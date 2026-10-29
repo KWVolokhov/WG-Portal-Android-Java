@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Бык: голова с рогами и глазами -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Bull/Ox head -->
+    <!-- голова -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
-        android:pathData="M12,17a6,5 0 1,0 0.01,0z" />
-    <!-- eyes -->
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M12,16a6,5 0 1,0 0.01,0z" />
+    <!-- рога -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:pathData="M8,11 Q5,6 3,4 M16,11 Q19,6 21,4" />
+    <!-- глаза и нос -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M8.4,14.6a1,1 0 1,0 2,0a1,1 0 1,0 -2,0 M13.6,14.6a1,1 0 1,0 2,0a1,1 0 1,0 -2,0" />
-    <!-- horns -->
+        android:pathData="M8.4,13.8a1,1 0 1,0 2,0a1,1 0 1,0 -2,0 M13.6,13.8a1,1 0 1,0 2,0a1,1 0 1,0 -2,0" />
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
-        android:pathData="M8,12 Q5,7 3,5 M16,12 Q19,7 21,5" />
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M12,14.8 L12,16 Q11,16.8 13,16.8" />
 </vector>

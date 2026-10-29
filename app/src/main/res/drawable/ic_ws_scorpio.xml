@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Скорпион: изогнутое тело с хвостом-жалом -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Scorpio: M body + stinging tail -->
+    <!-- тело и хвост -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.9"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M6,20 L9,5 Q9.5,3 11.5,3 L11,7 L14,3 Q15,5 15,20" />
+        android:pathData="M5,13 Q8,13 11,15 Q13,16 15,14 Q17,12 19,14 Q21,11 20,7" />
+    <!-- жало -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.7"
         android:strokeLineCap="round"
-        android:pathData="M19,20 L21,17 Q21.5,15 20,15" />
+        android:pathData="M20,7 Q18,5 17,6 Q18,7 20,8" />
+    <!-- клешни -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M5,13 L3,14 Q4,15 6,14 M6,14 L8,14" />
 </vector>

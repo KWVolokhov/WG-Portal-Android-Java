@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Рыбы: две рыбки, связанные лентой -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Pisces: two fish arcs bound by a line -->
+    <!-- левая рыбка -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.7"
         android:strokeLineCap="round"
-        android:pathData="M5,4 Q4,9 5,14 Q6,19 8,20" />
+        android:pathData="M5,11 Q3,13 5,15 Q8,14 11,12 Q9,10 5,11 Z" />
+    <!-- правая рыбка -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.7"
         android:strokeLineCap="round"
-        android:pathData="M19,4 Q20,9 19,14 Q20,19 16,20" />
+        android:pathData="M19,11 Q21,13 19,15 Q16,14 13,12 Q15,10 19,11 Z" />
+    <!-- связь -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
-        android:pathData="M8,20 L16,20" />
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:pathData="M11,12 L13,12" />
+    <!-- глаза -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,12a0.5,0.5 0 1,0 1,0a0.5,0.5 0 1,0 -1,0 M18,12a0.5,0.5 0 1,0 1,0a0.5,0.5 0 1,0 -1,0" />
 </vector>

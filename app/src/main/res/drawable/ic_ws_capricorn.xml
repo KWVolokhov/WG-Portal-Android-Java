@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Козерог: тело козла с рыбьим хвостом и рогами -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Capricorn: zigzag horn + curl -->
+    <!-- тело -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.9"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M6,20 L11,20 L7.5,14 L13,8 L16,5" />
+        android:pathData="M9,14 Q9,8 13,8 Q14,12 14,18 Q10,20 8,18 Q8,14 9,14 Z" />
+    <!-- рыбий хвост -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
-        android:pathData="M17,3.5 a2.2,2.2 0 1,0 2.5,3" />
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:pathData="M8,18 Q4,20 7,14 M8,18 Q4,16 6,18" />
+    <!-- рога и голова -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:pathData="M13,8 Q11,4 10,3 Q9,5 11,8 M13,8 Q15,4 16,3 Q17,5 15,8" />
 </vector>

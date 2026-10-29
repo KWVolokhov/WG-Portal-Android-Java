@@ -1,16 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Обезьяна: круглое лицо с ушами и мордой -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Monkey: round face + ears -->
+    <!-- лицо -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.6"
-        android:pathData="M12,11a6,5.5 0 1,0 0.01,0z M8.5,7a2,2 0 1,0 2.5,3 M15.5,7a2,2 0 1,0 -2.5,3" />
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M12,11a6,5.5 0 1,0 0.01,0z" />
+    <!-- уши -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M8.5,7a2,2 0 1,0 2.5,3 M15.5,7a2,2 0 1,0 -2.5,3" />
+    <!-- глаза и рот -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M9.2,10.6a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0 M13.2,10.6a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0 M11.2,14.4 L12,15.3 L12.8,14.4" />
+        android:pathData="M9.2,10.4a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0 M13.2,10.4a0.8,0.8 0 1,0 1.6,0a0.8,0.8 0 1,0 -1.6,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M11.3,14 Q12,15.2 12.7,14" />
 </vector>

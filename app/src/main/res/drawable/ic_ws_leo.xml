@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Лев: голова с гривой вокруг -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="32dp"
     android:height="32dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Leo: mane curl with tail -->
+    <!-- голова -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.9"
         android:strokeLineCap="round"
-        android:pathData="M17,6 Q20,9 18.5,13 Q17,15.5 14,15.5" />
+        android:pathData="M12,12 a3.5,3.5 0 1,0 0.01,0z" />
+    <!-- грива -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeWidth="1.7"
         android:strokeLineCap="round"
-        android:pathData="M14,15.5 Q11,15.5 11,12.5 Q11,10 8.5,10.5 Q6,11 6,14 Q5.5,18 8,19" />
+        android:pathData="M12,8 Q12,5 8,5 Q5,8 Q6,12 9,13 Q12,15 15,13 Q18,12 19,8 Q16,5 12,8" />
+    <!-- усы/морда -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M10,12 L8,12 M14,12 L16,12 M12,13 Q12,15 10,15" />
 </vector>
