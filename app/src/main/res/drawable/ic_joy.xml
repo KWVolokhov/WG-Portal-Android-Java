@@ -8,28 +8,30 @@
     <!-- бутылка вина -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeColor="#0000FF"
+        android:strokeWidth="1.4"
         android:strokeLineCap="round"
-        android:pathData="M5,5 L5,14 Q5,17 9,17 L9,14 Q9,5 5,5 Z M5,9 L9,9"/>
+        android:pathData="M4,2 L4,6 Q2,7 2,9 L2,17 Q4,18 7,17 L7,9 Q7,7 5,6 L5,2 M3.5,2 L 5.5,2 M2,10 Q4,11 7,10"/>
     <!-- бутылка коньяка -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.8"
+        android:strokeColor="#965D34"
+        android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M14,5 L14,14 Q15,17 19,17 L19,14 Q14,5 14,5 Z M14,9 L19,9"/>
+        android:pathData="M10,5 L10,8 Q3,14 10,18 L12,18 Q19,14 12,8 L12,5 M9.5,5 L 12.5,5"/>
+    <!-- буква XO -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF0000"
+        android:strokeWidth=".7"
+        android:strokeLineCap="round"
+        android:pathData="M11,12 L9,14 M11,14 L9,12 M13,12 Q15,13 13,14 Q11,13 13,12"/>
     <!-- рюмка коньяка -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.7"
+        android:strokeColor="#FFC0CB"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
-        android:pathData="M10,19 L10,22 Q11,23 13,23 L14,22 Q15,19 10,19 Z"/>
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
-        android:strokeLineCap="round"
-        android:pathData="M11,21 L13,21"/>
+        android:pathData="M15,14 Q12,19 17,20 L17,22 L17,20 Q22,19 19,14 L15,14 M15,22 L19,22"/>
+
 </vector>
