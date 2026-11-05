@@ -17,6 +17,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -452,6 +454,19 @@ public class MainActivity extends BaseScreenActivity {
                 .show();
     }
 
+    /** Приоритет форм для сортировки списка MainActivity (Task 174). */
+    private static int formPriority(String form) {
+        if (form == null) return 99;
+        switch (form) {
+            case "Note":     return 1; // Заметки — первыми
+            case "Remember": return 2; // Уведомления — вторыми
+            case "Task":     return 3; // Задачи — третьими
+            case "Project":  return 4; // Проекты — четвертыми
+            case "Request":  return 5; // Заявки — пятыми
+            default:         return 99; // прочие (не должны попадать, но на всякий случай)
+        }
+    }
+
     void refreshListView() {
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
@@ -459,12 +474,29 @@ public class MainActivity extends BaseScreenActivity {
                 activRecordS = owerDb.getDayRecords(activeDate);
                 mainListAdapter.clear();
                 if (activRecordS != null) {
+                    // Собираем видимые записи, сортируем: сначала по приоритету формы,
+                    // затем внутри группы — по названию по алфавиту (Task 174).
+                    ArrayList<calPlanRecord> sorted = new ArrayList<>();
                     for (calPlanRecord record : activRecordS) {
                         // History is hidden, Health is hidden, and Project/Task drafts
                         // are not shown in the MainActivity day list
                         if (record != null && !shouldHideFromMainList(record)) {
-                            mainListAdapter.add(record);
+                            sorted.add(record);
                         }
+                    }
+                    Collections.sort(sorted, new Comparator<calPlanRecord>() {
+                        @Override
+                        public int compare(calPlanRecord a, calPlanRecord b) {
+                            int pa = formPriority(a.Form);
+                            int pb = formPriority(b.Form);
+                            if (pa != pb) return pa - pb;
+                            String na = a.Name != null ? a.Name : "";
+                            String nb = b.Name != null ? b.Name : "";
+                            return na.compareToIgnoreCase(nb);
+                        }
+                    });
+                    for (calPlanRecord record : sorted) {
+                        mainListAdapter.add(record);
                     }
                 }
                 mainListAdapter.notifyDataSetChanged();
