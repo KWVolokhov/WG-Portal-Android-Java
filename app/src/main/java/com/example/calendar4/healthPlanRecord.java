@@ -28,6 +28,7 @@ public class healthPlanRecord implements Serializable {
     public String BodyText;
     public String Comment;
     public String Revisions;
+    public String Icon; // Имя иконки drawable (из поля Icon справочника LIVETYPE)
 
     // ----- Health-specific Number fields (human organs) -----
     public Integer Head;        // Голова
@@ -93,5 +94,6 @@ public class healthPlanRecord implements Serializable {
 		this.FoodWeight = typeRecord.FoodWeight;
 		this.DrinkValue = typeRecord.DrinkValue;
 		this.Kallory = typeRecord.Kallory;
+		this.Icon = typeRecord.Icon;
     }
 }

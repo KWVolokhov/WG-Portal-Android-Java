@@ -19,7 +19,7 @@ import java.util.Map;
  * Экраны продолжают работать через методы этого класса - вызовы не менялись.
  */
 public class ManageSQLDatabase extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 12;
+    private static final int DATABASE_VERSION = 13;
     public static final String DATABASE_NAME = "WGPlanDatabase.db";
 
     public static String AuthorName = null;
@@ -80,6 +80,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         upgradeToV10(db, oldVersion);
         upgradeToV11(db, oldVersion);
         upgradeToV12(db, oldVersion);
+        upgradeToV13(db, oldVersion);
         safetyNetColumns(db);
     }
 
@@ -234,6 +235,11 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "REAL");
     }
 
+    // Version 13 (Task 173): HEALTHPLAN — колонка Icon (имя иконки drawable из LIVETYPE)
+    private void upgradeToV13(SQLiteDatabase db, int oldVersion) {
+        addColumnIfMissing(db, "HEALTHPLAN", "Icon", "TEXT");
+    }
+
     // Safety net (Task 34): гарантируем наличие всех колонок, какие нужны приложению
     // (старые сборки могли иметь завышенную версию БД и пропустить классические миграции).
     private void safetyNetColumns(SQLiteDatabase db) {
@@ -257,6 +263,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         addColumnIfMissing(db, "HEALTHPLAN", "FoodWeight", "REAL");
         addColumnIfMissing(db, "HEALTHPLAN", "DrinkValue", "REAL");
         addColumnIfMissing(db, "HEALTHPLAN", "Kallory", "INTEGER");
+        addColumnIfMissing(db, "HEALTHPLAN", "Icon", "TEXT");
         addColumnIfMissing(db, "CONTACTS", "AuthorID", "TEXT");
         addColumnIfMissing(db, "CONTACTS", "AuthorName", "TEXT");
         addColumnIfMissing(db, "CONTACTS", "LastUpdatedByID", "TEXT");

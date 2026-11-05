@@ -36,6 +36,9 @@ public class calPlanRecord implements Serializable {
     public String InstallOrder;
     public String KeyWords;
 
+    // Имя иконки drawable (из поля Icon справочника LIVETYPE), заполняется из шаблона livetypeRecord.
+    public String Icon;
+
     // Health numbers added for the Health edit screens and quick buttons
     // (Task 41/42): согласованы с healthPlanRecord / livetypeRecord.
     public Integer Steps;        // Шаги

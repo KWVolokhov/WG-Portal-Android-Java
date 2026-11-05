@@ -102,7 +102,8 @@ public class ConstantsSQLDb {
             "Steps INTEGER, " +//Label: Шаги
             "FoodWeight REAL, " +//Label: Вес еды (дробный - Task 149)
             "DrinkValue REAL, " +//Label: Объем питья (дробный - Task 149)
-            "Kallory INTEGER " +//Label: Каллории
+            "Kallory INTEGER, " +//Label: Каллории
+            \"Icon TEXT \" +//Label: Имя иконки drawable (из LIVETYPE)
             ")";
 public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS LIVETYPE (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes

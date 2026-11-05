@@ -61,6 +61,7 @@ public class HealthSQLManage {
         h.FoodWeight = r.FoodWeight;
         h.DrinkValue = r.DrinkValue;
         h.Kallory = r.Kallory;
+        h.Icon = r.Icon;
         // Task 45: полный набор полей "Голова".."Состояние кожи"
         h.Head = r.Head;
         h.Eyes = r.Eyes;
@@ -107,6 +108,7 @@ public class HealthSQLManage {
         r.FoodWeight = h.FoodWeight;
         r.DrinkValue = h.DrinkValue;
         r.Kallory = h.Kallory;
+        r.Icon = h.Icon;
         // Task 45: полный набор полей "Голова".."Состояние кожи"
         r.Head = h.Head;
         r.Eyes = h.Eyes;
@@ -194,6 +196,7 @@ public class HealthSQLManage {
         putDouble(values, "FoodWeight", record.FoodWeight);
         putDouble(values, "DrinkValue", record.DrinkValue);
         putInt(values, "Kallory", record.Kallory);
+        if (record.Icon != null) values.put("Icon", record.Icon);
 
         if (record.id != null) {
             int rows = db.update(TABLE_HEALTHPLAN, values, "id=?",
@@ -322,6 +325,8 @@ public class HealthSQLManage {
         record.FoodWeight = getDouble(cursor, "FoodWeight");
         record.DrinkValue = getDouble(cursor, "DrinkValue");
         record.Kallory = getInt(cursor, "Kallory");
+        int idxIcon = cursor.getColumnIndex("Icon");
+        if (idxIcon >= 0 && !cursor.isNull(idxIcon)) record.Icon = cursor.getString(idxIcon);
         return record;
     }
 

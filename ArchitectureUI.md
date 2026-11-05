@@ -162,7 +162,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 
 Task 172 — иконка в списках активностей: в `MessageListItem` добавлен статический хелпер `resolveListIcon(Context, iconName, fallbackRes)` (аналог `MainQuickButtons.findIconDrawable` для кнопок): если у типа активности (поле `Icon` записи LIVETYPE) указано непустое имя существующего drawable — показывается этот ресурс, иначе иконка по типу (Form). Применено:
 - `LivetypeActivity` (справочник «Типы жизнедеятельности») — `record.Icon` есть напрямую.
-- `HealthActivity` (список «сама активность» за день) — карта `Form → иконка` загружается один раз из LIVETYPE в `reload()` и используется в `getView` (без запроса к БД на строку).
+- `HealthActivity` (список «сама активность» за день) — иконка берется из поля `healthPlanRecord.Icon` (заполняется из шаблона `livetypeRecord` при создании записи, Task 173); если пусто — fallback на старую логику (`healthFormIconMap` из LIVETYPE → `iconForForm(Form)`). Карта `Form → иконка` всё ещё загружается в `reload()` как fallback.
 `MainActivity` в основном списке явно скрывает формы здоровья (`shouldHideFromMainList`), поэтому переопределения иконки там не требуется.
 
 ## 6. Данные, передаваемые между экранами

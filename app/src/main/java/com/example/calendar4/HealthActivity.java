@@ -79,8 +79,8 @@ public class HealthActivity extends BaseScreenActivity {
                 row.setMiddleText(recordTime(record));
                 // Task 142: третья строка - поле Info, а если оно не заполнено - Комментарий
                 row.setBottomText(shortBodyText(InfoFieldView.listText(record.BodyText, record.Comment)));
-                // Task 172: иконка из поля Icon типа активности, если ресурс существует — иначе иконка по Form
-                String iconName = healthFormIconMap.get(record.Form);
+                // Task 173: иконка из поля Icon записи healthPlanRecord; если пусто — берем из справочника LIVETYPE (старая логика)
+                String iconName = (record.Icon != null && !record.Icon.isEmpty()) ? record.Icon : healthFormIconMap.get(record.Form);
                 row.setTypeIcon(MessageListItem.resolveListIcon(HealthActivity.this, iconName, iconForForm(record.Form)));
                 row.setOnEditClickListener(v -> openEdit(record));
                 row.setOnDeleteClickListener(v -> confirmDelete(record));
@@ -198,9 +198,24 @@ public class HealthActivity extends BaseScreenActivity {
                 .setItems(new String[]{"Питание", "Питьё", "Спорт", "Стресс", "Гедонизм"},
                         (d, which) -> {
                             String form = livetypeRecord.CATEGORY_FORMS[which];
+                            // Task 173: иконку берем из шаблона livetypeRecord (справочник LIVETYPE)
+                            String icon = null;
+                            try {
+                                LivetypeSQLManage ltDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
+                                livetypeRecord[] all = ltDb.getAllLivetype("");
+                                if (all != null) {
+                                    for (livetypeRecord lr : all) {
+                                        if (form.equals(lr.Form)) { icon = lr.Icon; break; }
+                                    }
+                                }
+                            } catch (Exception ignored) {
+                            }
+                            calPlanRecord newRecord = new calPlanRecord(form, "");
+                            if (icon != null && !icon.isEmpty()) newRecord.Icon = icon;
                             Intent intent = new Intent(HealthActivity.this, HealthEditActivity.class);
                             intent.putExtra("activeDate", day);
                             intent.putExtra("healthForm", form);
+                            intent.putExtra("calPlanRecord", newRecord);
                             startActivityForResult(intent, 1);
                         })
                 .setNegativeButton("Cancel", null)
