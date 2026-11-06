@@ -229,19 +229,19 @@ public class ContactsSQLManage {
 
     // Все поля контакта (включая даты) в ContentValues
     private void fillContactValues(ContentValues values, ContactRecord record) {
-        if (record.Surname != null) values.put("Surname", record.Surname);
-        if (record.FirstName != null) values.put("FirstName", record.FirstName);
-        if (record.Patronymic != null) values.put("Patronymic", record.Patronymic);
-        if (record.Phone != null) values.put("Phone", record.Phone);
-        if (record.Info != null) values.put("Info", record.Info);
-        if (record.Phone2 != null) values.put("Phone2", record.Phone2);
-        if (record.Email != null) values.put("Email", record.Email);
-        if (record.HomeAddress != null) values.put("HomeAddress", record.HomeAddress);
-        if (record.EntryID != null) values.put("EntryID", record.EntryID);
-        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
-        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
-        if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
-        if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
+        SQLNullHelper.putText(values, "Surname", record.Surname);
+        SQLNullHelper.putText(values, "FirstName", record.FirstName);
+        SQLNullHelper.putText(values, "Patronymic", record.Patronymic);
+        SQLNullHelper.putText(values, "Phone", record.Phone);
+        SQLNullHelper.putText(values, "Info", record.Info);
+        SQLNullHelper.putText(values, "Phone2", record.Phone2);
+        SQLNullHelper.putText(values, "Email", record.Email);
+        SQLNullHelper.putText(values, "HomeAddress", record.HomeAddress);
+        SQLNullHelper.putText(values, "EntryID", record.EntryID);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);
+        SQLNullHelper.putText(values, "LastUpdatedBy", record.LastUpdatedBy);
         fillContactDateValues(values, record);
     }
 

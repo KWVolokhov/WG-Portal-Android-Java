@@ -51,15 +51,15 @@ public class LivetypeSQLManage {
         if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
-        if (record.UNID != null) values.put("UNID", record.UNID);
-        if (record.Name != null) values.put("Name", record.Name);
-        if (record.Category != null) values.put("Category", record.Category);
-        if (record.Icon != null) values.put("Icon", record.Icon);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putText(values, "Category", record.Category);
+        SQLNullHelper.putText(values, "Icon", record.Icon);
         // Task 40: Form - ID-поле для Category, хранится в своей колонке Form
-        if (record.Form != null) values.put("Form", record.Form);
+        SQLNullHelper.putText(values, "Form", record.Form);
         fillAuthorFromParams(record);
-        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
-        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
         if (record.DateCreated == null) record.DateCreated = new Date();
         if (record.DateCreated != null) {
             values.put("DateCreated", fmtDateTime().format(record.DateCreated));
@@ -238,7 +238,7 @@ public class LivetypeSQLManage {
     }
 
     private void putInt(ContentValues values, String column, Integer value) {
-        if (value != null) values.put(column, value);
+        values.put(column, value != null ? value : 0);
     }
 
     // Task 149: FoodWeight/DrinkValue хранятся с дробной частью (REAL в SQLite).
@@ -249,7 +249,7 @@ public class LivetypeSQLManage {
     }
 
     private void putDouble(ContentValues values, String column, Double value) {
-        if (value != null) values.put(column, value);
+        values.put(column, value != null ? value : 0.0);
     }
 
     private SimpleDateFormat fmtDateTime() {

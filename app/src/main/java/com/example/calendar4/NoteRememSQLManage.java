@@ -54,24 +54,24 @@ public class NoteRememSQLManage {
         if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
-        if (record.UNID != null) values.put("UNID", record.UNID);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
         if (record.Form == null) record.Form = "Note";
         values.put("Form", record.Form);
         if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
         fillAuthorFromParams(record);
-        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
-        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
-        if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
-        if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);
+        SQLNullHelper.putText(values, "LastUpdatedBy", record.LastUpdatedBy);
         if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
-        if (record.Name != null) values.put("Name", record.Name);
-        if (record.Status != null) values.put("Status", record.Status);
-        if (record.StatusID != null) values.put("StatusID", record.StatusID);
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putText(values, "Status", record.Status);
+        SQLNullHelper.putText(values, "StatusID", record.StatusID);
         if (record.StartDate != null) values.put("StartDate", fmt(record.StartDate));
-        if (record.BodyText != null) values.put("BodyText", record.BodyText);
-        if (record.Comment != null) values.put("Comment", record.Comment);
-        if (record.KeyWords != null) values.put("KeyWords", record.KeyWords);
-        if (record.Revisions != null) values.put("Revisions", record.Revisions);
+        SQLNullHelper.putText(values, "BodyText", record.BodyText);
+        SQLNullHelper.putText(values, "Comment", record.Comment);
+        SQLNullHelper.putText(values, "KeyWords", record.KeyWords);
+        SQLNullHelper.putText(values, "Revisions", record.Revisions);
 
         if (record.id != null) {
             int rows = db.update(TABLE_NOTEPLAN, values, "id=?",

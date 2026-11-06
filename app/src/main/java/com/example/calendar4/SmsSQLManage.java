@@ -108,15 +108,15 @@ public class SmsSQLManage {
         if (record.UNID == null || record.UNID.isEmpty()) {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
-        values.put("UNID", record.UNID);
-        if (record.Type != null) values.put("Type", record.Type);
-        if (record.FromID != null) values.put("FromID", record.FromID);
-        if (record.FromName != null) values.put("FromName", record.FromName);
-        if (record.ToID != null) values.put("ToID", record.ToID);
-        if (record.ToName != null) values.put("ToName", record.ToName);
-        if (record.Subject != null) values.put("Subject", record.Subject);
-        if (record.Body != null) values.put("Body", record.Body);
-        if (record.Status != null) values.put("Status", record.Status);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
+        SQLNullHelper.putText(values, "Type", record.Type);
+        SQLNullHelper.putText(values, "FromID", record.FromID);
+        SQLNullHelper.putText(values, "FromName", record.FromName);
+        SQLNullHelper.putText(values, "ToID", record.ToID);
+        SQLNullHelper.putText(values, "ToName", record.ToName);
+        SQLNullHelper.putText(values, "Subject", record.Subject);
+        SQLNullHelper.putText(values, "Body", record.Body);
+        SQLNullHelper.putText(values, "Status", record.Status);
         if (record.DateReceived == null) record.DateReceived = new Date();
         values.put("DateReceived", fmtDateTime().format(record.DateReceived));
 

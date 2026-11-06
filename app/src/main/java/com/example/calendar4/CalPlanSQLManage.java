@@ -46,38 +46,38 @@ public class CalPlanSQLManage {
         if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
-        if (record.UNID != null) values.put("UNID", record.UNID);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
         if (record.Okdate != null) values.put("Okdate", fmtDateTimeString(record.Okdate));
-        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
-        if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);
         if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
         if (record.LastUpdatedDate != null) {
             values.put("LastUpdatedDate", fmtDateTimeString(record.LastUpdatedDate));
         }
         if (record.HoldDate != null) values.put("HoldDate", fmtDateTimeString(record.HoldDate));
-        if (record.Revisions != null) values.put("Revisions", record.Revisions);
-        if (record.Form != null) values.put("Form", record.Form);
-        if (record.Name != null) values.put("Name", record.Name);
-        if (record.Priority != null) values.put("Priority", record.Priority);
-        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
-        if (record.RequestName != null) values.put("RequestName", record.RequestName);
-        if (record.RequestUNID != null) values.put("RequestUNID", record.RequestUNID);
-        if (record.Status != null) values.put("Status", record.Status);
-        if (record.StatusID != null) values.put("StatusID", record.StatusID);
-        if (record.MainSystem != null) values.put("MainSystem", record.MainSystem);
-        if (record.AnalitikID != null) values.put("AnalitikID", record.AnalitikID);
-        if (record.AnalitikName != null) values.put("AnalitikName", record.AnalitikName);
-        if (record.ExectorID != null) values.put("ExectorID", record.ExectorID);
-        if (record.ExectorName != null) values.put("ExectorName", record.ExectorName);
-        if (record.BodyText != null) values.put("BodyText", record.BodyText);
-        if (record.Comment != null) values.put("Comment", record.Comment);
+        SQLNullHelper.putText(values, "Revisions", record.Revisions);
+        SQLNullHelper.putText(values, "Form", record.Form);
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putInt(values, "Priority", record.Priority);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "RequestName", record.RequestName);
+        SQLNullHelper.putText(values, "RequestUNID", record.RequestUNID);
+        SQLNullHelper.putText(values, "Status", record.Status);
+        SQLNullHelper.putText(values, "StatusID", record.StatusID);
+        SQLNullHelper.putText(values, "MainSystem", record.MainSystem);
+        SQLNullHelper.putText(values, "AnalitikID", record.AnalitikID);
+        SQLNullHelper.putText(values, "AnalitikName", record.AnalitikName);
+        SQLNullHelper.putText(values, "ExectorID", record.ExectorID);
+        SQLNullHelper.putText(values, "ExectorName", record.ExectorName);
+        SQLNullHelper.putText(values, "BodyText", record.BodyText);
+        SQLNullHelper.putText(values, "Comment", record.Comment);
         if (record.StartDate != null) {
             // Task 115: Дата старта хранится в SQLite с 0ч 0м 0с.
             values.put("StartDate", fmtDateTimeString(startOfDay(record.StartDate)));
         }
         if (record.EndDate != null) values.put("EndDate", fmtDateTimeString(record.EndDate));
-        if (record.InstallOrder != null) values.put("InstallOrder", record.InstallOrder);
-        if (record.KeyWords != null) values.put("KeyWords", record.KeyWords);
+        SQLNullHelper.putText(values, "InstallOrder", record.InstallOrder);
+        SQLNullHelper.putText(values, "KeyWords", record.KeyWords);
     }
 
     /** Delete a CALPLAN record by its id. */

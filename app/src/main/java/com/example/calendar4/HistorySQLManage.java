@@ -54,20 +54,20 @@ public class HistorySQLManage {
         if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
             record.UNID = java.util.UUID.randomUUID().toString();
         }
-        if (record.UNID != null) values.put("UNID", record.UNID);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
         // Okdate (дата создания/заведения) хранится со временем создания, как в Health*
         if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
         fillAuthorFromParams(record);
-        if (record.AuthorID != null) values.put("AuthorID", record.AuthorID);
-        if (record.AuthorName != null) values.put("AuthorName", record.AuthorName);
-        if (record.LastUpdatedByID != null) values.put("LastUpdatedByID", record.LastUpdatedByID);
-        if (record.LastUpdatedBy != null) values.put("LastUpdatedBy", record.LastUpdatedBy);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);
+        SQLNullHelper.putText(values, "LastUpdatedBy", record.LastUpdatedBy);
         if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
-        if (record.Name != null) values.put("Name", record.Name);
-        if (record.BodyText != null) values.put("BodyText", record.BodyText);
-        if (record.Comment != null) values.put("Comment", record.Comment);
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putText(values, "BodyText", record.BodyText);
+        SQLNullHelper.putText(values, "Comment", record.Comment);
         if (record.StartDate != null) values.put("StartDate", fmt(record.StartDate));
-        if (record.Revisions != null) values.put("Revisions", record.Revisions);
+        SQLNullHelper.putText(values, "Revisions", record.Revisions);
 
         if (record.id != null) {
             int rows = db.update(TABLE_HISTORY, values, "id=?",

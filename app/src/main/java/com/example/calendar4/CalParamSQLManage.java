@@ -68,26 +68,26 @@ public class CalParamSQLManage {
     // Upsert CalParamRecord into CALPARAM table
     public void upsert(CalParamRecord record) {
         ContentValues values = new ContentValues();
-        if (record.Address != null) values.put("Address", record.Address);
-        if (record.Name != null) values.put("Name", record.Name);
-        if (record.Password != null) values.put("Password", record.Password);
-        if (record.Vedushii != null) values.put("Vedushii", record.Vedushii);
-        if (record.VedushiiID != null) values.put("VedushiiID", record.VedushiiID);
+        SQLNullHelper.putText(values, "Address", record.Address);
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putText(values, "Password", record.Password);
+        SQLNullHelper.putText(values, "Vedushii", record.Vedushii);
+        SQLNullHelper.putText(values, "VedushiiID", record.VedushiiID);
         // StartPage: null = default (Календарь / MainActivity)
         if (record.StartPage != null) values.put("StartPage", record.StartPage);
         // Three configurable quick buttons (values = числовой id записи LIVETYPE)
-        if (record.Button1Id != null) values.put("Button1Id", String.valueOf(record.Button1Id));
-        if (record.Button2Id != null) values.put("Button2Id", String.valueOf(record.Button2Id));
-        if (record.Button3Id != null) values.put("Button3Id", String.valueOf(record.Button3Id));
-        if (record.Button4Id != null) values.put("Button4Id", String.valueOf(record.Button4Id));
-        if (record.Button5Id != null) values.put("Button5Id", String.valueOf(record.Button5Id));
+        SQLNullHelper.putText(values, "Button1Id", record.Button1Id != null ? String.valueOf(record.Button1Id) : null);
+        SQLNullHelper.putText(values, "Button2Id", record.Button2Id != null ? String.valueOf(record.Button2Id) : null);
+        SQLNullHelper.putText(values, "Button3Id", record.Button3Id != null ? String.valueOf(record.Button3Id) : null);
+        SQLNullHelper.putText(values, "Button4Id", record.Button4Id != null ? String.valueOf(record.Button4Id) : null);
+        SQLNullHelper.putText(values, "Button5Id", record.Button5Id != null ? String.valueOf(record.Button5Id) : null);
         // Tasks 54/100: Рост/Вес/Возраст + папка вложений + имя базы
-        if (record.Height != null) values.put("Height", record.Height);
-        if (record.Weight != null) values.put("Weight", record.Weight);
-        if (record.Age != null) values.put("Age", record.Age);
-        if (record.AttachFolder != null) values.put("AttachFolder", record.AttachFolder);
-        if (record.DBName != null) values.put("DBName", record.DBName);
-        if (record.SyncTime != null) values.put("SyncTime", record.SyncTime);
+        SQLNullHelper.putInt(values, "Height", record.Height);
+        SQLNullHelper.putInt(values, "Weight", record.Weight);
+        SQLNullHelper.putInt(values, "Age", record.Age);
+        SQLNullHelper.putText(values, "AttachFolder", record.AttachFolder);
+        SQLNullHelper.putText(values, "DBName", record.DBName);
+        SQLNullHelper.putText(values, "SyncTime", record.SyncTime);
         if (record.id != null) {
             int rowsAffected = db.update("CALPARAM", values, "id=?",
                     new String[]{String.valueOf(record.id)});

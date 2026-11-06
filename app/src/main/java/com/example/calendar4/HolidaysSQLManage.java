@@ -74,7 +74,7 @@ public class HolidaysSQLManage {
             ContentValues values = new ContentValues();
             values.put("CountryCode", countryCode);
             values.put("HolidayDate", sdf.format(holiday.HolidayDate));
-            values.put("HolidayName", holiday.HolidayName);
+            SQLNullHelper.putText(values, "HolidayName", holiday.HolidayName);
             int rowsAffected = db.update("HOLIDAYS", values,
                     "CountryCode=? AND HolidayDate=?",
                     new String[]{countryCode, sdf.format(holiday.HolidayDate)});

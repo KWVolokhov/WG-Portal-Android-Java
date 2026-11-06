@@ -196,7 +196,7 @@ public class HealthSQLManage {
         putDouble(values, "FoodWeight", record.FoodWeight);
         putDouble(values, "DrinkValue", record.DrinkValue);
         putInt(values, "Kallory", record.Kallory);
-        if (record.Icon != null) values.put("Icon", record.Icon);
+        SQLNullHelper.putText(values, "Icon", record.Icon);
 
         if (record.id != null) {
             int rows = db.update(TABLE_HEALTHPLAN, values, "id=?",
@@ -380,7 +380,7 @@ public class HealthSQLManage {
     }
 
     private void putInt(ContentValues values, String column, Integer value) {
-        if (value != null) values.put(column, value);
+        values.put(column, value != null ? value : 0);
     }
 
     // Task 149: FoodWeight/DrinkValue хранятся с дробной частью (REAL в SQLite).
@@ -391,7 +391,7 @@ public class HealthSQLManage {
     }
 
     private void putDouble(ContentValues values, String column, Double value) {
-        if (value != null) values.put(column, value);
+        values.put(column, value != null ? value : 0.0);
     }
 
     private SimpleDateFormat fmtDateTime() {

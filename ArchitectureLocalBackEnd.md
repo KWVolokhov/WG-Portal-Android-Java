@@ -81,6 +81,7 @@
 | `HardcoreCrashHandler` | Перехват UncaughtException всех потоков (ставится в `WGPortalApp.onCreate`, Task 134); сохранение стека и запуск `CrashActivity` при ошибке на любом Activity |
 | `SmsDefaultsSeeder` | Сидирование 2 тестовых СМС в SMSCALPLAN при создании/миграции БД (Task 106/112/121; Task 139 — вынесен из ManageSQLDatabase) |
 | `ConstantsSQLDb` | Все DDL/INSERT/UPDATE-строки схемы (единственное место изменения схемы) |
+| `SQLNullHelper` | Унифицированная обработка `null` при сохранении в `ContentValues`: текстовые поля `null → ""`, числовые `null → 0`/`0.0`. Используется во всех `*SQLManage` менеджерах вместо `if (x != null) values.put(...)`, чтобы `db.update()` реально обнулял колонку при стирании значения через интерфейс. |
 
 ## 6. Правила ведения файла (для ИИ)
 
@@ -89,3 +90,4 @@
 3. Изменение `DATABASE_VERSION` обязательно сопровождать миграцией в `onUpgrade` без потери данных.
 4. При изменении таблицы указывать, какие экраны (UI) её используют — синхронно править `ArchitectureUI.md`.
 5. Всё, что касается обмена с сервером, — в `ArchitectureServerSynkhro.md`.
+6. При сохранении (`upsert`/`insert`) в любом `*SQLManage`: текстовые поля `null → ""`, числовые `Integer null → 0`, `Double null → 0.0` через `SQLNullHelper.putText/putInt/putDouble`. Не полагаться на `if (x != null) values.put(...)` — иначе `db.update()` не обнулит колонку и старое значение застрянет в SQLite.
