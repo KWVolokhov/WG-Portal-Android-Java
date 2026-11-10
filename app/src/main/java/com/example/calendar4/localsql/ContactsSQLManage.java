@@ -9,9 +9,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import com.example.calendar4.InfoFieldView;
 import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.localsql.SQLNullHelper;
 import com.example.calendar4.records.ContactRecord;
+import com.example.calendar4.records.calPlanRecord;
 
 /**
  * Task 139: менеджер таблицы CONTACTS - вынесен из ManageSQLDatabase по образцу

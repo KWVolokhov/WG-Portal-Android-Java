@@ -108,7 +108,7 @@
              />
 
         <activity
-            android:name=".CrashActivity"
+            android:name=".help.CrashActivity"
             android:exported="false"
             android:launchMode="singleTask"
              />
@@ -147,7 +147,7 @@
 
         <!-- Task 146: экран "О Программе" (пункт меню под "Параметры") -->
         <activity
-            android:name=".AboutActivity"
+            android:name=".help.AboutActivity"
             android:exported="false"
             />
 
@@ -175,7 +175,4 @@
         </provider>
 
     </application>
-
-
-
 </manifest>

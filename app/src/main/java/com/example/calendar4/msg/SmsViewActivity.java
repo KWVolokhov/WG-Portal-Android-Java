@@ -14,6 +14,7 @@ import com.example.calendar4.BaseScreenActivity;
 import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.records.smsRecord;
+import com.example.calendar4.R;
 
 /**
  * Task 111: просмотр одной записи СМС - все поля только для чтения.

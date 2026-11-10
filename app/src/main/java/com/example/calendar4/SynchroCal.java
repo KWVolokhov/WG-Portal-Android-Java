@@ -6,6 +6,9 @@ import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.records.CalParamRecord;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;

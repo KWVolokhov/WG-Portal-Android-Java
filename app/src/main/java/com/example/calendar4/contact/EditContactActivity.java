@@ -19,6 +19,8 @@ import com.example.calendar4.PhoneFieldView;
 import com.example.calendar4.msg.SmsChatActivity;
 import com.example.calendar4.rcalendar.DateFieldView;
 import com.example.calendar4.records.ContactRecord;
+import com.example.calendar4.R;
+
 
 public class EditContactActivity extends BaseScreenActivity {
 

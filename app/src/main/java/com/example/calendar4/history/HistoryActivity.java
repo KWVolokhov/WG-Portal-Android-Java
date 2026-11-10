@@ -25,6 +25,7 @@ import com.example.calendar4.MessageListItem;
 import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.localsql.HistorySQLManage;
 import com.example.calendar4.records.calPlanRecord;
+import com.example.calendar4.R;
 
 /**
  * Day history screen: shows History records (their own HISTORY table) for a concrete day,

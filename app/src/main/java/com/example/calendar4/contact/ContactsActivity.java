@@ -16,10 +16,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import com.example.calendar4.BaseScreenActivity;
-import com.example.calendar4.CalParamRecord;
+import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.MessageListItem;
 import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.records.ContactRecord;
+import com.example.calendar4.R;
 
 public class ContactsActivity extends BaseScreenActivity {
 

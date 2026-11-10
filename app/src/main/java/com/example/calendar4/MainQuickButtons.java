@@ -4,6 +4,13 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.calendar4.localsql.HealthSQLManage;
+import com.example.calendar4.localsql.LivetypeSQLManage;
+import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.records.healthPlanRecord;
+import com.example.calendar4.records.livetypeRecord;
+
 import java.util.Date;
 
 /**

@@ -30,6 +30,7 @@ import com.example.calendar4.localsql.LivetypeSQLManage;
 import com.example.calendar4.records.calPlanRecord;
 import com.example.calendar4.records.healthPlanRecord;
 import com.example.calendar4.records.livetypeRecord;
+import com.example.calendar4.R;
 
 /**
  * Day Health screen: shows HEALTHPLAN records (Form=HealthEat / HealthDrink / HealthSport)

@@ -20,18 +20,18 @@ public class HelpConstants {
     public static final String HISTORY_EDIT_ACTIVITY = "Просмотр Истории";
     public static final String HEALTH_ACTIVITY = "Экран Здоровья";
 
-    public static final String DESC_MAIN_ACTIVITY = "Календарный план";
+    public static final String DESC_MAIN_ACTIVITY = "Вверхней части Календарь РФ с праздниками.\nПосередине быстрые кнопки активностей и проектов.\nСнизу список текщих Заметок и Уведомлений на выбранную вверху дату, а также активные задачи и проекты, если указанный день в их периоде";
 	public static final String DESC_CONTACTS_ACTIVITY = "Контакты";
 	public static final String DESC_CALC_ACTIVITY = "Простой прецеззионный Калькулятор, предназначен расчетов формул";
 	public static final String DESC_LIVETYPE_ACTIVITY = "Справочник стандартных \"Типов жизнидеятельности\", может быть расширен";
-	public static final String DESC_PROJECTS_ACTIVITY = "Ведение Проекты, Заявок на проекты, задач в проектах и отдельно. Все три типа можно было оюъеденить в один, но они отличаются размерами, количеством этапов, проработанностью постановки.\nСтартуют от даты старта, переключение этапа в Выполнено фиксирует дату окончания. От даты старта до даты окончания на основном экране записи показываются как активные на этапах В работе и Тестирование";
+	public static final String DESC_PROJECTS_ACTIVITY = "Ведение Проекты, Заявок на проекты, задач в проектах и отдельно. Все три типа можно было объеденить в один, но они отличаются размерами, количеством этапов, проработанностью постановки.\nСтартуют от даты старта, переключение этапа в Выполнено фиксирует дату окончания. От даты старта до даты окончания на основном экране записи показываются как активные на этапах В работе и Тестирование";
 	public static final String DESC_SMS_ACTIVITY = "Раздел с сообщениями, из-за постоянных блокировок ГовноМИНЦИФРЫ явно требуется, но вот вопрос через СМС ли, может через HTTPRequest и с шифрованием. В разработке";
 	public static final String DESC_HELP_ACTIVITY = "Весь Help по системе пока будет биться по сути на экраны";
     public static final String DESC_PARAMS_ACTIVITY = "Параметры системы для настройки, назабудьте выставить корректно автора и придумать как выставить автора так, чтобы подливались данные с сервера верные";
 	
-    public static final String HISTORY_ACTIVITY = "История критических изменений в системе";
-    public static final String HISTORY_EDIT_ACTIVITY = "Просмотр события Истории";
-    public static final String HEALTH_ACTIVITY = "Экран Здоровья это дневной список активностей, которые точно влияють на здоровье - поесть, попить, побегать";
+    public static final String DESC_HISTORY_ACTIVITY = "История критических изменений в системе";
+    public static final String DESC_HISTORY_EDIT_ACTIVITY = "Просмотр события Истории";
+    public static final String DESC_HEALTH_ACTIVITY = "Экран Здоровья это дневной список активностей, которые точно влияють на здоровье - поесть, попить, побегать";
     
     private HelpConstants() {
         // Utility class, prevent instantiation
@@ -78,7 +78,7 @@ public class HelpConstants {
     }
 
 	/** Перебрасывает следующую константу */
-    public static getNextTitle(String currentTitle) {
+    public static String getNextTitle(String currentTitle) {
 		if(MAIN_ACTIVITY.equals(currentTitle)) return CONTACTS_ACTIVITY;
 		if(CONTACTS_ACTIVITY.equals(currentTitle)) return CALC_ACTIVITY;
 		if(CALC_ACTIVITY.equals(currentTitle)) return LIVETYPE_ACTIVITY;
@@ -87,16 +87,27 @@ public class HelpConstants {
 		if(SMS_ACTIVITY.equals(currentTitle)) return HELP_ACTIVITY;
 		if(HELP_ACTIVITY.equals(currentTitle)) return PARAMS_ACTIVITY;
 		if(PARAMS_ACTIVITY.equals(currentTitle)) return HISTORY_ACTIVITY;
-		
 		if(HISTORY_ACTIVITY.equals(currentTitle)) return HISTORY_EDIT_ACTIVITY;
 		if(HISTORY_EDIT_ACTIVITY.equals(currentTitle)) return HEALTH_ACTIVITY;
-		if(HEALTH_ACTIVITY.equals(currentTitle)) return MAIN_ACTIVITY;
-		
+        return MAIN_ACTIVITY;
+    }
+    public static String getPrevTitle(String currentTitle) {
+        if(MAIN_ACTIVITY.equals(currentTitle)) return HEALTH_ACTIVITY;
+        if(CONTACTS_ACTIVITY.equals(currentTitle)) return MAIN_ACTIVITY;
+        if(CALC_ACTIVITY.equals(currentTitle)) return CONTACTS_ACTIVITY;
+        if(LIVETYPE_ACTIVITY.equals(currentTitle)) return CALC_ACTIVITY;
+        if(PROJECTS_ACTIVITY.equals(currentTitle)) return LIVETYPE_ACTIVITY;
+        if(SMS_ACTIVITY.equals(currentTitle)) return PROJECTS_ACTIVITY;
+        if(HELP_ACTIVITY.equals(currentTitle)) return SMS_ACTIVITY;
+        if(PARAMS_ACTIVITY.equals(currentTitle)) return HELP_ACTIVITY;
+        if(HISTORY_ACTIVITY.equals(currentTitle)) return PARAMS_ACTIVITY;
+        if(HISTORY_EDIT_ACTIVITY.equals(currentTitle)) return HISTORY_ACTIVITY;
+        if(HEALTH_ACTIVITY.equals(currentTitle)) return HISTORY_EDIT_ACTIVITY;
         return MAIN_ACTIVITY;
     }
 
 	/** Получает текст по константе */
-    public static getDescByTitle(String currentTitle) {
+    public static String getDescByTitle(String currentTitle) {
 		if(MAIN_ACTIVITY.equals(currentTitle)) return DESC_MAIN_ACTIVITY;
 		if(CONTACTS_ACTIVITY.equals(currentTitle)) return DESC_CONTACTS_ACTIVITY;
 		if(CALC_ACTIVITY.equals(currentTitle)) return DESC_CALC_ACTIVITY;
@@ -105,10 +116,9 @@ public class HelpConstants {
 		if(SMS_ACTIVITY.equals(currentTitle)) return DESC_SMS_ACTIVITY;
 		if(HELP_ACTIVITY.equals(currentTitle)) return DESC_HELP_ACTIVITY;
 		if(PARAMS_ACTIVITY.equals(currentTitle)) return DESC_PARAMS_ACTIVITY;
-		
 		if(HISTORY_ACTIVITY.equals(currentTitle)) return DESC_HISTORY_ACTIVITY;
 		if(HISTORY_EDIT_ACTIVITY.equals(currentTitle)) return DESC_HISTORY_EDIT_ACTIVITY;
-		if(HEALTH_ACTIVITY.equals(currentTitle)) return DESC_HEALTH_ACTIVITY;
+        if(HEALTH_ACTIVITY.equals(currentTitle)) return DESC_HEALTH_ACTIVITY;
 		
         return DESC_MAIN_ACTIVITY;
     }

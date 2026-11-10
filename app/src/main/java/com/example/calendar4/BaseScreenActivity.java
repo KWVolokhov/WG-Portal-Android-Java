@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.calendar4.contact.ContactsActivity;
 import com.example.calendar4.health.LivetypeActivity;
 import com.example.calendar4.help.HelpActivity;
+import com.example.calendar4.help.HelpConstants;
 import com.example.calendar4.help.SpotlightActivity;
 import com.example.calendar4.msg.SmsActivity;
 import com.example.calendar4.project.ProjectsActivity;
@@ -62,8 +63,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
             // содержимое придёт из будущего "Help Справочника".
             Intent help = new Intent(this, SpotlightActivity.class);
             CharSequence title = getTitle();
-            help.putExtra(SpotlightActivity.EXTRA_HELP_TEXT,
-                    "Экран: " + HelpConstants.getScreenTitle(getClass().getSimpleName()));
+            help.putExtra(SpotlightActivity.EXTRA_HELP_TEXT, getClass().getSimpleName());  //Тут именя класса передается для ппонимания какой хелп
             startActivity(help);
         }
         // Task 147: пункт меню "Help Справочник".

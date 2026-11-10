@@ -13,7 +13,9 @@ import java.util.HashSet;
 import java.util.Locale;
 
 import com.example.calendar4.MainActivity;
+import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.records.holidayRecord;
+import com.example.calendar4.R;
 
 /**
  * Task 139: загрузка праздников (интернет -> HOLIDAYS -> календарь) - вынесено из
@@ -24,7 +26,7 @@ import com.example.calendar4.records.holidayRecord;
  * в статическом кэше и загружаются для любого запрашиваемого года.
  * Task 167: если календарь текущего года не получен, попытка повторяется 1 раз за запуск приложения.
  */
-final class RussianHolidaysLoader {
+public final class RussianHolidaysLoader {
 
     private RussianHolidaysLoader() {
     }
@@ -57,7 +59,7 @@ final class RussianHolidaysLoader {
     /**
      * Загружает праздники текущего года: при необходимости - из интернета, затем в календарь.
      */
-    static void fetch(MainActivity act) {
+    public static void fetch(MainActivity act) {
         Calendar cal = Calendar.getInstance();
         int currentYear = cal.get(Calendar.YEAR);
         int currentMonth = cal.get(Calendar.MONTH) + 1;
@@ -100,7 +102,7 @@ final class RussianHolidaysLoader {
      * Если данные за текущий год ещё не загружены, делает одну повторную попытку
      * скачать их независимо от даты.
      */
-    static void ensureCurrentYearLoaded(MainActivity act) {
+    public static void ensureCurrentYearLoaded(MainActivity act) {
         Calendar cal = Calendar.getInstance();
         int currentYear = cal.get(Calendar.YEAR);
         if (cachedYears.contains(currentYear) && !holidaysCache.isEmpty()) return;

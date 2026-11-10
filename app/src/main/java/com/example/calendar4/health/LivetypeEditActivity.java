@@ -26,6 +26,7 @@ import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.localsql.LivetypeSQLManage;
 import com.example.calendar4.records.ContactRecord;
 import com.example.calendar4.records.livetypeRecord;
+import com.example.calendar4.R;
 
 public class LivetypeEditActivity extends BaseScreenActivity {
 

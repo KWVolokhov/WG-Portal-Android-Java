@@ -25,11 +25,14 @@ import java.util.Date;
 import java.util.Locale;
 
 import com.example.calendar4.BaseScreenActivity;
-import com.example.calendar4.CalParamRecord;
+import com.example.calendar4.MessageListItem;
+import com.example.calendar4.StatusIconFactory;
+import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.InfoFieldView;
 import com.example.calendar4.InputCalPlanActivity;
 import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.records.calPlanRecord;
+import com.example.calendar4.R;
 
 /**
  * Task 138: универсальный экран списков Проектов/Задач/Заявок (объединил бывшие

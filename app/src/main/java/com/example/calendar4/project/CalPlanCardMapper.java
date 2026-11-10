@@ -1,4 +1,4 @@
-package com.example.calendar4;
+package com.example.calendar4.project;
 
 import android.widget.Toast;
 
@@ -17,13 +17,14 @@ import com.example.calendar4.localsql.ManageSQLDatabase;
  * вынесен из BaseCalPlanEditActivity (методы populateFields / fillRecordFromUi).
  * Работает с protected-полями карточки (тот же пакет), UI-логику не дублирует.
  */
-final class CalPlanCardMapper {
+public final class CalPlanCardMapper {
 
     private CalPlanCardMapper() {
     }
 
     /** Заполняет поля экрана значениями record (бывший populateFields). */
     static void populate(BaseCalPlanEditActivity a) {
+        //a.setOkdateValue((a.record != null && a.record.Okdate != null) ? a.record.Okdate : a.activeDate);//WG
         a.okdateValue = (a.record != null && a.record.Okdate != null) ? a.record.Okdate : a.activeDate;
         a.textViewOkdate.setText(BaseCalPlanEditActivity.DISPLAY_DATE_TIME.format(a.okdateValue));
 

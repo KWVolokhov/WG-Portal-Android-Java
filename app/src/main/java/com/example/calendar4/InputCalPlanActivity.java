@@ -1,5 +1,7 @@
 package com.example.calendar4;
 
+import com.example.calendar4.project.BaseCalPlanEditActivity;
+
 /**
  * Edit card for Form = Project (the main "проект" screen).
  * Uses the shared reworked layout from BaseCalPlanEditActivity with all fields visible.

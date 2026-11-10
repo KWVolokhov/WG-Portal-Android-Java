@@ -22,6 +22,7 @@ import com.example.calendar4.localsql.ManageSQLDatabase;
 import com.example.calendar4.MessageListItem;
 import com.example.calendar4.localsql.LivetypeSQLManage;
 import com.example.calendar4.records.livetypeRecord;
+import com.example.calendar4.R;
 
 /**
  * "Типы жизнедеятельности" reference book screen: lists all LIVETYPE records

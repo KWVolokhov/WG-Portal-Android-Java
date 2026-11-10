@@ -27,6 +27,7 @@ import com.example.calendar4.localsql.SmsSQLManage;
 import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.records.ContactRecord;
 import com.example.calendar4.records.smsRecord;
+import com.example.calendar4.R;
 
 /**
  * Task 110: СМС Чат - диалог сообщений между Ведущим (из параметров) и Контактом.

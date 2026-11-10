@@ -1,5 +1,7 @@
 package com.example.calendar4;
 
+import com.example.calendar4.project.BaseCalPlanEditActivity;
+
 /**
  * Edit card for Form = Remember.
  * Fields: Form, Состояние, Название, Дата напоминания, Текст Напоминания, Комментарий, Ключевые слова.

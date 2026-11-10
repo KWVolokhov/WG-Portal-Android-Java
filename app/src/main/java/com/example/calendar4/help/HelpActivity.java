@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
+import com.example.calendar4.R;
 
 /**
  * Task 147: экран "Help Справочник" (пункт меню над "Параметры").

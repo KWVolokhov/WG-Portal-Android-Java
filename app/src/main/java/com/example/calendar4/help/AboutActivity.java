@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.calendar4.help.AndroidVersions;
 import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.R;
 
 /**
  * Task 146: экран "О Программе" (пункт меню под "Параметры").

@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
     <!-- Calendar stays on the left with the same width -->
-    <com.example.calendar4.RussianCalendarView
+    <com.example.calendar4.rcalendar.RussianCalendarView
         android:id="@+id/calendarView1"
         android:layout_width="@dimen/calendar_width"
         android:layout_height="0dp"

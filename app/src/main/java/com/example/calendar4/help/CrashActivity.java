@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.calendar4.MainActivity;
+import com.example.calendar4.R;
 
 /**
  * Crash screen launched by {@link HardcoreCrashHandler} when the application crashes.

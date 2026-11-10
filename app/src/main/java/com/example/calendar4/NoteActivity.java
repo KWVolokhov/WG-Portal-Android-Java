@@ -1,5 +1,7 @@
 package com.example.calendar4;
 
+import com.example.calendar4.project.BaseCalPlanEditActivity;
+
 /**
  * Edit card for Form = Note.
  * Fields: Form, Состояние, Название, Дата записи, Текст Заметки, Комментарий, Ключевые слова.

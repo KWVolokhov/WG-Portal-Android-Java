@@ -201,7 +201,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp" />
 
-                <com.example.calendar4.DateFieldView
+                <com.example.calendar4.rcalendar.DateFieldView
                     android:id="@+id/dateFieldStartDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

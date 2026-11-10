@@ -11,22 +11,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.example.calendar4.localsql.CalParamSQLManage;
-import com.example.calendar4.localsql.CalPlanSQLManage;
-import com.example.calendar4.localsql.ContactsSQLManage;
-import com.example.calendar4.localsql.HealthSQLManage;
-import com.example.calendar4.localsql.HolidaysSQLManage;
-import com.example.calendar4.localsql.LivetypeSQLManage;
-import com.example.calendar4.localsql.NoteRememSQLManage;
-import com.example.calendar4.localsql.SmsSQLManage;
 import com.example.calendar4.msg.SmsDefaultsSeeder;
 import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.records.ContactRecord;
 import com.example.calendar4.records.calPlanRecord;
-import com.example.calendar4.records.healthPlanRecord;
 import com.example.calendar4.records.holidayRecord;
-import com.example.calendar4.records.livetypeRecord;
-import com.example.calendar4.records.smsRecord;
 
 /**
  * Singleton-доступ к локальной БД SQLite (WGPlanDatabase.db): создание/миграции схемы
@@ -43,7 +32,7 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
     public static String AuthorID = null;
     private static ManageSQLDatabase instance = null;
 
-    protected ManageSQLDatabase(Context context) {
+    public ManageSQLDatabase(Context context) {
         super(context.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
         CalParamRecord param = getCalParam();
         if (param != null) {

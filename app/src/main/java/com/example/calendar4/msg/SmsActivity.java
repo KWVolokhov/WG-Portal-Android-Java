@@ -23,6 +23,7 @@ import com.example.calendar4.MessageListItem;
 import com.example.calendar4.localsql.SmsSQLManage;
 import com.example.calendar4.records.CalParamRecord;
 import com.example.calendar4.records.smsRecord;
+import com.example.calendar4.R;
 
 /**
  * Task 107: экран списка СМС (по одному на все папки СМС\Все, СМС\Входящие,

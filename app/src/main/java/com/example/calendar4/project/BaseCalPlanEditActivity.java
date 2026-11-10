@@ -21,11 +21,16 @@ import java.util.Date;
 import java.util.Locale;
 
 import com.example.calendar4.BaseScreenActivity;
-import com.example.calendar4.CalPlanCardMapper;
+import com.example.calendar4.CalPlanHealthNumbers;
 import com.example.calendar4.InfoFieldView;
+import com.example.calendar4.InputCalPlanActivity;
+import com.example.calendar4.health.Pedometer;
 import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.rcalendar.DateFieldView;
 import com.example.calendar4.records.ContactRecord;
 import com.example.calendar4.records.calPlanRecord;
+import com.example.calendar4.R;
+
 
 /**
  * Base editable card for all CALPLAN forms (Project, Note, Remember, Task, History,
@@ -572,5 +577,8 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+    public void setOkdateValue(Date value) { // из-за protected нужен сеттер
+        this.okdateValue = value;
     }
 }

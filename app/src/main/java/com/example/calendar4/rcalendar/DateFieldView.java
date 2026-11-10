@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.calendar4.R;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -66,6 +68,7 @@ public class DateFieldView extends LinearLayout {
         // ----- pick button (ImageButton with app icon / calendar picker, 32dp) -----
         ImageButton btnPick = new ImageButton(context);
         btnPick.setImageResource(R.drawable.ic_pick_date);
+
         btnPick.setBackgroundResource(android.R.color.transparent);
         int sizePx = (int) (getResources().getDisplayMetrics().density * 32);
         LinearLayout.LayoutParams lpBtn = new LinearLayout.LayoutParams(sizePx, sizePx);

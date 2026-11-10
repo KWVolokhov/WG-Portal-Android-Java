@@ -32,15 +32,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.calendar4.health.HealthActivity;
+import com.example.calendar4.health.HealthEditActivity;
 import com.example.calendar4.health.LivetypeActivity;
 import com.example.calendar4.health.Pedometer;
 import com.example.calendar4.history.HistoryActivity;
+import com.example.calendar4.history.HistoryEditActivity;
 import com.example.calendar4.msg.SmsActivity;
 import com.example.calendar4.project.BaseCalPlanEditActivity;
 import com.example.calendar4.project.ProjectsActivity;
 import com.example.calendar4.project.TaskActivity;
 import com.example.calendar4.rcalendar.RussianCalendarView;
 import com.example.calendar4.rcalendar.RussianHolidaysFetcher;
+import com.example.calendar4.rcalendar.RussianHolidaysLoader;
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.records.ContactRecord;
 import com.example.calendar4.records.calPlanRecord;
 import com.example.calendar4.contact.ContactsActivity;
 import com.example.calendar4.localsql.ManageSQLDatabase;
@@ -53,7 +58,7 @@ public class MainActivity extends BaseScreenActivity {
     RussianCalendarView russianCalendar;
     calPlanRecord[] activRecordS = null;
     private ArrayAdapter<calPlanRecord> mainListAdapter;
-    RussianHolidaysFetcher holidaysFetcher;
+    public RussianHolidaysFetcher holidaysFetcher;
 
     // ===== Real pedometer (Task 29): управление вынесено в отдельный класс Pedometer =====
     private Pedometer pedometer;

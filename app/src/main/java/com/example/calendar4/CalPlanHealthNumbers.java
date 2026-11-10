@@ -8,6 +8,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.calendar4.records.calPlanRecord;
+
 import java.util.Locale;
 
 /**
