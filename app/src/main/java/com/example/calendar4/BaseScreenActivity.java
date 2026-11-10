@@ -18,6 +18,10 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        if("HelpActivity".equals(this.getClass().getName()) || "SpotlightActivity".equals(this.getClass().getName())){
+            //helpButton = findViewById(R.id.buttonH);
+        }
+
         return true;
     }
 

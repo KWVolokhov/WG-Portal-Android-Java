@@ -43,9 +43,10 @@ public class HelpActivity extends BaseScreenActivity {
         // Заглушка: демонстрационные элементы справочника (без SQL).
         allItems.add("Календарный план");
         allItems.add("Контакты");
-        allItems.add("Проекты и задачи");
-        allItems.add("Здоровье");
+        allItems.add("Калькулятор");
         allItems.add("Типы жизнедеятельности");
+        allItems.add("Здоровье");
+        allItems.add("Проекты и задачи");
         allItems.add("СМС");
         allItems.add("Параметры");
         allItems.add("Синхронизация");
