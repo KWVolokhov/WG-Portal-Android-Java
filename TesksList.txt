@@ -513,18 +513,41 @@ app\src\main\res\drawable\ic_pedometer.xml заменить насхема ти�
  При этом внутри соей подгруппы сортировка названия по алфавиту
 
 
-=============== DONE =========================
-=============== Todo =========================
-
-===============^Engineer Check & Fix AI done============
 175)не меняй код в этом кейсе! Ответь на вопрос почему иногда (на разных устройствах) при пустом поле livetypeRecord.Icon у LivetypeEditActivity в справочнике При нажатии кнопки на MainActivity.java настроенной на livetypeRecord типа HealthDrink (и как я думаю livetypeRecord.Icon="")вылетает 
 ic_americano.xml вместо ic_coffee.xml в листе на HealthActivity.listViewHealth
 
 176) возможно стоит исправить код, если в справочнике LivetypeEditActivity.icon удалить строку и нажать btnOK перезапись в SQL не происходит! в итоге может подтягиваться не то значение - исправить код
 похоже тут дело шире, если record.Icon == null должно в SQL записаться "" и это же относиться ко всем остальным тектовым полям и во всех таблицах, а если поле Number то при record.(Number) == null 
 значение дожно быть 0, причем возможно стоит функцию для это завести в LiveTypeSQLManage
+=============== DONE =========================
+=============== Todo =========================
+===============^Engineer Check & Fix AI done============
 
+177) Добавить кнопки Копировать на экран AboutActivity - копирует в буфер текущую информация о версии Andrоid и версии БД виде "Версия Android 14(Api 34), Database_Version: 13
+
+178) Добавить кнопки Копировать на экран CrashActivity рядом с имеющимися кнопками - копирует в буфер текущую информация об ошибке
+
+179) Пора поделить классы на группы и перенести в подкаталоги: Пока добавим следующие Группы-каталоги: 
+Health - классы HealthActivity, HealthDrinkActivity, HealthEatActivity, HealthEditActivity, HealthSportActivity, LivetypeActivity, LivetypeEditActivity, Pedometer
+Help - классы HelpActivity, SpotlightActivity
+Msg - SmsActivity, SmsChatActivity, SmsDefaultsSeeder, SmsViewActivity
+Project - ProjectsActivity, BaseCalPlanEditActivity, TaskActivity, кроме TaskActivity наследуемые от BaseCalPlanEditActivity для редактирования Задач предполагались еще классы 
+для редактирования Project и Request их тоже сюда
+RCalendar - RussianCalendarView, RussianHolidaysFetcher, RussianHolidaysLoader, DateFieldView
+Records - все классы в названии которых присутствует набор Record CalParamRecord и тд
+LocalSQL - все классы в названии которых присутствует набор SQL CalParamSQLManage и тд
+Contact - EditContactActivity, ContactsActivity
+History - HistoryActivity, HistoryEditActivity
+
+180) классы HelpActivity, SpotlightActivity не должны насдедовать от BaseScreenActivity как уже и не наследует CrashActivity, элементы от BaseScreenActivity им не нужны
 ===============^Engineer Check & Fix AI fail============ 
+
+181) на экране SpotlightActivity текст должен быть динамическим
+В BaseScreenActivity есть срока но чето она не верно пишет везде одно и тоже "Календарный план"
+ "Экран: " + (title != null ? title : getClass().getSimpleName()));
+А должна писать с разных экранов тоже что и написано в Меню и там где нет меню по смыслу русский перевод названия класса, 
+т.е. с MainActivity - "Календарный план", с ParamsActivity - "Параметры", с LivetypeActivity - "Типы жизнидеятельности", с HistoryActivity и HistoryEditActivity - "История" и "Просмотр Истории"
+
 270) Организация на JAVA ответного приема Json и сохранения в базе Lotus
 
 271) В некоторых случаях лебел название на тема, например Уведомление и Заметка
