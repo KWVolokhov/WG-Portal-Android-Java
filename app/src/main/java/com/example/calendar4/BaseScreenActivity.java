@@ -63,7 +63,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
             Intent help = new Intent(this, SpotlightActivity.class);
             CharSequence title = getTitle();
             help.putExtra(SpotlightActivity.EXTRA_HELP_TEXT,
-                    "Экран: " + getScreenTitle());
+                    "Экран: " + HelpConstants.getScreenTitle(getClass().getSimpleName()));
             startActivity(help);
         }
         // Task 147: пункт меню "Help Справочник".
@@ -73,28 +73,5 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         else if (id == R.id.about) startActivity(new Intent(this, AboutActivity.class));
         else Toast.makeText(this, "Меню " + item.getTitle(), Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
-    }
-
-    /** Возвращает русский название экрана для отображения в подсказке */
-    protected String getScreenTitle() {
-        String className = getClass().getSimpleName();
-        switch (className) {
-            case "MainActivity":
-                return HelpConstants.MAIN_ACTIVITY;
-            case "ParamsActivity":
-                return HelpConstants.PARAMS_ACTIVITY;
-            case "LivetypeActivity":
-                return HelpConstants.LIVETYPE_ACTIVITY;
-            case "HistoryActivity":
-                return HelpConstants.HISTORY_ACTIVITY;
-            case "HistoryEditActivity":
-                return HelpConstants.HISTORY_EDIT_ACTIVITY;
-            case "ContactsActivity":
-                return HelpConstants.CONTACTS_ACTIVITY;
-            case "AboutActivity":
-                return HelpConstants.ABOUT_ACTIVITY;
-            default:
-                return className;
-        }
     }
 }
