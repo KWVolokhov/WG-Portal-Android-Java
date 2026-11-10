@@ -31,6 +31,20 @@ import android.telephony.TelephonyManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.calendar4.health.HealthActivity;
+import com.example.calendar4.health.LivetypeActivity;
+import com.example.calendar4.health.Pedometer;
+import com.example.calendar4.history.HistoryActivity;
+import com.example.calendar4.msg.SmsActivity;
+import com.example.calendar4.project.BaseCalPlanEditActivity;
+import com.example.calendar4.project.ProjectsActivity;
+import com.example.calendar4.project.TaskActivity;
+import com.example.calendar4.rcalendar.RussianCalendarView;
+import com.example.calendar4.rcalendar.RussianHolidaysFetcher;
+import com.example.calendar4.records.calPlanRecord;
+import com.example.calendar4.contact.ContactsActivity;
+import com.example.calendar4.localsql.ManageSQLDatabase;
+
 
 public class MainActivity extends BaseScreenActivity {
     ListView mainListView;

@@ -48,42 +48,42 @@
              />
 
         <activity
-            android:name=".TaskActivity"
+            android:name=".project.TaskActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HistoryActivity"
+            android:name=".history.HistoryActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HistoryEditActivity"
+            android:name=".history.HistoryEditActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HealthEatActivity"
+            android:name=".health.HealthEatActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HealthDrinkActivity"
+            android:name=".health.HealthDrinkActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HealthSportActivity"
+            android:name=".health.HealthSportActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HealthEditActivity"
+            android:name=".health.HealthEditActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".HealthActivity"
+            android:name=".health.HealthActivity"
             android:exported="false"
              />
 
@@ -93,17 +93,17 @@
              />
 
         <activity
-            android:name=".ContactsActivity"
+            android:name=".contact.ContactsActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".EditContactActivity"
+            android:name=".contact.EditContactActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".ProjectsActivity"
+            android:name=".project.ProjectsActivity"
             android:exported="false"
              />
 
@@ -114,30 +114,30 @@
              />
 
         <activity
-            android:name=".LivetypeActivity"
+            android:name=".health.LivetypeActivity"
             android:exported="false"
              />
 
         <activity
-            android:name=".LivetypeEditActivity"
+            android:name=".health.LivetypeEditActivity"
             android:exported="false"
              />
 
         <!-- Task 107: экран списка СМС (СМС\Все, СМС\Входящие, СМС\Исходящие, СМС\Корзина) -->
         <activity
-            android:name=".SmsActivity"
+            android:name=".msg.SmsActivity"
             android:exported="false"
              />
 
         <!-- Task 110: СМС Чат Ведущий<->Контакт -->
         <activity
-            android:name=".SmsChatActivity"
+            android:name=".msg.SmsChatActivity"
             android:exported="false"
              />
 
         <!-- Task 111: просмотр записи СМС (только чтение) -->
         <activity
-            android:name=".SmsViewActivity"
+            android:name=".msg.SmsViewActivity"
             android:exported="false"
              />
         <activity
@@ -153,13 +153,13 @@
 
         <!-- Task 147: экран "Help Справочник" (пункт меню над "Параметры", пока заглушка) -->
         <activity
-            android:name=".HelpActivity"
+            android:name=".help.HelpActivity"
             android:exported="false"
             />
 
         <!-- Task 148/148a: экран Spotlight - контекстная подсказка по кнопке Help -->
         <activity
-            android:name=".SpotlightActivity"
+            android:name=".help.SpotlightActivity"
             android:exported="false"
             />
 

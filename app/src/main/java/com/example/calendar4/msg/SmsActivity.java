@@ -1,0 +1,225 @@
+package com.example.calendar4.msg;
+
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Locale;
+
+import com.example.calendar4.BaseScreenActivity;
+import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.MessageListItem;
+import com.example.calendar4.localsql.SmsSQLManage;
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.records.smsRecord;
+
+/**
+ * Task 107: экран списка СМС (по одному на все папки СМС\Все, СМС\Входящие,
+ * СМС\Исходящие, СМС\Корзина). Структура похожа на activity_contacts.xml:
+ * вверху титл и кнопка только назад, под титлом строка фильтра, под фильтром список.
+ * Создание СМС пока не делаем.
+ */
+public class SmsActivity extends BaseScreenActivity {
+
+    // Папки и extra-ключ (Task 106/107)
+    public static final String EXTRA_SMS_FOLDER = "sms_folder";
+    public static final String FOLDER_ALL = "all";
+    public static final String FOLDER_INCOME = "income";
+    public static final String FOLDER_OUTCOME = "outcome";
+    public static final String FOLDER_TRASH = "trash";
+
+    private static final String[] FOLDER_TITLES = {"СМС\\Все", "СМС\\Входящие", "СМС\\Исходящие", "СМС\\Корзина"};
+
+    private ListView listViewSms;
+    private EditText editTextFilter;
+    private ImageButton btnBack;
+
+    private SmsSQLManage smsDb;
+    private ArrayAdapter<smsRecord> adapter;
+    private ArrayList<smsRecord> allSms;
+    private String folder;
+    // Task 130: id Ведущего из параметров для вычисления типа сообщения
+    private String vedushiiId;
+
+    // Task 115: дата СМС показывается со секундами
+    private static final SimpleDateFormat DISPLAY_DATE =
+            new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault());
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sms);
+
+        listViewSms = findViewById(R.id.listViewSms);
+        editTextFilter = findViewById(R.id.editTextSmsFilter);
+        btnBack = findViewById(R.id.btnBack);
+
+        folder = getIntent() != null ? getIntent().getStringExtra(EXTRA_SMS_FOLDER) : FOLDER_ALL;
+        if (folder == null || folder.isEmpty()) folder = FOLDER_ALL;
+
+        TextView title = findViewById(R.id.textViewSmsTitle);
+        if (title != null) title.setText(FOLDER_TITLES[titleIndex(folder)]);
+
+        smsDb = new SmsSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
+        vedushiiId = vedushiiIdFromParams();
+
+        allSms = new ArrayList<>();
+        loadSms("");
+
+        adapter = new ArrayAdapter<smsRecord>(this, 0, allSms) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                MessageListItem row;
+                if (convertView instanceof MessageListItem) {
+                    row = (MessageListItem) convertView;
+                } else {
+                    row = new MessageListItem(SmsActivity.this);
+                }
+                final smsRecord sms = allSms.get(position);
+                // Task 130: вычисляемое дисплейное поле типа (исходящее/входящее по позиции Ведущего)
+                sms.DisplayType = sms.effectiveType(vedushiiId);
+                row.setTypeIcon(typeIcon(sms));
+                row.setTopText(topText(sms));
+                row.setBottomText(bottomText(sms));
+                row.setPosition(position);
+                row.setOnEditNewIcon("Просмотр", R.drawable.ic_view,2);
+                row.setOnEditClickListener(v -> viewSms(sms));
+                row.setOnDeleteClickListener(v -> confirmDelete(sms));
+                return row;
+            }
+        };
+        listViewSms.setAdapter(adapter);
+        // Task 111: тап по строке открывает просмотр конкретного СМС (Activity только для чтения)
+        listViewSms.setOnItemClickListener((parent, view, position, id) -> {
+            smsRecord sms = adapter.getItem(position);
+            if (sms != null) openSmsView(sms);
+        });
+
+        editTextFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                loadSms(s.toString().trim());
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getIntent().getBooleanExtra(CalParamRecord.EXTRA_IS_START_PAGE, false)) {
+            finishAndRemoveTask();
+        } else {
+            super.onBackPressed();
+        }
+    }
+    private void viewSms(smsRecord sms) {
+        if (sms == null) return;
+        Intent intent = new Intent(SmsActivity.this, SmsViewActivity.class);
+        intent.putExtra(SmsViewActivity.EXTRA_SMS_RECORD, sms);
+        startActivity(intent);
+    }
+    private void confirmDelete(final smsRecord sms) {
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить")
+                .setMessage("Удалить сообщение?")
+                .setPositiveButton("Ок", (d, w) -> {
+                    smsDb.deleteSms(sms.id);
+                    loadSms(editTextFilter.getText().toString().trim());
+                    adapter.notifyDataSetChanged();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private int titleIndex(String f) {
+        if (FOLDER_INCOME.equals(f)) return 1;
+        if (FOLDER_OUTCOME.equals(f)) return 2;
+        if (FOLDER_TRASH.equals(f)) return 3;
+        return 0;
+    }
+
+    /** Task 106/130: три иконки по типу СМС (In / Out / Draft), тип берётся из DisplayType. */
+    private int typeIcon(smsRecord sms) {
+        String t = sms != null ? (sms.DisplayType != null ? sms.DisplayType : sms.Type) : null;
+        if (t == null) return R.drawable.ic_sms;
+        if (smsRecord.TYPE_INCOMING.equals(t)) return R.drawable.ic_sms_in;
+        if (smsRecord.TYPE_OUTGOING.equals(t)) return R.drawable.ic_sms_out;
+        if (smsRecord.TYPE_DRAFT.equals(t)) return R.drawable.ic_sms_draft;
+        return R.drawable.ic_sms;
+    }
+
+    /** Task 130: id Ведущего из параметров (CALPARAM.VedushiiID). */
+    private String vedushiiIdFromParams() {
+        String id = ManageSQLDatabase.AuthorID;
+        if (id == null || id.trim().isEmpty() || "BUSINESS".equals(id.trim())) {
+            CalParamRecord param = ManageSQLDatabase.getInstance(this).getCalParam();
+            if (param != null) id = param.VedushiiID;
+        }
+        return id;
+    }
+
+    private String bottomText(smsRecord sms) {
+        if (sms == null) return "";
+        StringBuilder sb = new StringBuilder();
+        if (sms.DateReceived != null) {
+            sb.append(DISPLAY_DATE.format(sms.DateReceived));
+            sb.append("\n");
+        }
+        sb.append((sms.Subject != null && !sms.Subject.isEmpty()) ? sms.Subject : sms.Body);
+        return sb.toString();
+    }
+
+    private String topText(smsRecord sms) {
+        if (sms == null) return "";
+        StringBuilder sb = new StringBuilder();
+        if (sms.FromName != null && !sms.FromName.isEmpty()) sb.append("<").append(sms.FromName);
+        if (sms.ToName != null && !sms.ToName.isEmpty()) {
+            if (sb.length() > 0) sb.append("  ");
+            sb.append(">").append(sms.ToName);
+        }
+
+        return sb.toString();
+    }
+
+    private void loadSms(String filter) {
+        smsRecord[] records = smsDb.getSms(folder, filter);
+        allSms.clear();
+        if (records != null) {
+            for (smsRecord r : records) allSms.add(r);
+        }
+    }
+
+    /** Task 111: открыть просмотр конкретного СМС (Activity только для чтения). */
+    private void openSmsView(smsRecord sms) {
+        if (sms == null) return;
+        Intent intent = new Intent(SmsActivity.this, SmsViewActivity.class);
+        intent.putExtra(SmsViewActivity.EXTRA_SMS_RECORD, sms);
+        startActivity(intent);
+    }
+}

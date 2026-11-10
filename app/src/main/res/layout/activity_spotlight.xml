@@ -10,22 +10,27 @@
         android:id="@+id/headerTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Подсказка"
+        android:text="Экран: Подсказка"
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
 
     <!-- Task 148a: текстовое поле с сутью Activity, на которой нажата кнопка Help
          (содержимое придёт из будущего "Help Справочника") -->
-    <EditText
-        android:id="@+id/editTextSpotlight"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="top|start"
-        android:inputType="textMultiLine"
-        android:textSize="16sp"
-        android:hint="Описание текущего экрана (из справочника Help)" />
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/textViewSpotlightContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|start"
+            android:padding="8dp"
+            android:textSize="16sp"
+            android:textColor="@android:color/primary_text_dark" />
 
     <!-- Task 148a: 3 кнопки назад / вперёд / закрыть, 32dp*32dp -->
     <LinearLayout

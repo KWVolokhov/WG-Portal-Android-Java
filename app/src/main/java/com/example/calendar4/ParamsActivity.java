@@ -19,6 +19,12 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.localsql.LivetypeSQLManage;
+import com.example.calendar4.records.livetypeRecord;
+import com.example.calendar4.records.ContactRecord;
+
 public class ParamsActivity extends BaseScreenActivity {
     // "Стартовая страница" picker: display labels -> stored values (CALPARAM.StartPage)
     private static final String[] START_PAGE_LABELS = {

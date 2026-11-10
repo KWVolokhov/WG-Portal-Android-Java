@@ -66,4 +66,12 @@
         android:textSize="16sp"
         android:layout_marginTop="8dp" />
 
+    <!-- Task 177: кнопка копирования информации о версии Android и БД в буфер обмена -->
+    <Button
+        android:id="@+id/btnCopyInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Копировать"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>

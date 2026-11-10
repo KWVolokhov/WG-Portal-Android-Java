@@ -6,6 +6,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.example.calendar4.project.BaseCalPlanEditActivity;
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.records.ContactRecord;
+import com.example.calendar4.records.calPlanRecord;
+import com.example.calendar4.localsql.ManageSQLDatabase;
+
 /**
  * Task 139: перенос записи calPlanRecord <-> поля карточки редактирования -
  * вынесен из BaseCalPlanEditActivity (методы populateFields / fillRecordFromUi).

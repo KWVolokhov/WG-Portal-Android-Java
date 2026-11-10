@@ -18,6 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import com.example.calendar4.records.CalParamRecord;
+import com.example.calendar4.localsql.ManageSQLDatabase;
+
 /**
  * Task 100: storage for the attachments (images / videos / files) referenced by
  * the JSON values of InfoFieldView.

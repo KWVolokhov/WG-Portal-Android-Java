@@ -7,6 +7,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.calendar4.contact.ContactsActivity;
+import com.example.calendar4.health.LivetypeActivity;
+import com.example.calendar4.help.HelpActivity;
+import com.example.calendar4.help.SpotlightActivity;
+import com.example.calendar4.msg.SmsActivity;
+import com.example.calendar4.project.ProjectsActivity;
+import com.example.calendar4.help.AboutActivity;
+
 /**
  * Task 118: единый стиль экранов в аспекте титла - на всех экранах Activity
  * показывается стандартный ActionBar с титлом "Календарный План" (как на MainActivity)
@@ -18,7 +26,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-        if("HelpActivity".equals(this.getClass().getName()) || "SpotlightActivity".equals(this.getClass().getName())){
+        if("com.example.calendar4.help.HelpActivity".equals(this.getClass().getName()) || "com.example.calendar4.help.SpotlightActivity".equals(this.getClass().getName())){
             //helpButton = findViewById(R.id.buttonH);
         }
 
@@ -55,7 +63,7 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
             Intent help = new Intent(this, SpotlightActivity.class);
             CharSequence title = getTitle();
             help.putExtra(SpotlightActivity.EXTRA_HELP_TEXT,
-                    "Экран: " + (title != null ? title : getClass().getSimpleName()));
+                    "Экран: " + getScreenTitle());
             startActivity(help);
         }
         // Task 147: пункт меню "Help Справочник".
@@ -65,5 +73,28 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         else if (id == R.id.about) startActivity(new Intent(this, AboutActivity.class));
         else Toast.makeText(this, "Меню " + item.getTitle(), Toast.LENGTH_SHORT).show();
         return super.onOptionsItemSelected(item);
+    }
+
+    /** Возвращает русский название экрана для отображения в подсказке */
+    protected String getScreenTitle() {
+        String className = getClass().getSimpleName();
+        switch (className) {
+            case "MainActivity":
+                return HelpConstants.MAIN_ACTIVITY;
+            case "ParamsActivity":
+                return HelpConstants.PARAMS_ACTIVITY;
+            case "LivetypeActivity":
+                return HelpConstants.LIVETYPE_ACTIVITY;
+            case "HistoryActivity":
+                return HelpConstants.HISTORY_ACTIVITY;
+            case "HistoryEditActivity":
+                return HelpConstants.HISTORY_EDIT_ACTIVITY;
+            case "ContactsActivity":
+                return HelpConstants.CONTACTS_ACTIVITY;
+            case "AboutActivity":
+                return HelpConstants.ABOUT_ACTIVITY;
+            default:
+                return className;
+        }
     }
 }

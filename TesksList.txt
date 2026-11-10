@@ -521,13 +521,15 @@ ic_americano.xml вместо ic_coffee.xml в листе на HealthActivity.li
 значение дожно быть 0, причем возможно стоит функцию для это завести в LiveTypeSQLManage
 =============== DONE =========================
 =============== Todo =========================
-===============^Engineer Check & Fix AI done============
 
 177) Добавить кнопки Копировать на экран AboutActivity - копирует в буфер текущую информация о версии Andrоid и версии БД виде "Версия Android 14(Api 34), Database_Version: 13
 
-178) Добавить кнопки Копировать на экран CrashActivity рядом с имеющимися кнопками - копирует в буфер текущую информация об ошибке
+178) Добавить кнопки Копировать на экран CrashActivity рядом с имеющимися кнопками - копирует в буфер текущую информация об ошибке(Непомню есть ли она там, проверить)
 
-179) Пора поделить классы на группы и перенести в подкаталоги: Пока добавим следующие Группы-каталоги: 
+179) классы HelpActivity, SpotlightActivity не должны насдедовать от BaseScreenActivity как уже и не наследует CrashActivity, элементы от BaseScreenActivity им не нужны
+179.1) класс AboutActivity не должен насдедовать от BaseScreenActivity как уже и не наследует CrashActivity, элементы от BaseScreenActivity ему не нужны
+
+180) Пора поделить классы на группы и перенести в подкаталоги: Пока добавим следующие Группы-каталоги: 
 Health - классы HealthActivity, HealthDrinkActivity, HealthEatActivity, HealthEditActivity, HealthSportActivity, LivetypeActivity, LivetypeEditActivity, Pedometer
 Help - классы HelpActivity, SpotlightActivity
 Msg - SmsActivity, SmsChatActivity, SmsDefaultsSeeder, SmsViewActivity
@@ -539,14 +541,20 @@ LocalSQL - все классы в названии которых присутс
 Contact - EditContactActivity, ContactsActivity
 History - HistoryActivity, HistoryEditActivity
 
-180) классы HelpActivity, SpotlightActivity не должны насдедовать от BaseScreenActivity как уже и не наследует CrashActivity, элементы от BaseScreenActivity им не нужны
-===============^Engineer Check & Fix AI fail============ 
+180.1) по чему не перенесло SQLNullHelper, HistorySQLManage, ConstantsSQLDb, ManageSQLDatabase в localsql?
+- AboutActivity, AndroidVersions, CrashActivity, HardcoreCrashHandler в help каталог перенести
+180.2) В каталоге help есть классы, проверить package и import этих классов, а а также package и import остальных классов на использование этих классов
 
 181) на экране SpotlightActivity текст должен быть динамическим
 В BaseScreenActivity есть срока но чето она не верно пишет везде одно и тоже "Календарный план"
  "Экран: " + (title != null ? title : getClass().getSimpleName()));
 А должна писать с разных экранов тоже что и написано в Меню и там где нет меню по смыслу русский перевод названия класса, 
 т.е. с MainActivity - "Календарный план", с ParamsActivity - "Параметры", с LivetypeActivity - "Типы жизнидеятельности", с HistoryActivity и HistoryEditActivity - "История" и "Просмотр Истории"
+
+182) также завести класс в каталоге Help с константами описания HELP для каждого экрана на котором есть кнопка Help из BaseScreenActivity и в соответсвии с вызовом на экране SpotlightActivity под титульной надписью 
+"Экран: " показывать текст из константы с возможностью прокрутки вниз не теряя заголовок "Экран: "
+===============^Engineer Check & Fix AI done============
+===============^Engineer Check & Fix AI fail============ 
 
 270) Организация на JAVA ответного приема Json и сохранения в базе Lotus
 

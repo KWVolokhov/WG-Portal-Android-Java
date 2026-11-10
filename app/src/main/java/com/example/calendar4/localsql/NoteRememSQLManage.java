@@ -1,0 +1,183 @@
+package com.example.calendar4.localsql;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import com.example.calendar4.localsql.ManageSQLDatabase;
+import com.example.calendar4.localsql.SQLNullHelper;
+import com.example.calendar4.records.calPlanRecord;
+
+/**
+ * Class that services ONLY the Form=Note and Form=Remember records. All of them
+ * are stored in their own SQLite table "NOTEPLAN" created from
+ * ConstantsSQLDb.CREATE_TABLE_NOTEPLAN. The record class stays calPlanRecord
+ * (only the needed fields are written/read).
+ *
+ * NOTE: the class reuses the already existing database connection - it receives
+ * a SQLiteDatabase (from ManageSQLDatabase) in the constructor and does NOT open
+ * its own connection/settings.
+ *
+ * Methods: upsertNote, deleteNote, getNoteById, getNotesByDate.
+ */
+public class NoteRememSQLManage {
+
+    public static final String TABLE_NOTEPLAN = "NOTEPLAN";
+
+    private final SQLiteDatabase db;
+
+    public NoteRememSQLManage(SQLiteDatabase db) {
+        this.db = db;
+    }
+
+    // ---------------------------------------------------------------------
+    // Fill-in author from "Ведущий" (CALPARAM) when the record has no author
+    // ---------------------------------------------------------------------
+    private void fillAuthorFromParams(calPlanRecord record) {
+        if (record.AuthorID == null || record.AuthorID.isEmpty()) {
+			record.AuthorName = ManageSQLDatabase.AuthorName;
+			record.AuthorID = ManageSQLDatabase.AuthorID;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // CRUD
+    // ---------------------------------------------------------------------
+
+    /** Insert or update one Note/Remember record in the NOTEPLAN table. */
+    public void upsertNote(calPlanRecord record) {
+        if (record == null) return;
+        ContentValues values = new ContentValues();
+
+        if (record.id != null) values.put("id", record.id);
+        if (record.id == null && (record.UNID == null || record.UNID.isEmpty())) {
+            record.UNID = java.util.UUID.randomUUID().toString();
+        }
+        SQLNullHelper.putText(values, "UNID", record.UNID);
+        if (record.Form == null) record.Form = "Note";
+        values.put("Form", record.Form);
+        if (record.Okdate != null) values.put("Okdate", fmtDateTime().format(record.Okdate));
+        fillAuthorFromParams(record);
+        SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
+        SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
+        SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);
+        SQLNullHelper.putText(values, "LastUpdatedBy", record.LastUpdatedBy);
+        if (record.LastUpdatedDate != null) values.put("LastUpdatedDate", fmtDateTime().format(record.LastUpdatedDate));
+        SQLNullHelper.putText(values, "Name", record.Name);
+        SQLNullHelper.putText(values, "Status", record.Status);
+        SQLNullHelper.putText(values, "StatusID", record.StatusID);
+        if (record.StartDate != null) values.put("StartDate", fmt(record.StartDate));
+        SQLNullHelper.putText(values, "BodyText", record.BodyText);
+        SQLNullHelper.putText(values, "Comment", record.Comment);
+        SQLNullHelper.putText(values, "KeyWords", record.KeyWords);
+        SQLNullHelper.putText(values, "Revisions", record.Revisions);
+
+        if (record.id != null) {
+            int rows = db.update(TABLE_NOTEPLAN, values, "id=?",
+                    new String[]{String.valueOf(record.id)});
+            if (rows == 0) {
+                db.insert(TABLE_NOTEPLAN, null, values);
+            }
+        } else {
+            db.insert(TABLE_NOTEPLAN, null, values);
+        }
+    }
+
+    /** Get a single Note/Remember record by id, or null when absent. */
+    public calPlanRecord getNoteById(int id) {
+        calPlanRecord record = null;
+        Cursor cursor = db.query(TABLE_NOTEPLAN, null,
+                "id=?", new String[]{String.valueOf(id)}, null, null, null);
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            record = cursorToRecord(cursor);
+        }
+        cursor.close();
+        return record;
+    }
+
+    /** All NOTEPLAN records (Form=Note / Form=Remember) whose StartDate equals the given day. */
+    public calPlanRecord[] getNotesByDate(Date date) {
+        ArrayList<calPlanRecord> list = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Cursor cursor = db.query(TABLE_NOTEPLAN, null,
+                "StartDate=?", new String[]{sdf.format(date)}, null, null, "StartDate");
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                list.add(cursorToRecord(cursor));
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return list.toArray(new calPlanRecord[0]);
+    }
+
+    private calPlanRecord cursorToRecord(Cursor cursor) {
+        calPlanRecord record = new calPlanRecord();
+        int idxId = cursor.getColumnIndex("id");
+        int idxUNID = cursor.getColumnIndex("UNID");
+        int idxForm = cursor.getColumnIndex("Form");
+        int idxOkdate = cursor.getColumnIndex("Okdate");
+        int idxAuthorID = cursor.getColumnIndex("AuthorID");
+        int idxAuthorName = cursor.getColumnIndex("AuthorName");
+        int idxLastUpdatedByID = cursor.getColumnIndex("LastUpdatedByID");
+        int idxLastUpdatedBy = cursor.getColumnIndex("LastUpdatedBy");
+        int idxLastUpdatedDate = cursor.getColumnIndex("LastUpdatedDate");
+        int idxName = cursor.getColumnIndex("Name");
+        int idxStatus = cursor.getColumnIndex("Status");
+        int idxStatusID = cursor.getColumnIndex("StatusID");
+        int idxStartDate = cursor.getColumnIndex("StartDate");
+        int idxBodyText = cursor.getColumnIndex("BodyText");
+        int idxComment = cursor.getColumnIndex("Comment");
+        int idxKeyWords = cursor.getColumnIndex("KeyWords");
+        int idxRevisions = cursor.getColumnIndex("Revisions");
+
+        if (idxId >= 0 && !cursor.isNull(idxId)) record.id = cursor.getInt(idxId);
+        if (idxUNID >= 0 && !cursor.isNull(idxUNID)) record.UNID = cursor.getString(idxUNID);
+        if (idxForm >= 0 && !cursor.isNull(idxForm)) record.Form = cursor.getString(idxForm);
+        if (idxAuthorID >= 0 && !cursor.isNull(idxAuthorID)) record.AuthorID = cursor.getString(idxAuthorID);
+        if (idxAuthorName >= 0 && !cursor.isNull(idxAuthorName)) record.AuthorName = cursor.getString(idxAuthorName);
+        if (idxLastUpdatedByID >= 0 && !cursor.isNull(idxLastUpdatedByID)) record.LastUpdatedByID = cursor.getString(idxLastUpdatedByID);
+        if (idxLastUpdatedBy >= 0 && !cursor.isNull(idxLastUpdatedBy)) record.LastUpdatedBy = cursor.getString(idxLastUpdatedBy);
+        if (idxName >= 0 && !cursor.isNull(idxName)) record.Name = cursor.getString(idxName);
+        if (idxStatus >= 0 && !cursor.isNull(idxStatus)) record.Status = cursor.getString(idxStatus);
+        if (idxStatusID >= 0 && !cursor.isNull(idxStatusID)) record.StatusID = cursor.getString(idxStatusID);
+        if (idxBodyText >= 0 && !cursor.isNull(idxBodyText)) record.BodyText = cursor.getString(idxBodyText);
+        if (idxComment >= 0 && !cursor.isNull(idxComment)) record.Comment = cursor.getString(idxComment);
+        if (idxKeyWords >= 0 && !cursor.isNull(idxKeyWords)) record.KeyWords = cursor.getString(idxKeyWords);
+        if (idxRevisions >= 0 && !cursor.isNull(idxRevisions)) record.Revisions = cursor.getString(idxRevisions);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        if (idxOkdate >= 0 && !cursor.isNull(idxOkdate)) {
+            try { record.Okdate = fmtDateTime().parse(cursor.getString(idxOkdate)); }
+            catch (Exception e) { try { record.Okdate = sdf.parse(cursor.getString(idxOkdate)); } catch (Exception e2) { record.Okdate = null; } }
+        }
+        if (idxLastUpdatedDate >= 0 && !cursor.isNull(idxLastUpdatedDate)) {
+            try { record.LastUpdatedDate = fmtDateTime().parse(cursor.getString(idxLastUpdatedDate)); }
+            catch (Exception e) { try { record.LastUpdatedDate = sdf.parse(cursor.getString(idxLastUpdatedDate)); } catch (Exception e2) { record.LastUpdatedDate = null; } }
+        }
+        if (idxStartDate >= 0 && !cursor.isNull(idxStartDate)) {
+            try { record.StartDate = sdf.parse(cursor.getString(idxStartDate)); } catch (Exception e) { record.StartDate = null; }
+        }
+        return record;
+    }
+
+    private String fmt(Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date);
+    }
+
+    private SimpleDateFormat fmtDateTime() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+    }
+
+    public void deleteNote(Integer id) {
+        if (id == null) return;
+        db.delete(TABLE_NOTEPLAN, "id=?", new String[]{String.valueOf(id)});
+    }
+}

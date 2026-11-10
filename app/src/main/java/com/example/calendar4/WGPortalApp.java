@@ -2,6 +2,9 @@ package com.example.calendar4;
 
 import android.app.Application;
 
+import com.example.calendar4.help.HardcoreCrashHandler;
+import com.example.calendar4.help.CrashActivity;
+
 /**
  * Task 134: единая точка старта приложения (зарегистрирована в AndroidManifest).
  * Ставит {@link HardcoreCrashHandler} самым первым - поэтому CrashActivity
