@@ -41,7 +41,7 @@ public class RussianCalendarView extends ConstraintLayout {
     private HashSet<String> holidays;
     private HashSet<Integer> weekendDays;
     private OnDateSelectedListener dateSelectedListener;
-    private Date currentDate;
+    public Date currentDate;
     public Date activeDate; // Active/selected date
     private Context mContext;
 

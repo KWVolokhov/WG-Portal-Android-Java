@@ -30,7 +30,6 @@ public abstract class BaseScreenActivity extends AppCompatActivity {
         if("com.example.calendar4.help.HelpActivity".equals(this.getClass().getName()) || "com.example.calendar4.help.SpotlightActivity".equals(this.getClass().getName())){
             //helpButton = findViewById(R.id.buttonH);
         }
-
         return true;
     }
 

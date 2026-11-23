@@ -16,11 +16,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import android.os.Build;
 
@@ -62,6 +64,7 @@ public class MainActivity extends BaseScreenActivity {
 
     // ===== Real pedometer (Task 29): управление вынесено в отдельный класс Pedometer =====
     private Pedometer pedometer;
+    Date startDate;
 
     // ===== Modern Activity Result API (replaces deprecated startActivityForResult) =====
     // Launcher for the shared edit screens (old requestCode=1)
@@ -93,7 +96,6 @@ public class MainActivity extends BaseScreenActivity {
     private final ActivityResultLauncher<Intent> projectsLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +123,7 @@ public class MainActivity extends BaseScreenActivity {
 
         // Set active date to today
         russianCalendar.activeDate = Calendar.getInstance().getTime();
+        startDate = russianCalendar.activeDate;
 
         // Initialize database and load records for today
         //owerDb = new ManageSQLDatabase(this); //OLD code
@@ -141,7 +144,6 @@ public class MainActivity extends BaseScreenActivity {
         openStartPageIfNeeded();
 
     }
-
     /**
      * Task 26: opens the "Стартовая страница" chosen in Параметры.
      * null/"Calendar" keeps this MainActivity (default). After reinstall the
@@ -187,6 +189,16 @@ public class MainActivity extends BaseScreenActivity {
         // Task 37: icons of the 5 quick buttons may have changed in Параметры /
         // Типы жизнедеятельности since MainActivity was paused.
         MainQuickButtons.refreshIcons(this);
+        // Если текущая дата ушла от даты старта устанавливаем в календаре текущую
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+        String dateCurOnlyString = dateFormat.format(Calendar.getInstance().getTime());
+        String dateKeepOnlyString = dateFormat.format(startDate);
+        if(!dateKeepOnlyString.equals(dateCurOnlyString)){
+            russianCalendar.activeDate = Calendar.getInstance().getTime();
+            russianCalendar.currentDate = Calendar.getInstance().getTime();
+            startDate = russianCalendar.activeDate;
+            russianCalendar.goToToday();
+        }
         if (owerDb != null && russianCalendar != null) {
             refreshListView();
         }
