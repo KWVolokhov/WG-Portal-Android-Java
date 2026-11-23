@@ -190,17 +190,17 @@ public class MainActivity extends BaseScreenActivity {
         // Типы жизнедеятельности since MainActivity was paused.
         MainQuickButtons.refreshIcons(this);
         // Если текущая дата ушла от даты старта устанавливаем в календаре текущую
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
-        String dateCurOnlyString = dateFormat.format(Calendar.getInstance().getTime());
-        String dateKeepOnlyString = dateFormat.format(startDate);
-        if(!dateKeepOnlyString.equals(dateCurOnlyString)){
-            russianCalendar.activeDate = Calendar.getInstance().getTime();
-            russianCalendar.currentDate = Calendar.getInstance().getTime();
-            startDate = russianCalendar.activeDate;
-            russianCalendar.goToToday();
-        }
-        if (owerDb != null && russianCalendar != null) {
-            refreshListView();
+        if(russianCalendar != null){
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
+            String dateCurOnlyString = dateFormat.format(Calendar.getInstance().getTime());
+            String dateKeepOnlyString = dateFormat.format(startDate);
+            if(!dateKeepOnlyString.equals(dateCurOnlyString)){
+                russianCalendar.activeDate = Calendar.getInstance().getTime();
+                russianCalendar.currentDate = Calendar.getInstance().getTime();
+                startDate = russianCalendar.activeDate;
+                russianCalendar.goToToday();
+            }
+            if (owerDb != null) refreshListView();
         }
         // Task 167: гарантируем загрузку производственного календаря текущего года
         // (повторная попытка 1 раз за запуск, если данные ещё не получены)
