@@ -107,7 +107,7 @@ public class ConstantsSQLDb {
             ")";
 public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS LIVETYPE (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +//Label: Номер записи10 bytes
-            "UNID TEXT UNIQUE, " +//Label: Уникальный ID34 bytes (у предустановленных равен Form из HEALTHPLAN)
+            "UNID TEXT UNIQUE, " +//Label: Уникальный ID 32 символа HEX (предустановки: Form_+ counter)
             "Name TEXT NOT NULL, " +//Label: Название типа жизнедеятельности
             "Category TEXT, " +//Label: Категория жизнедеятельности (Пища, Гидратация, Физ. активность, Стресс, Гедонизм)
             "Icon TEXT, " +//Label: Имя картинки (drawable) для кнопки, например ic_pedometer
@@ -146,11 +146,7 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "SONAME TEXT " +					//Label: Сотудник
             ")";
     public static final String[] INSERT_CLASSIFICATOR =
-            {"INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('EXEC', 'USERPLAN', 'Волохов Вячеслав');",
-                    "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('IT', 'USERPLAN', 'Александов Алексей');",
-                    "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('BUSINESS', 'USERPLAN', 'Соколов Юрий');",
-                    "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('BOSSIT', 'USERPLAN', 'Солнцев Сергей');",
-                    "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Draft', 'STATUSPLAN', 'Ченовик');",
+            {"INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Draft', 'STATUSPLAN', 'Ченовик');",
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Inwork', 'STATUSPLAN', 'В работе');",
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Intest', 'STATUSPLAN', 'Тестирование');",
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('Done', 'STATUSPLAN', 'Завершено');",
@@ -159,34 +155,34 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
                     "INSERT INTO CLASSIFICATOR (IDS, CATEGORY, SONAME) VALUES ('RealLife', 'SYSTEMSPLAN', 'Без системы');"};
 
     // Начальное заполнение справочника LIVETYPE ("Типы жизнедеятельности").
-    // По одной записи: Название, Тип (равен Form из HEALTHPLAN), Категория жизнедеятельности,
-    // Имя картинки (Icon) для трёх настраиваемых кнопок на MainActivity.
-    // Категория указывается сразу под названием в списке Типов жизнедеятельности.
-    // ID предустановок фиксируются явно (1..5), чтобы кнопки по умолчанию
-    // на MainActivity ссылались на них числовым id (Шагомер=1, Бургер=2, Кофе 200мл=3).
+    // UNID предустановок = Form + "_" + zero-padded ID (итого 32 символа).
+    // Icon у предустановок пустой (""); иконка подтягивается по умолчанию на основании Form.
+    // ID предустановок фиксируются явно (1..9), чтобы кнопки по умолчанию
+    // на MainActivity ссылались на них числовым id.
     // Column Form = ID-поле для Category; StepCounter=1 только у HealthSport (шагомер).
+    // FoodWeight/DrinkValue/Kallory заполняются для соответствующих типов.
     public static final String[] INSERT_LIVETYPE =
-            {"INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (1, 'HealthSport', 'Прогулка', 'Физ. активность', 'HealthSport', 'ic_pedometer', 'Исходная настройка', CURRENT_TIMESTAMP, 1);",
-                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (2, 'HealthEat', 'Бургер', 'Пища', 'HealthEat', 'ic_burger', 'Исходная настройка', CURRENT_TIMESTAMP, 0);",
-                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (3, 'HealthDrink', 'Кофе 200мл', 'Гидратация', 'HealthDrink', 'ic_coffee', 'Исходная настройка', CURRENT_TIMESTAMP, 0);",
-                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (4, 'HealthStress', 'Авария', 'Стресс', 'HealthStress', 'ic_stress', 'Исходная настройка', CURRENT_TIMESTAMP, 0);",
-                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (5, 'HealthJoy', 'Гулянка', 'Гедонизм', 'HealthJoy', 'ic_joy', 'Исходная настройка', CURRENT_TIMESTAMP, 0);"};
+            {"INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (1, 'HealthSport_00000000000000000001', 'Прогулка', 'Физ. активность', 'HealthSport', '', 'Исходная настройка', CURRENT_TIMESTAMP, 1);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, FoodWeight, Kallory) VALUES (2, 'HealthEat_0000000000000000000002', 'Бургер', 'Пища', 'HealthEat', '', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.16, 420);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, DrinkValue, Kallory) VALUES (3, 'HealthDrink_00000000000000000003', 'Кофе 200мл раств', 'Гидратация', 'HealthDrink', '', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.2, 3);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (4, 'HealthStress_0000000000000000004', 'Авария', 'Стресс', 'HealthStress', '', 'Исходная настройка', CURRENT_TIMESTAMP, 0);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter) VALUES (5, 'HealthJoy_0000000000000000000005', 'Гулянка', 'Гедонизм', 'HealthJoy', '', 'Исходная настройка', CURRENT_TIMESTAMP, 0);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, DrinkValue, Kallory) VALUES (6, 'HealthDrink_00000000000000000006', 'Американо 200мл', 'Гидратация', 'HealthDrink', 'ic_americano', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.2, 7);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, DrinkValue, Kallory) VALUES (7, 'HealthDrink_00000000000000000007', 'Латте 250мл', 'Гидратация', 'HealthDrink', 'ic_latte', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.25, 130);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, DrinkValue) VALUES (8, 'HealthDrink_00000000000000000008', 'Вода Королевская 200мл', 'Гидратация', 'HealthDrink', '', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.2);",
+                    "INSERT OR IGNORE INTO LIVETYPE (id, UNID, Name, Category, Form, Icon, AuthorName, DateCreated, StepCounter, FoodWeight, Kallory) VALUES (9, 'HealthEat_0000000000000000000009', 'Каша с Мясом', 'Пища', 'HealthEat', 'ic_container400', 'Исходная настройка', CURRENT_TIMESTAMP, 0, 0.33, 550);"};
 
     // Дозаполнение иконок у предустановленных записей LIVETYPE при обновлении уже существующей БД
-    // (только там, где иконка ещё не задана, чтобы не перетирать пользовательские настройки).
-    public static final String[] UPDATE_LIVETYPE_ICONS =
-            {"UPDATE LIVETYPE SET Icon='ic_pedometer' WHERE UNID='HealthSport' AND (Icon IS NULL OR Icon='');",
-                    "UPDATE LIVETYPE SET Icon='ic_burger' WHERE UNID='HealthEat' AND (Icon IS NULL OR Icon='');",
-                    "UPDATE LIVETYPE SET Icon='ic_coffee' WHERE UNID='HealthDrink' AND (Icon IS NULL OR Icon='');",
-                    "UPDATE LIVETYPE SET Icon='ic_stress' WHERE UNID='HealthStress' AND (Icon IS NULL OR Icon='');",
-                    "UPDATE LIVETYPE SET Icon='ic_joy' WHERE UNID='HealthJoy' AND (Icon IS NULL OR Icon='');"};
+    // (ICON у предустановок теперь пустой — подтягивается по умолчанию на основании Form;
+    // массив оставлен пустым, чтобы не перезаписывать пустые иконки предустановок).
+    public static final String[] UPDATE_LIVETYPE_ICONS = {};
 
     // Дозаполнение новых полей LIVETYPE при обновлении уже существующей БД:
     // шагомер разрешён по умолчанию только у предустановленного HealthSport (Прогулка),
     // у остальных предустановок - выключен (не перетираем пользовательские настройки).
     public static final String[] UPDATE_LIVETYPE_DEFAULTS =
-            {"UPDATE LIVETYPE SET StepCounter=1 WHERE UNID='HealthSport' AND (StepCounter IS NULL OR StepCounter=0);",
-                    "UPDATE LIVETYPE SET StepCounter=0 WHERE UNID IN ('HealthEat','HealthDrink','HealthStress','HealthJoy') AND StepCounter IS NULL;"};
+            {"UPDATE LIVETYPE SET StepCounter=1 WHERE FORM='HealthSport' AND (StepCounter IS NULL OR StepCounter=0);",
+                    "UPDATE LIVETYPE SET StepCounter=0 WHERE FORM IN ('HealthEat','HealthDrink','HealthStress','HealthJoy') AND StepCounter IS NULL;"};
     
     public static final String CREATE_TABLE_CALPARAM = "CREATE TABLE IF NOT EXISTS CALPARAM (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -232,6 +228,7 @@ public static final String CREATE_TABLE_LIVETYPE = "CREATE TABLE IF NOT EXISTS L
             "DateCreated DATE, " +
             "DateModified DATE, " +
             "EntryID TEXT, " +
+            "UNID TEXT UNIQUE, " +    //Label: Уникальный ID контакта (Etot phone_ + до 32 символов, не отправляется на сервер)
             "AuthorID TEXT, " +        //Label: ID Автора
             "AuthorName TEXT, " +      //Label: Автор
             "LastUpdatedByID TEXT, " + //Label: ID Обновившего

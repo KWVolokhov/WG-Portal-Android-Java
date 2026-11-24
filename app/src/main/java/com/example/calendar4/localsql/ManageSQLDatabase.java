@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import com.example.calendar4.msg.SmsDefaultsSeeder;
@@ -329,6 +330,60 @@ public class ManageSQLDatabase extends SQLiteOpenHelper {
         } catch (Exception e) {
             // ignore
         }
+    }
+
+    /**
+     * Генерирует уникальный UNID из 32 символов HEX с проверкой на уже существующее значение
+     * в таблице LIVETYPE. При коллизии выполняет перегенерацию.
+     *
+     * @param db  база данных для проверки уникальности
+     * @return уникальный 32-символьный HEX-UNID
+     */
+    public static String generateUNID(SQLiteDatabase db) {
+        String unid;
+        int attempts = 0;
+        do {
+            unid = java.util.UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.getDefault());
+            attempts++;
+            if (attempts > 100) break;
+        } while (unidExistsInLivetype(db, unid));
+        return unid;
+    }
+
+    private static boolean unidExistsInLivetype(SQLiteDatabase db, String unid) {
+        try {
+            Cursor c = db.query("LIVETYPE", new String[]{"UNID"}, "UNID=?", new String[]{unid}, null, null, null);
+            try {
+                return c.getCount() > 0;
+            } finally {
+                c.close();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Task 185: Генерирует UNID с опциональным префиксом, нормализованный до 32 символов.
+     * Для контактов используется префикс "Etot phone_" (итого 32 символа).
+     * Если префикс null/пустой — 32 случайных HEX-символа без префикса.
+     * Записи с таким UNID не отправляются на сервер (как тестовые СМС).
+     *
+     * @param prefix префикс (может быть null или "") — учитывается в общих 32 символах
+     * @return UNID строкой длиной до 32 символов
+     */
+    public static String generateUNID32(String prefix) {
+        StringBuilder sb = new StringBuilder();
+        if (prefix != null && !prefix.isEmpty()) {
+            sb.append(prefix);
+        }
+        int remaining = 32 - sb.length();
+        if (remaining < 0) remaining = 0;
+        java.util.Random rnd = new java.util.Random();
+        for (int i = 0; i < remaining; i++) {
+            sb.append("0123456789ABCDEF".charAt(rnd.nextInt(16)));
+        }
+        return sb.toString();
     }
 
     /** Заполнение LIVETYPE предустановками (INSERT OR IGNORE - только недостающие UNID). */

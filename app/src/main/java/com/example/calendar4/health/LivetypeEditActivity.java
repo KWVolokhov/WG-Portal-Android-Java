@@ -1,6 +1,8 @@
 package com.example.calendar4.health;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -9,6 +11,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -45,13 +48,26 @@ public class LivetypeEditActivity extends BaseScreenActivity {
     private static final int DRINK_VALUE_INDEX = 20;
     private EditText editTextName;
     private Spinner spinnerCategory;
-    private EditText editTextIcon;
+    private Button buttonLivetypeIcon;
     private CheckBox checkboxStepCounter;
     private TextView textViewAuthor;
     private TextView textViewDateCreated;
     private LinearLayout organContainer;
     private ImageButton btnOK;
     private ImageButton btnCancel;
+
+    /** Кандидаты имён иконок (drawable); реально существующие ресурсы определяются динамически. */
+    private static final String[] ICON_CANDIDATES = {
+            "ic_pedometer", "ic_burger", "ic_coffee", "ic_stress", "ic_joy",
+            "ic_americano", "ic_latte", "ic_container400",
+            "ic_person_contact", "ic_person_contact_child", "ic_person_contact_senior",
+            "ic_type_project", "ic_type_task", "ic_type_request", "ic_type_note",
+            "ic_ok_green", "ic_cancel_gray"
+    };
+    /** Имена иконок, которые реально существуют в ресурсах drawable (заполняется в onCreate). */
+    private String[] availableIcons;
+    /** Текущее выбранное имя иконки (может быть пустым). */
+    private String selectedIconName;
 
     private EditText[] organEdits = new EditText[ORGAN_NAMES.length];
     private LivetypeSQLManage livetypeDb;
@@ -65,8 +81,17 @@ public class LivetypeEditActivity extends BaseScreenActivity {
 
         editTextName = findViewById(R.id.editTextLivetypeName);
         spinnerCategory = findViewById(R.id.spinnerLivetypeCategory);
-        editTextIcon = findViewById(R.id.editTextLivetypeIcon);
+        buttonLivetypeIcon = findViewById(R.id.buttonLivetypeIcon);
         checkboxStepCounter = findViewById(R.id.checkboxLivetypePedometer);
+
+        // Список реально существующих иконок (drawable)
+        availableIcons = getAvailableIcons();
+        buttonLivetypeIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showIconDialog();
+            }
+        });
         textViewAuthor = findViewById(R.id.textViewLivetypeAuthor);
         textViewDateCreated = findViewById(R.id.textViewLivetypeDateCreated);
         organContainer = findViewById(R.id.organContainer);
@@ -147,8 +172,7 @@ public class LivetypeEditActivity extends BaseScreenActivity {
                 && checkboxStepCounter.isChecked()) ? 1 : 0;
 
         // Иконка (имя drawable для настраиваемых кнопок) - необязательное поле
-        String icon = editTextIcon.getText().toString().trim();
-        currentRecord.Icon = icon.isEmpty() ? null : icon;
+        currentRecord.Icon = (selectedIconName != null && !selectedIconName.isEmpty()) ? selectedIconName : null;
 
         // Read the reference (organ/state) numbers from the generated fields
         currentRecord.Head        = organValue(0);
@@ -274,7 +298,13 @@ public class LivetypeEditActivity extends BaseScreenActivity {
         /* Task 43: состояние галочки "Шагомер" зависит от выбранной категории
            (даже если запись загружена, но категория не "Физ. активность" - выключаем). */
         updateStepCounterCheckboxState();
-        if (currentRecord.Icon != null) editTextIcon.setText(currentRecord.Icon);
+        if (currentRecord.Icon != null) {
+            selectedIconName = currentRecord.Icon;
+            buttonLivetypeIcon.setText(currentRecord.Icon);
+        } else {
+            selectedIconName = "";
+            buttonLivetypeIcon.setText("Выбрать иконку...");
+        }
         // Task 102: имя автора подтягиваем из справочника контактов по ID
         String author = contactNameById(currentRecord.AuthorID);
         if (author != null) currentRecord.AuthorName = author;
@@ -329,6 +359,50 @@ public class LivetypeEditActivity extends BaseScreenActivity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    /** Проверяет какие из ICON_CANDIDATES реально существуют как drawable-ресурсы. */
+    private String[] getAvailableIcons() {
+        java.util.ArrayList<String> result = new java.util.ArrayList<>();
+        result.add(""); // пустая иконка (по умолчанию)
+        for (String cand : ICON_CANDIDATES) {
+            int resId = getResources().getIdentifier(cand, "drawable", getPackageName());
+            if (resId != 0) {
+                result.add(cand);
+            }
+        }
+        return result.toArray(new String[0]);
+    }
+
+    /** Показывает диалог со списком доступных иконок для выбора. */
+    private void showIconDialog() {
+        if (availableIcons == null || availableIcons.length == 0) return;
+        // Подписи для отображения: пустая строка -> "(по умолчанию)"
+        final String[] labels = new String[availableIcons.length];
+        for (int i = 0; i < availableIcons.length; i++) {
+            labels[i] = availableIcons[i].isEmpty() ? "(по умолчанию)" : availableIcons[i];
+        }
+        int checkedItem = 0;
+        if (selectedIconName != null) {
+            for (int i = 0; i < availableIcons.length; i++) {
+                if (availableIcons[i].equals(selectedIconName)) {
+                    checkedItem = i;
+                    break;
+                }
+            }
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Выберите иконку")
+                .setSingleChoiceItems(labels, checkedItem, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        selectedIconName = availableIcons[which];
+                        buttonLivetypeIcon.setText(labels[which]);
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
     }
 
 }

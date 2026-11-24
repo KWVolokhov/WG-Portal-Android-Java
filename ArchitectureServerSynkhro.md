@@ -46,6 +46,23 @@
 - Обработка ошибок: HTTP 401 — «Сервер отклонил имя/пароль»; прочие HTTP-коды и не-JSON ответ — ошибка; результат (успех/ошибка, сессия) через `SynchroCal.SynchroListener` → Toast в `ParamsActivity`.
 - Прочие таблицы (CALPLAN, HISTORY, NOTEPLAN, HEALTHPLAN, CONTACTS, SMSCALPLAN, LIVETYPE) — НЕ реализовано (следующие шаги: дельта-выгрузка по `LastUpdatedDate`, приём чужих изменений, конфликты last-write-wins).
 
+### 2.2. Протоколы обмена по сущностям (Task 186)
+- Общие принципы, транспорт, конверты запроса/ответа — `ArchitectureSyncProtocol.md`
+- Контакты (CONTACTS) — `ArchitectureSyncContacts.md`
+- Типы жизнедеятельности (LIVETYPE) — `ArchitectureSyncLivetype.md`
+- Параметры (CALPARAM) — `ArchitectureSyncCalparam.md`
+- Проекты/Заявки/Задачи + Ежедневные активности (CALPLAN+HEALTHPLAN) — `ArchitectureSyncCalplanHealthplan.md`
+- SMS (SMSCALPLAN) — `ArchitectureSyncSms.md`
+- История (HISTORY) — `ArchitectureSyncHistory.md`
+
+Основные правила Task 186:
+- Все записи имеют уникальный `UNID` (до 32 символов HEX, генерируется `ManageSQLDatabase.generateUNID32(String prefix)`).
+- Удаление на сервере только мягкое (`IsDeleted = 1`, без физического удаления).
+- Конфликты — last-write-wins по `LastUpdatedDate`. Обе записи сохраняются: у проигрывшей `ConflictUNID = <UNID выигравшей>`, `IsDeleted = 2`.
+- Если Ведущий = "Etot phone" — контакт, CALPARAM, HEALTHPLAN, HISTORY, SMS не синхронизируются; сама запись Etot phone не синхронизируется.
+- SMS выгружаются только где `FromID = VedushiiID` или `ToID = VedushiiID`.
+- Транспорт: HTTPS + JSON через `HttpURLConnection`, аутентификация Basic.
+
 ## 3. Правила ведения файла (для ИИ)
 
 1. После каждой задачи, добавившей/изменившей сетевой обмен, протокол, endpoint или правила конфликтов — ОБНОВИТЬ этот файл в том же сеансе.

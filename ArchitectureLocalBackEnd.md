@@ -41,7 +41,7 @@
 
 | Класс | Таблица | Основные методы |
 |---|---|---|
-| `ManageSQLDatabase` | Схема/миграции всех таблиц (DDL — только в `ConstantsSQLDb`) + фасад к пер-табличным менеджерам (Task 139) | singleton `getInstance`, `onCreate`/`onUpgrade` (+ safety-net колонок, Task 34), `upsertCalPlan` (маршрутизация по Form), `deleteCalPlanRecord`, `getDayRecords`, `getCalPlanHistory`, `execSelectArrMap`; прежние методы CALPLAN/CALPARAM/CONTACTS/HOLIDAYS сохранены как делегаты |
+| `ManageSQLDatabase` | Схема/миграции всех таблиц (DDL — только в `ConstantsSQLDb`) + фасад к пер-табличным менеджерам (Task 139) | singleton `getInstance`, `onCreate`/`onUpgrade` (+ safety-net колонок, Task 34), `upsertCalPlan` (маршрутизация по Form), `deleteCalPlanRecord`, `getDayRecords`, `getCalPlanHistory`, `execSelectArrMap`, `generateUNID32(String prefix)` (Task 185: UNID до 32 символов с опциональным префиксом); прежние методы CALPLAN/CALPARAM/CONTACTS/HOLIDAYS сохранены как делегаты |
 | `CalPlanSQLManage` | CALPLAN (Project/Task/Request) | `upsert`, `delete`, `getByDate` (диапазон StartDate..EndDate, Task 38), `getByForm`, `getProjectsTasks` (Все/Рабочие), `getTasksByProject`, `getProjectsByRequestName` |
 | `CalParamSQLManage` | CALPARAM | `get` (умолчания Height/Weight/Age/AttachFolder/DBName, Tasks 54/100), `upsert`, `updateSyncTime` (Task 143: корректировка только поля SyncTime) |
 | `ContactsSQLManage` | CONTACTS | `getContactById`/`getContactByPhone`/`getContactBySurnameFirstName`, `upsertContact` (+ запись в HISTORY «Добавление/Изменение»), `deleteContact` (снимок в HISTORY), `getContacts` |
@@ -52,8 +52,8 @@
 | `LivetypeSQLManage` | LIVETYPE | upsert / delete / getById / getByUNID / выборка `Name COLLATE NOCASE` |
 | `SmsSQLManage` | SMSCALPLAN | папки СМС: Все/Входящие (Incoming)/Исходящие (Outgoing)/Корзина (без FromID и ToID) |
 
-`ManageSQLDatabase.onCreate`: создаёт все таблицы (`ConstantsSQLDb.CREATE_TABLE_*`), заполняет `INSERT_CLASSIFICATOR`, предустановки LIVETYPE (id 1..5, UNID = Form из HEALTHPLAN, иконки ic_pedometer/ic_burger/ic_coffee/ic_stress/ic_joy), CALPARAM.
-`onUpgrade`: дозаполнение через `UPDATE_LIVETYPE_ICONS`, `UPDATE_LIVETYPE_DEFAULTS` и др. (без DROP — данные сохраняются).
+`ManageSQLDatabase.onCreate`: создаёт все таблицы (`ConstantsSQLDb.CREATE_TABLE_*`), заполняет `INSERT_CLASSIFICATOR`, предустановки LIVETYPE (id 1..9, UNID = Form + "_" + zero-padded ID, итого 32 символа HEX; Icon у предустановок пустой — подтягивается по умолчанию на основании Form), CALPARAM.
+`onUpgrade`: дозаполнение через `UPDATE_LIVETYPE_ICONS` (пустой массив — иконки предустановок не перезаписываются), `UPDATE_LIVETYPE_DEFAULTS` и др. (без DROP — данные сохраняются). Статический метод `ManageSQLDatabase.generateUNID(SQLiteDatabase)` генерирует уникальный 32-символьный HEX-UNID с проверкой на коллизию в LIVETYPE.
 
 ## 4. Record-классы
 
@@ -63,7 +63,7 @@
 | `healthPlanRecord` | HEALTHPLAN | поля органов/состояний (Head, Eyes, ..., Skin), Steps, FoodWeight (Double, Task 149), DrinkValue (Double, Task 149), Kallory, `Icon` (имя drawable из LIVETYPE, Task 173) |
 | `livetypeRecord` | LIVETYPE | Name, Category, Icon, Form, StepCounter |
 | `CalParamRecord` | CALPARAM | параметры приложения |
-| `ContactRecord` | CONTACTS | Surname, FirstName, Patronymic, Phone, Phone2, Email, BirthDate, HomeAddress... |
+| `ContactRecord` | CONTACTS | Surname, FirstName, Patronymic, Phone, Phone2, Email, BirthDate, HomeAddress, EntryID, **UNID** ("Etot phone_" + до 32 HEX, не отправляется на сервер) |
 | `holidayRecord` | HOLIDAYS | CountryCode, HolidayDate, HolidayName |
 | `smsRecord` | SMSCALPLAN | Type, FromID/FromName, ToID/ToName, Subject, Body, Status, DateReceived; `DisplayType` — вычисляемое дисплейное поле типа (Incoming/Outgoing по позиции Ведущего), в SQL не хранится |
 

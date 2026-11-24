@@ -218,6 +218,9 @@ public class EditContactActivity extends BaseScreenActivity {
         if (currentRecord == null) {
             currentRecord = new ContactRecord(surname, firstName, patronymic, phone);
             currentRecord.DateCreated = new Date();
+            // Task 185: UNID контакта — "Etot phone_" + до 32 случайных HEX-символов,
+            // запись НЕ отправляется на сервер по этому UNID (как тестовые СМС).
+            currentRecord.UNID = ManageSQLDatabase.generateUNID32("Etot phone_");
             // Task 53: Автор = Ведущий из параметров
             currentRecord.AuthorID = ManageSQLDatabase.AuthorID;
             currentRecord.AuthorName = ManageSQLDatabase.AuthorName;

@@ -136,6 +136,7 @@ public class ContactsSQLManage {
         appendField(sb, "Дом.Адресс", r.HomeAddress);
         appendField(sb, "Дата получения", r.DateReceived == null ? null : sdf.format(r.DateReceived));
         appendField(sb, "EntryID", r.EntryID);
+        appendField(sb, "UNID", r.UNID);
         return sb.length() == 0 ? null : sb.toString();
     }
 
@@ -160,6 +161,7 @@ public class ContactsSQLManage {
         record.Email = getString(cursor, "Email");
         record.HomeAddress = getString(cursor, "HomeAddress");
         record.EntryID = getString(cursor, "EntryID");
+        record.UNID = getString(cursor, "UNID");
         record.AuthorID = getString(cursor, "AuthorID");
         record.AuthorName = getString(cursor, "AuthorName");
         record.LastUpdatedByID = getString(cursor, "LastUpdatedByID");
@@ -244,6 +246,7 @@ public class ContactsSQLManage {
         SQLNullHelper.putText(values, "Email", record.Email);
         SQLNullHelper.putText(values, "HomeAddress", record.HomeAddress);
         SQLNullHelper.putText(values, "EntryID", record.EntryID);
+        SQLNullHelper.putText(values, "UNID", record.UNID);
         SQLNullHelper.putText(values, "AuthorID", record.AuthorID);
         SQLNullHelper.putText(values, "AuthorName", record.AuthorName);
         SQLNullHelper.putText(values, "LastUpdatedByID", record.LastUpdatedByID);

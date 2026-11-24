@@ -88,7 +88,7 @@
                     android:layout_gravity="center_vertical" />
             </LinearLayout>
 
-            <!-- Icon field (name of the drawable used for the configurable buttons) -->
+            <!-- Icon field (button opening dialog with list of available drawables) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -103,13 +103,13 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginEnd="8dp" />
 
-                <EditText
-                    android:id="@+id/editTextLivetypeIcon"
+                <Button
+                    android:id="@+id/buttonLivetypeIcon"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
                     android:layout_gravity="center_vertical"
-                    android:hint="имя картинки, напр. ic_pedometer" />
+                    android:text="Выбрать иконку..."
+                    android:textAllCaps="false" />
             </LinearLayout>
 
             <!-- Шагомер (Task 42): включать шагомер только для типов, где он разрешён -->

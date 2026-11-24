@@ -18,6 +18,7 @@ public class ContactRecord implements Serializable {
     public Date DateCreated; // Дата создания
     public Date DateModified; // Дата изменения
     public String EntryID; // Идентификатор занесения
+    public String UNID;    // Уникальный ID контакта ("Etot phone_" + до 32 символов, не отправляется на сервер)
     public String AuthorID; // ID Автора (из "Ведущий" в CALPARAM)
     public String AuthorName; // Автор
     public String LastUpdatedByID; // ID Обновившего

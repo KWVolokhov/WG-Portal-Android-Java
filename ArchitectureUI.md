@@ -54,7 +54,7 @@
 | 15 | `HealthDrinkActivity` | `activity_input_cal_plan.xml` | Карточка Гидратации | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 16 | `HealthSportActivity` | `activity_input_cal_plan.xml` | Карточка Физ. активности (шагомер) | Редактирование | HEALTHPLAN / `HealthSQLManage` |
 | 17 | `LivetypeActivity` | `activity_livetype.xml` | «Типы жизнедеятельности» | Список | LIVETYPE / `LivetypeSQLManage` |
-| 18 | `LivetypeEditActivity` | `activity_livetype_edit.xml` | Карточка Типа жизнедеятельности | Редактирование | LIVETYPE / `LivetypeSQLManage` |
+| 18 | `LivetypeEditActivity` | `activity_livetype_edit.xml` | Карточка Типа жизнедеятельности | Редактирование | LIVETYPE / `LivetypeSQLManage` | Task 184: поле «Иконка» — кнопка, открывающая `AlertDialog` со списком доступных drawable-ресурсов (вместо `EditText`). |
 | 19 | `SmsActivity` | `activity_sms.xml` | «СМС\Все / Входящие / Исходящие / Корзина» (extra `EXTRA_SMS_FOLDER`) | Список сообщений | SMSCALPLAN / `SmsSQLManage` |
 | 20 | `SmsChatActivity` | `activity_smschat.xml` | «СМС-чат Ведущий<->Контакт» (extra `contactId`) | Чат | SMSCALPLAN / `SmsSQLManage` |
 | 21 | `SmsViewActivity` | `activity_smsview.xml` | «СМС от/для <Контакт>» (тип — вычисляемый `DisplayType` по позиции Ведущего, Task 130) | Просмотр (только чтение) | SMSCALPLAN / `SmsSQLManage` |
