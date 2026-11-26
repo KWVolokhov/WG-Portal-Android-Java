@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -202,33 +203,41 @@ public class HealthActivity extends BaseScreenActivity {
     }
 
     private void chooseTypeAndAdd() {
-        // Task 40: выбор только по Категории; Form выводится из Категории.
-        // Здоровье: Пища/Гидратация/Физ. активность/Стресс/Гедонизм.
+        // Task 186: выбор из справочника LIVETYPE (почти все значения), а не из фиксированных типов.
+        final ArrayList<livetypeRecord> typeList = new ArrayList<>();
+        try {
+            LivetypeSQLManage ltDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
+            livetypeRecord[] all = ltDb.getAllLivetype("");
+            if (all != null)
+                for (livetypeRecord lr : all)
+                    if (lr != null && lr.Name != null && !lr.Name.trim().isEmpty())
+                        typeList.add(lr);
+        } catch (Exception ignored) {
+        }
+        if (typeList.isEmpty()) {
+            Toast.makeText(this, "Справочник типов жизнедеятельности пуст. Добавьте типы на экране \"Типы жизнедеятельности\".", Toast.LENGTH_LONG).show();
+            return;
+        }
+        final int n = typeList.size();
+        final String[] names = new String[n];
+        for (int i = 0; i < n; i++) names[i] = typeList.get(i).Name;
         new AlertDialog.Builder(this)
                 .setTitle("Добавить запись здоровья")
-                .setItems(new String[]{"Питание", "Питьё", "Спорт", "Стресс", "Гедонизм"},
-                        (d, which) -> {
-                            String form = livetypeRecord.CATEGORY_FORMS[which];
-                            // Task 173: иконку берем из шаблона livetypeRecord (справочник LIVETYPE)
-                            String icon = null;
-                            try {
-                                LivetypeSQLManage ltDb = new LivetypeSQLManage(ManageSQLDatabase.getInstance(this).getWritableDatabase());
-                                livetypeRecord[] all = ltDb.getAllLivetype("");
-                                if (all != null) {
-                                    for (livetypeRecord lr : all) {
-                                        if (form.equals(lr.Form)) { icon = lr.Icon; break; }
-                                    }
-                                }
-                            } catch (Exception ignored) {
-                            }
-                            calPlanRecord newRecord = new calPlanRecord(form, "");
-                            if (icon != null && !icon.isEmpty()) newRecord.Icon = icon;
-                            Intent intent = new Intent(HealthActivity.this, HealthEditActivity.class);
-                            intent.putExtra("activeDate", day);
-                            intent.putExtra("healthForm", form);
-                            intent.putExtra("calPlanRecord", newRecord);
-                            startActivityForResult(intent, 1);
-                        })
+                .setItems(names, (d, which) -> {
+                    livetypeRecord typeRecord = typeList.get(which);
+                    if (typeRecord == null) return;
+                    // Копируем поля из выбранной записи справочника LIVETYPE в новую Health-запись
+                    // (общий механизм HealthOperations, тот же, что у кнопок MainActivity).
+                    healthPlanRecord record = HealthOperations.buildRecordFromLivetype(
+                            typeRecord,
+                            ManageSQLDatabase.AuthorID, ManageSQLDatabase.AuthorName,
+                            new Date(), day);
+                    Intent intent = new Intent(HealthActivity.this, HealthEditActivity.class);
+                    intent.putExtra("activeDate", day);
+                    intent.putExtra("healthForm", typeRecord.Form != null ? typeRecord.Form : "HealthEat");
+                    intent.putExtra("calPlanRecord", HealthSQLManage.toCalPlan(record));
+                    startActivityForResult(intent, 1);
+                })
                 .setNegativeButton("Cancel", null)
                 .show();
     }

@@ -4,6 +4,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.calendar4.health.HealthOperations;
 import com.example.calendar4.localsql.HealthSQLManage;
 import com.example.calendar4.localsql.LivetypeSQLManage;
 import com.example.calendar4.localsql.ManageSQLDatabase;
@@ -85,15 +86,14 @@ final class MainQuickButtons {
         }
     }
 
-    // Название/Form/поля органов - из LIVETYPE; автор и даты - по правилам карточки
+    // Название/Form/поля органов - из LIVETYPE; автор и даты - по правилам карточки.
+    // Копирование вынесено в HealthOperations (общий механизм для кнопок и диалога HealthActivity).
     private static healthPlanRecord buildRecord(MainActivity act, livetypeRecord typeRecord) {
-        healthPlanRecord record = new healthPlanRecord(typeRecord);
-        record.AuthorID = ManageSQLDatabase.AuthorID;         // Ведущий
-        record.AuthorName = ManageSQLDatabase.AuthorName;     // Ведущий
-        record.Okdate = new Date();                            // Дата создания = сегодня
-        record.StartDate = (act.russianCalendar != null && act.russianCalendar.activeDate != null)
-                ? act.russianCalendar.activeDate : new Date(); // Дата старта из календаря
-        return record;
+        return HealthOperations.buildRecordFromLivetype(typeRecord,
+                ManageSQLDatabase.AuthorID, ManageSQLDatabase.AuthorName,
+                new Date(),
+                (act.russianCalendar != null && act.russianCalendar.activeDate != null)
+                        ? act.russianCalendar.activeDate : new Date());
     }
 
     /** Task 42: шагомер разрешён только если в справочнике LIVETYPE включён StepCounter. */
