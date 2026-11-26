@@ -498,6 +498,18 @@ public class MainActivity extends BaseScreenActivity {
         }
     }
 
+    /** Приоритет статуса для сортировки внутри группы одинаковой Form (Task 188).
+     *  Порядок: В работе, Тестирование, Выполнено, прочие в конце. */
+    private static int statusPriority(calPlanRecord r) {
+        if (r == null) return 99;
+        String sid = r.StatusID;
+        String st = r.Status;
+        if ("Inwork".equals(sid) || "В работе".equals(st)) return 1;
+        if ("Intest".equals(sid) || "Тестирование".equals(st)) return 2;
+        if ("Done".equals(sid) || "Выполнено".equals(st)) return 3;
+        return 99; // Draft, Canceled, Hold, null — в конце
+    }
+
     void refreshListView() {
         if (russianCalendar != null && owerDb != null) {
             Date activeDate = russianCalendar.activeDate;
@@ -506,7 +518,9 @@ public class MainActivity extends BaseScreenActivity {
                 mainListAdapter.clear();
                 if (activRecordS != null) {
                     // Собираем видимые записи, сортируем: сначала по приоритету формы,
-                    // затем внутри группы — по названию по алфавиту (Task 174).
+                    // затем внутри группы — по статусу (В работе → Тестирование → Выполнено,
+                    // прочие в конце), а внутри одного статуса — по названию по алфавиту
+                    // (Task 174/188).
                     ArrayList<calPlanRecord> sorted = new ArrayList<>();
                     for (calPlanRecord record : activRecordS) {
                         // History is hidden, Health is hidden, and Project/Task drafts
@@ -521,6 +535,10 @@ public class MainActivity extends BaseScreenActivity {
                             int pa = formPriority(a.Form);
                             int pb = formPriority(b.Form);
                             if (pa != pb) return pa - pb;
+                            // Task 188: внутри одной формы сортировка по статусу
+                            int sa = statusPriority(a);
+                            int sb = statusPriority(b);
+                            if (sa != sb) return sa - sb;
                             String na = a.Name != null ? a.Name : "";
                             String nb = b.Name != null ? b.Name : "";
                             return na.compareToIgnoreCase(nb);

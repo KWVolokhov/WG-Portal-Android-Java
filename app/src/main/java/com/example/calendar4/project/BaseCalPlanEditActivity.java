@@ -42,11 +42,11 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
             "History", "HealthEat", "HealthDrink", "HealthSport", "HealthStress", "HealthJoy"};
 
     // Task 35: when the card is opened from the "Проекты" screen (Add / edit), the Form
-    // picker offers only Проекты/Задачи/Заявка на автоматизацию (Project/Task/Request).
+    // picker offers only Проект/Задача/Заявка (Project/Task/Request).
     public static final String EXTRA_PROJECTS_FORM_MODE = "extra_projects_form_mode";
     // Task 114: предвыбранная Form для НОВОЙ записи (например "Request" из диалога Добавить).
     public static final String EXTRA_PRESELECT_FORM = "extra_preselect_form";
-    protected static final String[] PROJECT_FORM_LABELS = {"Проекты", "Задачи", "Заявку на проект"};
+    protected static final String[] PROJECT_FORM_LABELS = {"Проект", "Задача", "Заявка на проект"};
     protected static final String[] PROJECT_FORM_VALUES = {"Project", "Task", "Request"};
     protected static final String[] STATUS_LABELS = {"Черновик", "В работе", "Тестирование",
             "Выполнено", "Отменено", "Отложено"};
@@ -137,7 +137,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
     protected String preselectProjectUNID;
     protected String preselectRequestName;
 
-    /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проекты/Задачи/Заявка). */
+    /** Task 35: true when the card was opened from the "Проекты" screen (Form = Проект/Задача/Заявка). */
     private boolean projectsFormMode = false;
 
     // Task 114: предвыбранная Form для новой записи (для InputCalPlanActivity из диалога Добавить)
@@ -216,7 +216,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
 		owerDb = ManageSQLDatabase.getInstance(this);
         loadContacts();
 
-        // Task 35: "Проекты"-mode restricts the Form picker to Проекты/Задачи/Заявка
+        // Task 35: "Проекты"-mode restricts the Form picker to Проект/Задача/Заявка
         projectsFormMode = intent.getBooleanExtra(EXTRA_PROJECTS_FORM_MODE, false);
 
         applyConfig();
@@ -542,7 +542,7 @@ public abstract class BaseCalPlanEditActivity extends BaseScreenActivity {
 
     /**
      * Form value read from the spinner.
-     * In "Проекты"-mode the spinner shows "Проекты"/"Задачи"/"Заявка на автоматизацию"
+     * In "Проекты"-mode the spinner shows "Проект"/"Задача"/"Заявка на проект"
      * and the value is mapped back to Project/Task/Request before saving.
      */
     protected String selectedFormValue() {

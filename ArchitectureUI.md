@@ -27,7 +27,7 @@
 
 ### Константы `BaseCalPlanEditActivity`
 - `FORM_VALUES = {Project, Note, Remember, Task, History, HealthEat, HealthDrink, HealthSport, HealthStress, HealthJoy}`.
-- `PROJECT_FORM_VALUES = {Project, Task, Request}` (+ extra `EXTRA_PROJECTS_FORM_MODE`, `EXTRA_PRESELECT_FORM`); подписи `PROJECT_FORM_LABELS = {Проекты, Задачи, Заявку на проект}`.
+- `PROJECT_FORM_VALUES = {Project, Task, Request}` (+ extra `EXTRA_PROJECTS_FORM_MODE`, `EXTRA_PRESELECT_FORM`); подписи `PROJECT_FORM_LABELS = {Проект, Задача, Заявка на проект}`.
 - `STATUS_LABELS/IDS`: Черновик/Draft, В работе/Inwork, Тестирование/Intest, Выполнено/Done, Отменено/Canceled, Отложено/Hold.
 - `MAIN_SYSTEMS`: Lotus(HCL), VBA, Java, JavaScriptServer, JavaScript, SQL, Busines, ArtDesign, Combo.
 - Формат дат: `dd.MM.yyyy`, с временем: `dd.MM.yyyy HH:mm:ss`.
@@ -69,7 +69,7 @@
 ### Экран `MainActivity` (зоны)
 1. Календарь: нестандартный `RussianCalendarView` (id `calendarView1`), выбор даты обновляет список.
 2. Кнопки управления (в т.ч. быстрые кнопки LIVETYPE Button1..Button5 из CALPARAM: Шагомер/Бургер/Кофе и т.д.; Task 139: обработка кнопок и иконок — в хелпере `MainQuickButtons`, загрузка производственного календаря — в `RussianHolidaysLoader`; Task 144: с 1 сентября — догрузка нерабочих дней следующего года; Task 166: календарь загружается для любого отображаемого года; Task 167: повторная попытка загрузки текущего года 1 раз за запуск приложения).
-3. Список (id `listView1`) записей за выбранную дату. Сортировка (Task 174): первыми Заметки (Form=Note), затем Уведомления (Form=Remember), затем Задачи (Form=Task), затем Проекты (Form=Project), затем Заявки (Form=Request); внутри каждой группы — по названию по алфавиту. Групповые заголовки не рисуются.
+3. Список (id `listView1`) записей за выбранную дату. Сортировка (Task 174): первыми Заметки (Form=Note), затем Уведомления (Form=Remember), затем Задачи (Form=Task), затем Проекты (Form=Project), затем Заявки (Form=Request); внутри каждой группы — по статусу (В работе → Тестирование → Выполнено, прочие в конце), а внутри одного статуса — по названию по алфавиту (Task 188). Групповые заголовки не рисуются.
 
 ### Шаблон заголовка экрана (единый стиль)
 - Сверху заголовок, центрован влево, в той же строке ImageButton-кнопки (Add, Back и др.), центрованы вправо.
@@ -80,8 +80,8 @@
 ```
 AppCompatActivity
 +-- BaseScreenActivity                      (меню main_menu.xml для всех наследников)
-|   +-- MainActivity                        (LAUNCHER, меню из BaseScreenActivity, Task 133)
-|   +-- BaseCalPlanEditActivity             (карточка записи, layout activity_input_cal_plan.xml)
+|   +-- MainActivity                        (LAUNCHER, меню из BaseScreenActivity, Task 133; ManageSQLDatabase, RussianCalendarView, RussianHolidaysFetcher, RussianHolidaysLoader, Pedometer, MessageListItem, InfoFieldView, StatusIconFactory, MainQuickButtons, CalParamRecord, ContactRecord, calPlanRecord)
+|   +-- BaseCalPlanEditActivity             (карточка записи, layout activity_input_cal_plan.xml; ManageSQLDatabase, CalPlanHealthNumbers, InfoFieldView, Pedometer, DateFieldView, ContactRecord, calPlanRecord, CalPlanCardMapper)
 |   |   +-- InputCalPlanActivity            (Form=Project/Request)
 |   |   +-- TaskActivity                    (Form=Task)
 |   |   +-- NoteActivity                    (Form=Note, таблица NOTEPLAN)
@@ -91,18 +91,21 @@ AppCompatActivity
 |   |       +-- HealthEatActivity           (Form=HealthEat)
 |   |       +-- HealthDrinkActivity         (Form=HealthDrink)
 |   |       +-- HealthSportActivity         (Form=HealthSport)
-|   +-- ContactsActivity                    (Список Справочник Контактов, привязанных к Параметры\Ведущий)
-|   +-- EditContactActivity                 (Карточка редактирования контакта)
-|   +-- ProjectsActivity                    (Список Проектов)
-|   +-- HistoryActivity                     (Список активностей за день)
-|   +-- HealthActivity                      
-|   +-- LivetypeActivity                    (Список шаблонных активностей по HEALTH)
-|   +-- LivetypeEditActivity                (Карточка редактирования шаблонных активностей по HEALTH)
-|   +-- ParamsActivity                      (Параметры)
-|   +-- SmsActivity                         
-|   +-- SmsChatActivity
-|   +-- SmsViewActivity
+|   +-- ContactsActivity                    (Список Справочник Контактов, привязанных к Параметры\Ведущий; ManageSQLDatabase, MessageListItem, ContactRecord, CalParamRecord)
+|   +-- EditContactActivity                 (Карточка редактирования контакта; InfoFieldView, ManageSQLDatabase, PhoneFieldView, DateFieldView, ContactRecord)
+|   +-- ProjectsActivity                    (Список Проектов; MessageListItem, StatusIconFactory, InfoFieldView, ManageSQLDatabase, CalParamRecord, calPlanRecord)
+|   +-- HistoryActivity                     (Список активностей за день; InfoFieldView, MessageListItem, ManageSQLDatabase, HistorySQLManage, calPlanRecord)
+|   +-- HealthActivity                      (Список HEALTHPLAN за день, HealthOperations; ManageSQLDatabase, MessageListItem, InfoFieldView, HealthSQLManage, LivetypeSQLManage, calPlanRecord, healthPlanRecord, livetypeRecord)
+|   +-- LivetypeActivity                    (Список шаблонных активностей по HEALTH; ManageSQLDatabase, MessageListItem, LivetypeSQLManage, livetypeRecord)
+|   +-- LivetypeEditActivity                (Карточка редактирования шаблонных активностей по HEALTH; ManageSQLDatabase, LivetypeSQLManage, ContactRecord, livetypeRecord)
+|   +-- ParamsActivity                      (Параметры; ManageSQLDatabase, CalParamRecord, LivetypeSQLManage, livetypeRecord, ContactRecord, SynchroCal)
+|   +-- SmsActivity                         (Список СМС по папкам Все/Входящие/Исходящие/Корзина; ManageSQLDatabase, MessageListItem, SmsSQLManage, CalParamRecord, smsRecord)
+|   +-- SmsChatActivity                     (СМС-чат с Контактом/Ведущим; ManageSQLDatabase, MessageListItem, SmsSQLManage, CalParamRecord, ContactRecord, smsRecord)
+|   +-- SmsViewActivity                     (Просмотр одной СМС, только чтение; ManageSQLDatabase, CalParamRecord, smsRecord)
 |   +-- CaclActivity                        (калькулятор, layout activity_calc.xml, Task 142)
++-- AboutActivity                           («О Программе», версия Android/БД, Task 146; AndroidVersions, ManageSQLDatabase)
++-- HelpActivity                            («Help Справочник», заглушка списка, Task 147)
++-- SpotlightActivity                       (контекстная подсказка экрана, Task 148; HelpConstants)
 CrashActivity (extends android.app.Activity, singleTask)
 ```
 
@@ -148,6 +151,7 @@ CrashActivity (extends android.app.Activity, singleTask)
 | `MessageListItem` | `LinearLayout` | Универсальный элемент списка: иконка + 1..N строк текста + кнопки (Редактировать/Удалить, или Просмотр), разделитель `--5--` | Все списки (бывший TwoLineListItem, Task 125) |
 | `FlyOutContainer` | `LinearLayout` | Выдвижной контейнер (fly-out) | Резерв |
 | `StatusIconFactory` | (utility, final) | Иконки статусов записей по цветам состояний; статус рисуется полным словом (Draft/Work/Test/Ok/Hold/Cancel), шрифт автоуменьшается под ширину иконки (Task 132) | Списки |
+| `HealthOperations` | (utility, final) | Построение Health-записи из livetypeRecord (запись здоровья заполняется полями шаблона LIVETYPE: Form, имя иконки, категория и т.п.); используется в `HealthActivity` (кнопка Add) и `MainQuickButtons` (Task 186) | Списки здоровья |
 | `InfoBlocksAdapter` | `RecyclerView.Adapter` | Сетка вложений (1/4 ширины строки) и таблицы (viewType 4, `TableHolder`: сетка rows×cols EditText-ячеек), тап по вложению открывает стандартный просмотрщик; `focusedOrLastEditor()` — EditText где стоял курсор, `writeBack()` — явная запись HTML после смены спанов (Task 136) | `InfoFieldView` |
 
 ## 5.1. Векторные иконки (res/drawable)
